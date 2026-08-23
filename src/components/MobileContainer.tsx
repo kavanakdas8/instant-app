@@ -1,8 +1,22 @@
 "use client";
 
 import React from 'react';
+import { usePathname } from 'next/navigation';
 
 export const MobileContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/signup';
+
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen w-full bg-[#050505] text-white font-sans antialiased selection:bg-accent-pink/30 flex flex-col">
+        <main className="flex-1 flex flex-col relative no-scrollbar">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#050505] text-white flex justify-center items-stretch font-sans antialiased selection:bg-accent-pink/30">
       {/* Outer borders represent a mock phone wrapper on desktop screens */}
