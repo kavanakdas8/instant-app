@@ -303,31 +303,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [groups, setGroups] = useState<TravelGroup[]>(MOCK_GROUPS);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>(MOCK_REQUESTS);
 
-  // Auto-login a mock user on mount so the user has immediate access
-  useEffect(() => {
-    const user = {
-      name: 'Alice Cooper',
-      username: 'alice_adventures',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-      bio: 'Travel photographer & filmmaker. Searching for the unseen corners of the world. 🌍✨',
-      instants: [
-        {
-          id: 'f3',
-          url: 'https://images.unsplash.com/photo-1527838832700-50592524df75?q=80&w=600&auto=format&fit=crop',
-          type: 'image',
-          timestamp: '1 day ago',
-          caption: 'Sunrises in Cappadocia. Truly felt like another planet. 🎈✨ #turkey #wanderlust',
-          author: 'Alice Cooper',
-          authorUsername: 'alice_adventures',
-          authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-          likes: 1205,
-          comments: [],
-          audience: 'Public'
-        }
-      ]
-    };
-    setCurrentUser(user);
-  }, []);
+
 
   const login = (username: string): boolean => {
     // If logging in as existing mock users, load their profile

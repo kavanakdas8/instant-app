@@ -28,12 +28,6 @@ export const Navigation: React.FC = () => {
       href: '/feed',
     },
     {
-      label: 'Capture',
-      icon: Camera,
-      href: '/capture',
-      highlight: true
-    },
-    {
       label: 'Groups',
       icon: Users,
       href: '/groups',
@@ -47,23 +41,20 @@ export const Navigation: React.FC = () => {
 
   return (
     <nav className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md h-16 bg-[#080808]/90 backdrop-blur-md border-t border-zinc-900 flex justify-around items-center px-4 z-40">
+      {/* Floating Camera Button - Only displayed on Feed page */}
+      {pathname === '/feed' && (
+        <Link 
+          href="/capture"
+          className="absolute -top-16 left-1/2 -translate-x-1/2 flex items-center justify-center w-14 h-14 bg-zinc-900 hover:bg-zinc-800 text-zinc-400 hover:text-white border border-zinc-800 rounded-full shadow-lg shadow-black/50 hover:scale-105 active:scale-95 transition-transform duration-200"
+          aria-label="Capture"
+        >
+          <Camera className="w-6 h-6 stroke-[2]" />
+        </Link>
+      )}
+
       {navItems.map((item) => {
         const Icon = item.icon;
-        const isActive = item.highlight 
-          ? pathname === item.href
-          : pathname.startsWith(item.href);
-
-        if (item.highlight) {
-          return (
-            <Link 
-              key={item.href} 
-              href={item.href}
-              className="relative -top-4 flex items-center justify-center w-14 h-14 bg-gradient-to-tr from-accent-pink to-accent-cyan rounded-full shadow-lg shadow-accent-pink/20 hover:scale-105 active:scale-95 transition-transform duration-200"
-            >
-              <Icon className="w-7 h-7 text-black stroke-[2.5]" />
-            </Link>
-          );
-        }
+        const isActive = pathname.startsWith(item.href);
 
         return (
           <Link

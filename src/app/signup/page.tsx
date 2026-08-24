@@ -179,13 +179,10 @@ export default function Signup() {
       </button>
 
       {/* LEFT COLUMN: Reskinned Brand Image Area with Story Circle Art */}
-      <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen bg-gradient-to-br from-indigo-950 via-slate-900 to-[#FF2E93]/20 flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
+      <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen bg-slate-950 bg-gradient-to-br from-indigo-950 via-slate-900 to-[#FF2E93]/20 flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
         
         {/* Brand Logo & Name */}
-        <div className="flex items-center space-x-2.5 z-10">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-accent-pink to-accent-cyan flex items-center justify-center shadow-lg">
-            <Camera className="w-5 h-5 text-black stroke-[2.2]" />
-          </div>
+        <div className="flex items-center z-10">
           <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
         </div>
 
@@ -308,10 +305,10 @@ export default function Signup() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-3.5 px-4 bg-gradient-to-r from-accent-purple to-accent-pink hover:opacity-95 active:scale-[0.98] text-white text-sm font-bold rounded-xl shadow-lg shadow-accent-purple/20 transition-all flex items-center justify-center space-x-2"
+                  className="w-full py-3.5 px-4 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-95 active:scale-[0.98] text-black text-sm font-bold rounded-xl shadow-lg shadow-accent-pink/20 transition-all flex items-center justify-center space-x-2"
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <span>Create Account</span>
@@ -436,12 +433,12 @@ export default function Signup() {
                   type="button"
                   onClick={handleCompleteRegistration}
                   disabled={loading}
-                  className={`w-full py-3.5 bg-gradient-to-r from-accent-purple to-accent-pink hover:opacity-95 text-white text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 ${
+                  className={`w-full py-3.5 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-95 text-black text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 ${
                     loading ? 'opacity-80 cursor-wait' : ''
                   }`}
                 >
                   {loading ? (
-                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <Check className="w-4 h-4 stroke-[2.5]" />
