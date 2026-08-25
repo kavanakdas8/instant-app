@@ -1,8 +1,9 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
   "/feed/page": "app/feed/page.js",
-  "/groups/page": "app/groups/page.js",
+  "/chats/[chatId]/page": "app/chats/[chatId]/page.js",
   "/capture/page": "app/capture/page.js",
-  "/profile/[username]/page": "app/profile/[username]/page.js",
-  "/groups/[groupId]/page": "app/groups/[groupId]/page.js"
+  "/chats/page": "app/chats/page.js",
+  "/login/page": "app/login/page.js",
+  "/profile/[username]/page": "app/profile/[username]/page.js"
 }

@@ -71,11 +71,19 @@ export interface UserProfile {
   instants: Instant[];
 }
 
+export interface PersonalChat {
+  id: string; // e.g. "alice_adventures-emma_in_europe"
+  usernames: string[]; // participant usernames
+  messages: ChatMessage[];
+}
+
 interface AppContextType {
   currentUser: UserProfile | null;
   feed: Instant[];
   groups: TravelGroup[];
   joinRequests: JoinRequest[];
+  personalChats: PersonalChat[];
+  allUsers: UserProfile[];
   setCurrentUser: (user: UserProfile | null) => void;
   login: (username: string) => boolean;
   signup: (name: string, username: string, bio: string) => boolean;
@@ -88,6 +96,7 @@ interface AppContextType {
   sendGroupMessage: (groupId: string, text: string, attachedInstant?: Instant) => void;
   pinGroupMessage: (groupId: string, messageId: string) => void;
   unpinGroupMessage: (groupId: string, messageId: string) => void;
+  sendPersonalMessage: (recipientUsername: string, text: string, attachedInstant?: Instant) => void;
   captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string) => void;
   playShutterSound: () => void;
 }
@@ -297,11 +306,108 @@ const MOCK_REQUESTS: JoinRequest[] = [
   }
 ];
 
+export const MOCK_USERS: UserProfile[] = [
+  {
+    name: 'Alice Cooper',
+    username: 'alice_adventures',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    bio: 'Travel photographer & filmmaker. Searching for the unseen corners of the world. 🌍✨',
+    instants: []
+  },
+  {
+    name: 'Emma Watson',
+    username: 'emma_in_europe',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+    bio: 'Backpacker traveling across Europe. Currently in Florence! 🍕🗺️',
+    instants: []
+  },
+  {
+    name: 'Kento Sato',
+    username: 'kento_tokyo',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    bio: 'Solo Tokyo explorer. Looking for the best ramen and hidden alleys. 🍜🇯🇵',
+    instants: []
+  },
+  {
+    name: 'Bob Vance',
+    username: 'bob_travels',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+    bio: 'Roadtripper and landscape seeker. Camping across national parks with my trusty old campervan.',
+    instants: []
+  }
+];
+
+export const MOCK_PERSONAL_CHATS: PersonalChat[] = [
+  {
+    id: 'alice_adventures-emma_in_europe',
+    usernames: ['alice_adventures', 'emma_in_europe'],
+    messages: [
+      {
+        id: 'pm1',
+        senderId: 'emma_in_europe',
+        senderName: 'Emma Watson',
+        senderUsername: 'emma_in_europe',
+        senderAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+        text: 'Hey Alice! Loved your hot air balloon photo. Let me know when you are free to discuss our next camera gear setup.',
+        timestamp: 'Yesterday'
+      },
+      {
+        id: 'pm2',
+        senderId: 'alice_adventures',
+        senderName: 'Alice Cooper',
+        senderUsername: 'alice_adventures',
+        senderAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+        text: 'Thanks Emma! I have some free time tonight. Are you online?',
+        timestamp: 'Yesterday'
+      }
+    ]
+  },
+  {
+    id: 'alice_adventures-kento_tokyo',
+    usernames: ['alice_adventures', 'kento_tokyo'],
+    messages: [
+      {
+        id: 'pm3',
+        senderId: 'kento_tokyo',
+        senderName: 'Kento Sato',
+        senderUsername: 'kento_tokyo',
+        senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+        text: 'Hi Alice, I am heading to a hidden ramen spot in Shibuya. Would love to get some photography tips from you.',
+        timestamp: '2 hours ago'
+      }
+    ]
+  },
+  {
+    id: 'bob_travels-emma_in_europe',
+    usernames: ['bob_travels', 'emma_in_europe'],
+    messages: [
+      {
+        id: 'pm4',
+        senderId: 'bob_travels',
+        senderName: 'Bob Vance',
+        senderUsername: 'bob_travels',
+        senderAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+        text: 'Hi Emma, does the Backpackers Prague meetup have a set date yet?',
+        timestamp: '2 days ago'
+      }
+    ]
+  }
+];
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [feed, setFeed] = useState<Instant[]>(MOCK_FEED);
   const [groups, setGroups] = useState<TravelGroup[]>(MOCK_GROUPS);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>(MOCK_REQUESTS);
+  const [personalChats, setPersonalChats] = useState<PersonalChat[]>(MOCK_PERSONAL_CHATS);
+  const [allUsers, setAllUsers] = useState<UserProfile[]>(MOCK_USERS);
+
+  useEffect(() => {
+    setAllUsers(MOCK_USERS.map(user => ({
+      ...user,
+      instants: feed.filter(f => f.authorUsername === user.username)
+    })));
+  }, [feed]);
 
 
 
@@ -489,6 +595,45 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const sendPersonalMessage = (recipientUsername: string, text: string, attachedInstant?: Instant) => {
+    if (!currentUser) return;
+
+    const sorted = [currentUser.username, recipientUsername].sort();
+    const chatId = `${sorted[0]}-${sorted[1]}`;
+
+    const newMessage: ChatMessage = {
+      id: `msg_${Date.now()}`,
+      senderId: currentUser.username,
+      senderName: currentUser.name,
+      senderUsername: currentUser.username,
+      senderAvatar: currentUser.avatar,
+      text,
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      instant: attachedInstant
+    };
+
+    setPersonalChats(prev => {
+      const exists = prev.some(c => c.id === chatId);
+      if (exists) {
+        return prev.map(c => {
+          if (c.id === chatId) {
+            return { ...c, messages: [...c.messages, newMessage] };
+          }
+          return c;
+        });
+      } else {
+        return [
+          ...prev,
+          {
+            id: chatId,
+            usernames: [currentUser.username, recipientUsername],
+            messages: [newMessage]
+          }
+        ];
+      }
+    });
+  };
+
   const sendGroupMessage = (groupId: string, text: string, attachedInstant?: Instant) => {
     if (!currentUser) return;
 
@@ -640,6 +785,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         feed,
         groups,
         joinRequests,
+        personalChats,
+        allUsers,
         setCurrentUser,
         login,
         signup,
@@ -652,6 +799,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         sendGroupMessage,
         pinGroupMessage,
         unpinGroupMessage,
+        sendPersonalMessage,
         captureInstant,
         playShutterSound
       }}
