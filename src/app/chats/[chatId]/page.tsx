@@ -108,13 +108,13 @@ export default function ChatDetails() {
   const messages = isDM ? (personalChat?.messages || []) : (group?.messages || []);
 
   return (
-    <div className="flex-1 flex flex-col bg-[#050505] relative select-none h-screen">
+    <div className="flex-1 flex flex-col bg-[#050505] relative select-none h-full">
       {/* Chat Header */}
       <div className="h-16 bg-[#080808]/90 backdrop-blur-md border-b border-zinc-900 flex justify-between items-center px-4 z-30">
         <div className="flex items-center space-x-3">
           <button 
             onClick={() => router.push('/chats')}
-            className="p-1 rounded-full bg-zinc-900 text-zinc-400 hover:text-zinc-200"
+            className="md:hidden p-1 rounded-full bg-zinc-900 text-zinc-400 hover:text-zinc-200"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>

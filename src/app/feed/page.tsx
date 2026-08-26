@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp, Instant } from '@/context/AppContext';
-import { 
+import {
   Heart, MessageCircle, Send, Volume2, VolumeX, AlertCircle,
   Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles
 } from 'lucide-react';
@@ -120,7 +120,7 @@ export default function Feed() {
         <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center px-4 z-30 select-none">
           <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
           <div className="flex items-center space-x-3">
-            <button 
+            <button
               onClick={() => setMuted(!muted)}
               className="p-2 rounded-full bg-black/40 backdrop-blur-md border border-zinc-900/50 text-zinc-350 hover:text-white"
             >
@@ -138,7 +138,7 @@ export default function Feed() {
             <div className="h-full flex flex-col justify-center items-center px-6 text-center space-y-4">
               <AlertCircle className="w-12 h-12 text-zinc-650 animate-bounce" />
               <p className="text-zinc-400 font-medium">No public Instants shared yet.</p>
-              <button 
+              <button
                 onClick={() => router.push('/capture')}
                 className="py-2.5 px-5 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-bold rounded-xl text-sm"
               >
@@ -147,10 +147,10 @@ export default function Feed() {
             </div>
           ) : (
             feed.map((post) => (
-              <FeedItem 
-                key={post.id} 
-                post={post} 
-                muted={muted} 
+              <FeedItem
+                key={post.id}
+                post={post}
+                muted={muted}
                 onLike={() => handleLikePost(post)}
                 onCommentClick={() => handleOpenComments(post.id)}
                 onShareClick={() => handleShare(post)}
@@ -170,7 +170,7 @@ export default function Feed() {
             {/* Brand Header */}
             <div className="mb-8 flex items-center justify-between animate-fade-in-up">
               <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
-              <button 
+              <button
                 onClick={() => setMuted(!muted)}
                 className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all active:scale-95"
                 title={muted ? "Unmute Feed" : "Mute Feed"}
@@ -180,7 +180,7 @@ export default function Feed() {
             </div>
 
             {/* User Profile Card */}
-            <div 
+            <div
               onClick={() => router.push(`/profile/${currentUser.username}`)}
               className="flex items-center space-x-3 bg-[#18181B] border border-[#27272A] hover:border-zinc-700/60 p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] mb-8"
             >
@@ -193,7 +193,7 @@ export default function Feed() {
 
             {/* Navigation Links */}
             <nav className="space-y-4">
-              <button 
+              <button
                 onClick={() => router.push('/feed')}
                 className="w-full flex items-center space-x-3 px-4 py-3 bg-[#18181B] text-white rounded-xl text-xs font-bold transition-all border border-[#27272A]"
               >
@@ -201,9 +201,9 @@ export default function Feed() {
                 <span>Feed</span>
               </button>
 
-              <button 
+              <div
                 onClick={() => router.push('/chats')}
-                className="w-full flex flex-col px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all group"
+                className="w-full flex flex-col px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all group cursor-pointer"
               >
                 <div className="w-full flex items-center justify-between">
                   <div className="flex items-center space-x-3">
@@ -211,22 +211,28 @@ export default function Feed() {
                     <span>Chats</span>
                   </div>
                 </div>
-                
+
                 {/* Sub-sections / Badges for Groups and Personal Messages */}
                 <div className="w-full pl-7 mt-2 space-y-1.5 border-l border-zinc-800 text-left">
-                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider py-0.5">
+                  <div 
+                    onClick={(e) => { e.stopPropagation(); router.push('/chats?tab=groups'); }}
+                    className="flex items-center justify-between text-[10px] text-zinc-500 hover:text-zinc-300 font-semibold uppercase tracking-wider py-0.5 hover:bg-zinc-900/50 rounded px-1 -mx-1"
+                  >
                     <span>Groups</span>
                     <span className="bg-accent-pink/15 text-accent-pink px-2 py-0.5 rounded-full text-[8px] font-black">3</span>
                   </div>
-                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider py-0.5">
+                  <div 
+                    onClick={(e) => { e.stopPropagation(); router.push('/chats?tab=dms'); }}
+                    className="flex items-center justify-between text-[10px] text-zinc-500 hover:text-zinc-300 font-semibold uppercase tracking-wider py-0.5 hover:bg-zinc-900/50 rounded px-1 -mx-1"
+                  >
                     <span>DMs</span>
                     <span className="bg-accent-cyan/15 text-accent-cyan px-2 py-0.5 rounded-full text-[8px] font-black">2</span>
                   </div>
                 </div>
-              </button>
+              </div>
 
               {/* Notifications Option */}
-              <button 
+              <button
                 onClick={() => router.push('/notifications')}
                 className="w-full flex items-center justify-between px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all border border-transparent"
               >
@@ -244,7 +250,7 @@ export default function Feed() {
           </div>
 
           <div className="flex flex-col space-y-4">
-            <button 
+            <button
               onClick={() => router.push('/capture')}
               className="w-full py-3.5 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-90 active:scale-[0.98] text-black font-black rounded-2xl text-xs flex items-center justify-center space-x-2.5 transition-all shadow-md shadow-accent-pink/5"
             >
@@ -261,7 +267,7 @@ export default function Feed() {
               <AlertCircle className="w-12 h-12 text-zinc-650 mx-auto animate-bounce" />
               <h2 className="text-lg font-bold text-zinc-200">No Instants Shared</h2>
               <p className="text-xs text-zinc-500">Capture a moment to start the deck!</p>
-              <button 
+              <button
                 onClick={() => router.push('/capture')}
                 className="py-2.5 px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-xl text-xs"
               >
@@ -271,7 +277,7 @@ export default function Feed() {
           ) : (
             <div className="w-full flex items-center justify-center">
               <div className="w-full max-w-[420px] flex flex-col items-center justify-center relative pb-12">
-                
+
 
                 {/* Stacked Cards */}
                 <div className="relative w-full aspect-[4/5] max-w-[360px] flex justify-center items-center select-none">
@@ -296,7 +302,7 @@ export default function Feed() {
                       )}
                     </div>
                   )}
-                  
+
                   {/* Top Active Card */}
                   <div className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[54px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up">
                     {/* Media content */}
@@ -334,7 +340,7 @@ export default function Feed() {
                     <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
 
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                    
+
                     {activeCard.caption && (
                       <div className="absolute left-6 right-6 bottom-6 z-20 text-center">
                         <p className="text-sm font-medium text-white drop-shadow-md line-clamp-2">
@@ -347,9 +353,9 @@ export default function Feed() {
 
                 {/* Author Info */}
                 <div className="flex items-center space-x-2 mt-6 mb-8">
-                  <img 
-                    src={activeCard.authorAvatar} 
-                    alt={activeCard.authorUsername} 
+                  <img
+                    src={activeCard.authorAvatar}
+                    alt={activeCard.authorUsername}
                     className="w-6 h-6 rounded-full object-cover border border-zinc-800"
                   />
                   <span className="text-sm font-bold text-zinc-200">{activeCard.authorUsername}</span>
@@ -358,40 +364,40 @@ export default function Feed() {
 
                 {/* Reactions Arc */}
                 <div className="relative h-[110px] w-full max-w-[280px] mt-2 z-10">
-                   <button className="absolute top-6 left-0 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '👀')}>👀</button>
-                   <button className="absolute top-0 left-1/2 -translate-x-1/2 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '😂')}>😂</button>
-                   <button className="absolute top-6 right-0 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg text-zinc-400" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>+</button>
-                   <button className="absolute top-[65px] left-[70px] w-12 h-12 bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '😮')}>😮</button>
-                   <button className="absolute top-[65px] right-[70px] w-12 h-12 bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-xl transition-transform active:scale-95 shadow-lg" onClick={() => handleLikePost(activeCard)}>❤️</button>
-                   
-                   {showEmojiPicker && (
-                      <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-[#18181B] border border-[#27272A] p-2.5 rounded-2xl shadow-xl flex items-center space-x-1.5 z-50 animate-fade-in-up">
-                        {EXTRA_EMOJIS.map((emoji) => (
-                          <button
-                            key={emoji}
-                            onClick={() => {
-                              handleReactWithEmoji(activeCard, emoji);
-                              setShowEmojiPicker(false);
-                            }}
-                            className="w-8 h-8 rounded-full bg-[#27272A] hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-sm active:scale-90 transition-transform"
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                  <button className="absolute top-6 left-0 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '👀')}>👀</button>
+                  <button className="absolute top-0 left-1/2 -translate-x-1/2 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '😂')}>😂</button>
+                  <button className="absolute top-6 right-0 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg text-zinc-400" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>+</button>
+                  <button className="absolute top-[65px] left-[70px] w-12 h-12 bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '😮')}>😮</button>
+                  <button className="absolute top-[65px] right-[70px] w-12 h-12 bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-xl transition-transform active:scale-95 shadow-lg" onClick={() => handleLikePost(activeCard)}>❤️</button>
+
+                  {showEmojiPicker && (
+                    <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-[#18181B] border border-[#27272A] p-2.5 rounded-2xl shadow-xl flex items-center space-x-1.5 z-50 animate-fade-in-up">
+                      {EXTRA_EMOJIS.map((emoji) => (
+                        <button
+                          key={emoji}
+                          onClick={() => {
+                            handleReactWithEmoji(activeCard, emoji);
+                            setShowEmojiPicker(false);
+                          }}
+                          className="w-8 h-8 rounded-full bg-[#27272A] hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-sm active:scale-90 transition-transform"
+                        >
+                          {emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Share and Comment Buttons */}
                 <div className="flex items-center space-x-4 mt-8">
-                  <button 
+                  <button
                     onClick={() => handleOpenComments(activeCard.id)}
                     className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-[#18181B] hover:bg-zinc-800 border border-zinc-800 rounded-full text-zinc-200 text-sm font-bold transition-colors active:scale-95 shadow-lg w-[140px]"
                   >
                     <MessageCircle className="w-5 h-5 text-zinc-400" />
                     <span>Comment</span>
                   </button>
-                  <button 
+                  <button
                     onClick={() => handleShare(activeCard)}
                     className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-[#18181B] hover:bg-zinc-800 border border-zinc-800 rounded-full text-zinc-200 text-sm font-bold transition-colors active:scale-95 shadow-lg w-[140px]"
                   >
@@ -423,10 +429,10 @@ export default function Feed() {
               ) : (
                 activePost.comments.map((comment) => (
                   <div key={comment.id} className="flex space-x-3 items-start animate-fade-in-up">
-                    <img 
-                      src={comment.authorAvatar} 
-                      alt={comment.author} 
-                      className="w-6.5 h-6.5 rounded-full object-cover border border-zinc-900" 
+                    <img
+                      src={comment.authorAvatar}
+                      alt={comment.author}
+                      className="w-6.5 h-6.5 rounded-full object-cover border border-zinc-900"
                     />
                     <div className="flex-1 bg-zinc-950/60 border border-zinc-900/60 p-3 rounded-2xl">
                       <div className="flex justify-between items-center mb-1">
@@ -562,17 +568,16 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
       {/* Right Action Tray */}
       <div className="absolute right-4 bottom-24 flex flex-col space-y-5 items-center z-20 select-none">
         {/* Like Widget */}
-        <button 
+        <button
           onClick={onLike}
           className="flex flex-col items-center group active:scale-75 transition-transform duration-200"
         >
           <div className="w-11 h-11 bg-black/40 border border-zinc-800/40 rounded-full flex items-center justify-center backdrop-blur-md group-hover:bg-zinc-900/60">
-            <Heart 
-              className={`w-5 h-5 transition-colors ${
-                post.likedByCurrentUser 
-                  ? 'fill-accent-pink text-accent-pink stroke-none' 
+            <Heart
+              className={`w-5 h-5 transition-colors ${post.likedByCurrentUser
+                  ? 'fill-accent-pink text-accent-pink stroke-none'
                   : 'text-zinc-200'
-              }`} 
+                }`}
             />
           </div>
           <span className="text-[10px] font-bold text-zinc-300 mt-1 shadow-sm">
@@ -581,7 +586,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
         </button>
 
         {/* Comment Drawer Trigger */}
-        <button 
+        <button
           onClick={onCommentClick}
           className="flex flex-col items-center group active:scale-75 transition-transform duration-200"
         >
@@ -594,7 +599,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
         </button>
 
         {/* Share Widget */}
-        <button 
+        <button
           onClick={onShareClick}
           className="flex flex-col items-center group active:scale-75 transition-transform duration-200"
         >
@@ -608,10 +613,10 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
       {/* Bottom Info Overlay */}
       <div className="absolute left-4 right-20 bottom-8 z-20 select-none">
         <div className="flex items-center space-x-2.5 mb-2.5">
-          <img 
-            src={post.authorAvatar} 
-            alt={post.author} 
-            className="w-7 h-7 rounded-full object-cover border border-zinc-800" 
+          <img
+            src={post.authorAvatar}
+            alt={post.author}
+            className="w-7 h-7 rounded-full object-cover border border-zinc-800"
           />
           <div>
             <h3 className="text-xs font-black text-white flex items-center space-x-1.5">
@@ -624,7 +629,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
             </p>
           </div>
         </div>
-        
+
         {post.caption && (
           <p className="text-xs text-zinc-200 leading-relaxed line-clamp-2 bg-black/20 p-2 rounded-xl backdrop-blur-2xs border border-white/5">
             {post.caption}
