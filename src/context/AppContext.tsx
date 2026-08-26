@@ -77,6 +77,20 @@ export interface PersonalChat {
   messages: ChatMessage[];
 }
 
+export interface AppNotification {
+  id: string;
+  type: 'reaction';
+  senderUsername: string;
+  senderName: string;
+  senderAvatar: string;
+  emoji: string;
+  postId: string;
+  postUrl: string;
+  timestamp: string;
+  read: boolean;
+  recipientUsername: string; // The user who receives this notification
+}
+
 interface AppContextType {
   currentUser: UserProfile | null;
   feed: Instant[];
@@ -84,6 +98,7 @@ interface AppContextType {
   joinRequests: JoinRequest[];
   personalChats: PersonalChat[];
   allUsers: UserProfile[];
+  notifications: AppNotification[];
   setCurrentUser: (user: UserProfile | null) => void;
   login: (username: string) => boolean;
   signup: (name: string, username: string, bio: string) => boolean;
@@ -97,6 +112,8 @@ interface AppContextType {
   pinGroupMessage: (groupId: string, messageId: string) => void;
   unpinGroupMessage: (groupId: string, messageId: string) => void;
   sendPersonalMessage: (recipientUsername: string, text: string, attachedInstant?: Instant) => void;
+  addNotification: (recipientUsername: string, emoji: string, postId: string, postUrl: string) => void;
+  markNotificationsAsRead: () => void;
   captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string) => void;
   playShutterSound: () => void;
 }
@@ -394,6 +411,35 @@ export const MOCK_PERSONAL_CHATS: PersonalChat[] = [
   }
 ];
 
+export const MOCK_NOTIFICATIONS: AppNotification[] = [
+  {
+    id: 'n1',
+    type: 'reaction',
+    senderUsername: 'emma_in_europe',
+    senderName: 'Emma Watson',
+    senderAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+    emoji: '❤️',
+    postId: 'f3',
+    postUrl: 'https://images.unsplash.com/photo-1527838832700-50592524df75?q=80&w=600&auto=format&fit=crop',
+    timestamp: '2 hours ago',
+    read: false,
+    recipientUsername: 'alice_adventures'
+  },
+  {
+    id: 'n2',
+    type: 'reaction',
+    senderUsername: 'kento_tokyo',
+    senderName: 'Kento Sato',
+    senderAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    emoji: '👀',
+    postId: 'f3',
+    postUrl: 'https://images.unsplash.com/photo-1527838832700-50592524df75?q=80&w=600&auto=format&fit=crop',
+    timestamp: '5 hours ago',
+    read: true,
+    recipientUsername: 'alice_adventures'
+  }
+];
+
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [feed, setFeed] = useState<Instant[]>(MOCK_FEED);
@@ -401,6 +447,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>(MOCK_REQUESTS);
   const [personalChats, setPersonalChats] = useState<PersonalChat[]>(MOCK_PERSONAL_CHATS);
   const [allUsers, setAllUsers] = useState<UserProfile[]>(MOCK_USERS);
+  const [notifications, setNotifications] = useState<AppNotification[]>(MOCK_NOTIFICATIONS);
 
   useEffect(() => {
     setAllUsers(MOCK_USERS.map(user => ({
@@ -778,6 +825,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const addNotification = (recipientUsername: string, emoji: string, postId: string, postUrl: string) => {
+    if (!currentUser) return;
+    const newNotif: AppNotification = {
+      id: `notif_${Date.now()}`,
+      type: 'reaction',
+      senderUsername: currentUser.username,
+      senderName: currentUser.name,
+      senderUsername2: currentUser.username, // placeholder just in case
+      senderAvatar: currentUser.avatar,
+      emoji,
+      postId,
+      postUrl,
+      timestamp: 'Just now',
+      read: false,
+      recipientUsername
+    };
+    // Format sender info correctly
+    newNotif.senderUsername = currentUser.username;
+    
+    setNotifications(prev => [newNotif, ...prev]);
+  };
+
+  const markNotificationsAsRead = () => {
+    if (!currentUser) return;
+    setNotifications(prev =>
+      prev.map(n => (n.recipientUsername === currentUser.username ? { ...n, read: true } : n))
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -787,6 +863,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         joinRequests,
         personalChats,
         allUsers,
+        notifications,
         setCurrentUser,
         login,
         signup,
@@ -800,6 +877,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         pinGroupMessage,
         unpinGroupMessage,
         sendPersonalMessage,
+        addNotification,
+        markNotificationsAsRead,
         captureInstant,
         playShutterSound
       }}

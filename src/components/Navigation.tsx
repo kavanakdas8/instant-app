@@ -3,12 +3,12 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Compass, Camera, MessageSquare, User } from 'lucide-react';
+import { Compass, Camera, MessageSquare, User, Bell } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 
 export const Navigation: React.FC = () => {
   const pathname = usePathname();
-  const { currentUser } = useApp();
+  const { currentUser, notifications } = useApp();
 
   // Hide navigation on capture and auth pages to ensure immersive edge-to-edge screen space
   if (
@@ -21,6 +21,8 @@ export const Navigation: React.FC = () => {
     return null;
   }
 
+  const unreadCount = notifications ? notifications.filter(n => n.recipientUsername === currentUser.username && !n.read).length : 0;
+
   const navItems = [
     {
       label: 'Feed',
@@ -31,6 +33,12 @@ export const Navigation: React.FC = () => {
       label: 'Chats',
       icon: MessageSquare,
       href: '/chats',
+    },
+    {
+      label: 'Notifications',
+      icon: Bell,
+      href: '/notifications',
+      badge: unreadCount > 0 ? unreadCount : undefined
     },
     {
       label: 'Profile',
@@ -60,12 +68,19 @@ export const Navigation: React.FC = () => {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex flex-col items-center justify-center flex-1 py-2 text-xs font-medium transition-colors duration-200 ${isActive
+            className={`flex flex-col items-center justify-center flex-1 py-2 text-[10px] font-medium transition-colors duration-200 ${isActive
                 ? 'text-white'
                 : 'text-zinc-500 hover:text-zinc-300'
               }`}
           >
-            <Icon className={`w-5 h-5 mb-1 ${isActive ? 'stroke-[2.2]' : 'stroke-[1.8]'}`} />
+            <div className="relative">
+              <Icon className={`w-5 h-5 mb-0.5 ${isActive ? 'stroke-[2.2]' : 'stroke-[1.8]'}`} />
+              {item.badge !== undefined && (
+                <span className="absolute -top-1 -right-1 bg-accent-pink text-white w-3 h-3 rounded-full flex items-center justify-center text-[7px] font-black animate-pulse">
+                  {item.badge}
+                </span>
+              )}
+            </div>
             <span>{item.label}</span>
           </Link>
         );
