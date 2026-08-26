@@ -50,7 +50,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ type: "spring", damping: 25, stiffness: 220 }}
-            className={`w-full ${maxHeight} bg-[#0c0c0c] border-t border-zinc-900 rounded-t-3xl flex flex-col relative z-10 shadow-2xl overflow-hidden`}
+            className={`w-full ${maxHeight} bg-black/60 backdrop-blur-2xl border-t border-zinc-900/50 rounded-t-[32px] flex flex-col relative z-10 shadow-2xl overflow-hidden`}
           >
             {/* Drag indicator pill */}
             <div className="pt-3 pb-2 w-full flex justify-center cursor-row-resize" onClick={onClose}>

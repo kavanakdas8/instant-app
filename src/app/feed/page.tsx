@@ -340,69 +340,52 @@ export default function Feed() {
                     <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
 
                     <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
 
-                    {activeCard.caption && (
-                      <div className="absolute left-6 right-6 bottom-6 z-20 text-center">
-                        <p className="text-sm font-medium text-white drop-shadow-md line-clamp-2">
+                    {/* Top Info Overlay */}
+                    <div className="absolute left-5 top-5 z-20 flex items-center space-x-3 drop-shadow-md">
+                      <img
+                        src={activeCard.authorAvatar}
+                        alt={activeCard.authorUsername}
+                        className="w-9 h-9 rounded-full object-cover border border-zinc-800 shadow-sm"
+                      />
+                      <div className="flex flex-col">
+                        <h3 className="text-sm font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                      </div>
+                    </div>
+
+                    {/* Bottom Info Overlay */}
+                    <div className="absolute left-6 right-6 bottom-6 z-20 text-left drop-shadow-md">
+                      {activeCard.caption && (
+                        <p className="text-sm font-medium text-white line-clamp-2 mb-1.5">
                           {activeCard.caption}
                         </p>
-                      </div>
-                    )}
+                      )}
+                      <p className="text-[11px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Author Info */}
-                <div className="flex items-center space-x-2 mt-6 mb-8">
-                  <img
-                    src={activeCard.authorAvatar}
-                    alt={activeCard.authorUsername}
-                    className="w-6 h-6 rounded-full object-cover border border-zinc-800"
-                  />
-                  <span className="text-sm font-bold text-zinc-200">{activeCard.authorUsername}</span>
-                  <span className="text-xs text-zinc-500 font-medium">· {activeCard.timestamp}</span>
-                </div>
-
-                {/* Reactions Arc */}
-                <div className="relative h-[110px] w-full max-w-[280px] mt-2 z-10">
-                  <button className="absolute top-6 left-0 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '👀')}>👀</button>
-                  <button className="absolute top-0 left-1/2 -translate-x-1/2 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '😂')}>😂</button>
-                  <button className="absolute top-6 right-0 w-[60px] h-[60px] bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-2xl transition-transform active:scale-95 shadow-lg text-zinc-400" onClick={() => setShowEmojiPicker(!showEmojiPicker)}>+</button>
-                  <button className="absolute top-[65px] left-[70px] w-12 h-12 bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-xl transition-transform active:scale-95 shadow-lg" onClick={() => handleReactWithEmoji(activeCard, '😮')}>😮</button>
-                  <button className="absolute top-[65px] right-[70px] w-12 h-12 bg-[#111111] hover:bg-zinc-800 border border-zinc-800/60 rounded-full flex items-center justify-center text-xl transition-transform active:scale-95 shadow-lg" onClick={() => handleLikePost(activeCard)}>❤️</button>
-
-                  {showEmojiPicker && (
-                    <div className="absolute -top-14 left-1/2 -translate-x-1/2 bg-[#18181B] border border-[#27272A] p-2.5 rounded-2xl shadow-xl flex items-center space-x-1.5 z-50 animate-fade-in-up">
-                      {EXTRA_EMOJIS.map((emoji) => (
-                        <button
-                          key={emoji}
-                          onClick={() => {
-                            handleReactWithEmoji(activeCard, emoji);
-                            setShowEmojiPicker(false);
-                          }}
-                          className="w-8 h-8 rounded-full bg-[#27272A] hover:bg-zinc-800 border border-zinc-800 flex items-center justify-center text-sm active:scale-90 transition-transform"
-                        >
-                          {emoji}
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Share and Comment Buttons */}
-                <div className="flex items-center space-x-4 mt-8">
-                  <button
+                {/* Minimalist Action Controls */}
+                <div className="w-full max-w-[360px] flex items-center justify-between mt-6 px-1">
+                  {/* Comment Bar */}
+                  <div 
                     onClick={() => handleOpenComments(activeCard.id)}
-                    className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-[#18181B] hover:bg-zinc-800 border border-zinc-800 rounded-full text-zinc-200 text-sm font-bold transition-colors active:scale-95 shadow-lg w-[140px]"
+                    className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3.5 px-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
                   >
-                    <MessageCircle className="w-5 h-5 text-zinc-400" />
-                    <span>Comment</span>
-                  </button>
-                  <button
+                    <span className="text-sm font-medium text-zinc-400">Add a comment...</span>
+                    <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-bold font-mono">{activeCard.comments.length}</span>
+                    </div>
+                  </div>
+
+                  {/* Share Icon Button */}
+                  <button 
                     onClick={() => handleShare(activeCard)}
-                    className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-[#18181B] hover:bg-zinc-800 border border-zinc-800 rounded-full text-zinc-200 text-sm font-bold transition-colors active:scale-95 shadow-lg w-[140px]"
+                    className="w-[54px] h-[54px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all hover:bg-zinc-900/80 shadow-sm"
                   >
-                    <Send className="w-5 h-5 text-accent-cyan" />
-                    <span>Share</span>
+                    <Send className="w-5 h-5" />
                   </button>
                 </div>
 
@@ -432,12 +415,12 @@ export default function Feed() {
                     <img
                       src={comment.authorAvatar}
                       alt={comment.author}
-                      className="w-6.5 h-6.5 rounded-full object-cover border border-zinc-900"
+                      className="w-6 h-6 rounded-full object-cover border border-zinc-900"
                     />
                     <div className="flex-1 bg-zinc-950/60 border border-zinc-900/60 p-3 rounded-2xl">
                       <div className="flex justify-between items-center mb-1">
                         <span className="text-xs font-bold text-zinc-200">@{comment.authorUsername}</span>
-                        <span className="text-[10px] text-zinc-600">{comment.timestamp}</span>
+                        <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
                       </div>
                       <p className="text-xs text-zinc-300 leading-relaxed">{comment.text}</p>
                     </div>
@@ -450,7 +433,7 @@ export default function Feed() {
             <form onSubmit={handlePostComment} className="border-t border-zinc-900/60 pt-3 flex items-center space-x-2">
               <input
                 type="text"
-                placeholder={`Comment as @${currentUser.username}...`}
+                placeholder="Add a comment..."
                 value={newComment}
                 onChange={(e) => setNewComment(e.target.value)}
                 className="flex-1 bg-[#080808] border border-zinc-900 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10"
@@ -533,109 +516,87 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
   };
 
   return (
-    <div ref={containerRef} className="feed-item w-full bg-zinc-950 relative overflow-hidden flex flex-col justify-center">
-      {/* Content Canvas */}
-      {post.type === 'video' ? (
-        <div className="w-full h-full relative" onClick={togglePlay}>
-          <video
-            ref={videoRef}
+    <div ref={containerRef} className="feed-item w-full bg-[#000000] flex flex-col pt-2 pb-6 border-b border-zinc-900/50">
+      {/* Edge-to-edge Content Canvas */}
+      <div className="w-full relative overflow-hidden aspect-[3/4] bg-zinc-950 rounded-[32px]">
+        {post.type === 'video' ? (
+          <div className="w-full h-full relative" onClick={togglePlay}>
+            <video
+              ref={videoRef}
+              src={post.url}
+              loop
+              muted={muted}
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            {/* Pause overlay Indicator */}
+            {!isPlaying && (
+              <div className="absolute inset-0 flex justify-center items-center bg-black/10">
+                <div className="w-12 h-12 bg-black/40 rounded-full flex items-center justify-center backdrop-blur-xs">
+                  <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+          <img
             src={post.url}
-            loop
-            muted={muted}
-            playsInline
+            alt={post.caption || "Travel capture"}
             className="w-full h-full object-cover"
           />
-          {/* Pause overlay Indicator */}
-          {!isPlaying && (
-            <div className="absolute inset-0 flex justify-center items-center bg-black/10">
-              <div className="w-12 h-12 bg-black/40 rounded-full flex items-center justify-center backdrop-blur-xs">
-                <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
-              </div>
-            </div>
-          )}
-        </div>
-      ) : (
-        <img
-          src={post.url}
-          alt={post.caption || "Travel capture"}
-          className="w-full h-full object-cover"
-        />
-      )}
+        )}
 
-      {/* Dark Overlay Vignette for Legibility */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/70 pointer-events-none" />
+        {/* Dark Overlay Vignette for Legibility */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-black/80 via-black/30 to-transparent pointer-events-none" />
+        <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
 
-      {/* Right Action Tray */}
-      <div className="absolute right-4 bottom-24 flex flex-col space-y-5 items-center z-20 select-none">
-        {/* Like Widget */}
-        <button
-          onClick={onLike}
-          className="flex flex-col items-center group active:scale-75 transition-transform duration-200"
-        >
-          <div className="w-11 h-11 bg-black/40 border border-zinc-800/40 rounded-full flex items-center justify-center backdrop-blur-md group-hover:bg-zinc-900/60">
-            <Heart
-              className={`w-5 h-5 transition-colors ${post.likedByCurrentUser
-                  ? 'fill-accent-pink text-accent-pink stroke-none'
-                  : 'text-zinc-200'
-                }`}
-            />
-          </div>
-          <span className="text-[10px] font-bold text-zinc-300 mt-1 shadow-sm">
-            {post.likes}
-          </span>
-        </button>
-
-        {/* Comment Drawer Trigger */}
-        <button
-          onClick={onCommentClick}
-          className="flex flex-col items-center group active:scale-75 transition-transform duration-200"
-        >
-          <div className="w-11 h-11 bg-black/40 border border-zinc-800/40 rounded-full flex items-center justify-center backdrop-blur-md group-hover:bg-zinc-900/60">
-            <MessageCircle className="w-5 h-5 text-zinc-200" />
-          </div>
-          <span className="text-[10px] font-bold text-zinc-300 mt-1 shadow-sm">
-            {post.comments.length}
-          </span>
-        </button>
-
-        {/* Share Widget */}
-        <button
-          onClick={onShareClick}
-          className="flex flex-col items-center group active:scale-75 transition-transform duration-200"
-        >
-          <div className="w-11 h-11 bg-black/40 border border-zinc-800/40 rounded-full flex items-center justify-center backdrop-blur-md group-hover:bg-zinc-900/60">
-            <Send className="w-4.5 h-4.5 text-zinc-200 translate-x-[-1px] translate-y-[1px]" />
-          </div>
-          <span className="text-[10px] font-bold text-zinc-400 mt-1 uppercase tracking-wide">Share</span>
-        </button>
-      </div>
-
-      {/* Bottom Info Overlay */}
-      <div className="absolute left-4 right-20 bottom-8 z-20 select-none">
-        <div className="flex items-center space-x-2.5 mb-2.5">
+        {/* Top Info Overlay */}
+        <div className="absolute left-4 top-4 z-20 flex items-center space-x-2.5 drop-shadow-md">
           <img
             src={post.authorAvatar}
             alt={post.author}
-            className="w-7 h-7 rounded-full object-cover border border-zinc-800"
+            className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
           />
-          <div>
-            <h3 className="text-xs font-black text-white flex items-center space-x-1.5">
-              <span>@{post.authorUsername}</span>
-              <span className="w-1 h-1 bg-zinc-400 rounded-full" />
-              <span className="text-[10px] text-zinc-400 font-normal">{post.timestamp}</span>
-            </h3>
-            <p className="text-[10px] text-accent-cyan font-bold tracking-wider uppercase mt-0.5">
-              {post.audience}
-            </p>
+          <div className="flex flex-col">
+            <h3 className="text-sm font-black text-white leading-tight">@{post.authorUsername}</h3>
           </div>
         </div>
 
-        {post.caption && (
-          <p className="text-xs text-zinc-200 leading-relaxed line-clamp-2 bg-black/20 p-2 rounded-xl backdrop-blur-2xs border border-white/5">
-            {post.caption}
-          </p>
-        )}
+        {/* Bottom Info Overlay */}
+        <div className="absolute left-4 right-4 bottom-5 z-20 select-none">
+          {post.caption && (
+            <p className="text-sm text-zinc-100 leading-relaxed line-clamp-2 drop-shadow-md mb-1 font-medium">
+              {post.caption}
+            </p>
+          )}
+          <p className="text-[11px] text-zinc-300 font-bold font-mono">{post.timestamp}</p>
+        </div>
       </div>
+
+      {/* Control Section (Bottom, below the card) */}
+      <div className="w-full px-1 pt-4 pb-2 flex items-center justify-between">
+        {/* Comment Bar */}
+        <div 
+          onClick={onCommentClick}
+          className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3.5 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm"
+        >
+          <span className="text-sm font-medium text-zinc-400">Add a comment...</span>
+          <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
+            <MessageCircle className="w-3.5 h-3.5" />
+            <span className="text-[11px] font-bold font-mono">{post.comments.length}</span>
+          </div>
+        </div>
+
+        {/* Share Icon Button */}
+        <button 
+          onClick={onShareClick}
+          className="w-[52px] h-[52px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all shadow-sm hover:bg-zinc-800"
+        >
+          <Send className="w-5 h-5" />
+        </button>
+      </div>
+
+
     </div>
   );
 };

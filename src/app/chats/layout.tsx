@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useApp, TravelGroup } from '@/context/AppContext';
-import { Search, MapPin, Compass, ArrowRight, UserPlus, CheckCircle, Clock, MessageSquare, PlusCircle } from 'lucide-react';
+import { Search, MapPin, Compass, ArrowRight, UserPlus, CheckCircle, Clock, MessageSquare, PlusCircle, ArrowLeft, Check } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 
 export default function ChatsLayout({ children }: { children: React.ReactNode }) {
@@ -14,22 +14,22 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
   const [activeFilter, setActiveFilter] = useState('All');
   const [activeTab, setActiveTab] = useState<'groups' | 'dms'>('groups');
   const [newChatDrawerOpen, setNewChatDrawerOpen] = useState(false);
+  const [newChatSearch, setNewChatSearch] = useState('');
 
   // Check if we are viewing a specific chat
   const isChatDetail = pathname !== '/chats';
 
+  const searchParams = useSearchParams();
+
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const urlParams = new URLSearchParams(window.location.search);
-      const tab = urlParams.get('tab');
-      if (tab === 'groups' || tab === 'dms') {
-        setActiveTab(tab);
-      }
-      if (urlParams.get('new') === 'true') {
-        setNewChatDrawerOpen(true);
-      }
+    const tab = searchParams.get('tab');
+    if (tab === 'groups' || tab === 'dms') {
+      setActiveTab(tab);
     }
-  }, []);
+    if (searchParams.get('new') === 'true') {
+      setNewChatDrawerOpen(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -71,15 +71,24 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
     <div className="flex h-screen w-full bg-[#000000]">
       {/* LEFT PANE: Chat List */}
       {/* On mobile, hide this if we are in a chat detail view. On desktop, always show it (md:flex). */}
-      <div className={`${isChatDetail ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] flex-col border-r border-[#27272A] bg-black px-4 pt-6 select-none pb-20`}>
+      <div className={`${isChatDetail ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] flex-col border-r border-[#27272A] bg-black px-4 pt-6 select-none pb-20 md:pb-0`}>
         {/* Page Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-black tracking-tight text-white flex items-center space-x-2">
-            <span>Inbox & Chats</span>
-          </h1>
-          <p className="text-xs text-zinc-500 mt-1">
-            Chat with group members or send direct messages to other travelers.
-          </p>
+        <div className="mb-6 flex items-start space-x-3">
+          <button 
+            onClick={() => router.back()}
+            className="p-1.5 mt-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-colors active:scale-95 shrink-0"
+            aria-label="Go back"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-white flex items-center space-x-2">
+              <span>Inbox & Chats</span>
+            </h1>
+            <p className="text-xs text-zinc-500 mt-1">
+              Chat with group members or send direct messages to other travelers.
+            </p>
+          </div>
         </div>
 
         {/* Tabs Segmented Control */}
@@ -329,37 +338,82 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
       {/* New Chat Drawer */}
       <Drawer
         isOpen={newChatDrawerOpen}
-        onClose={() => setNewChatDrawerOpen(false)}
-        title="Start Chat"
+        onClose={() => {
+          setNewChatDrawerOpen(false);
+          setNewChatSearch('');
+        }}
+        title="New message"
       >
-        <div className="space-y-4">
-          <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider mb-2">
-            Select a traveler to message
-          </p>
-          <div className="space-y-2 max-h-[300px] overflow-y-auto no-scrollbar">
+        <div className="flex flex-col h-[70vh] md:h-[500px]">
+          {/* Search Bar */}
+          <div className="flex items-center space-x-2 border-b border-zinc-900 pb-3 mb-3">
+            <span className="text-sm font-bold text-zinc-200">To:</span>
+            <input 
+              type="text" 
+              placeholder="Search..." 
+              value={newChatSearch}
+              onChange={(e) => setNewChatSearch(e.target.value)}
+              className="flex-1 bg-transparent text-sm text-zinc-100 placeholder-zinc-600 focus:outline-none"
+            />
+          </div>
+
+          {/* List of People and Groups */}
+          <div className="flex-1 overflow-y-auto no-scrollbar space-y-2 pb-4">
+            {/* Users */}
             {allUsers
-              .filter(u => u.username !== currentUser.username)
+              .filter(u => u.username !== currentUser.username && (u.name.toLowerCase().includes(newChatSearch.toLowerCase()) || u.username.toLowerCase().includes(newChatSearch.toLowerCase())))
               .map((user) => (
-                <div
-                  key={user.username}
-                  onClick={() => {
-                    setNewChatDrawerOpen(false);
-                    const sorted = [currentUser.username, user.username].sort();
-                    const chatId = `${sorted[0]}-${sorted[1]}`;
-                    router.push(`/chats/${chatId}`);
-                  }}
-                  className="p-3 bg-zinc-950 hover:bg-zinc-900 border border-zinc-900 rounded-xl flex items-center justify-between cursor-pointer transition-all active:scale-[0.98]"
-                >
-                  <div className="flex items-center space-x-3">
-                    <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full object-cover border border-zinc-900" />
-                    <div>
-                      <h4 className="text-xs font-bold text-zinc-200">{user.name}</h4>
-                      <p className="text-[9px] text-zinc-550 font-medium">@{user.username}</p>
+                  <div
+                    key={user.username}
+                    onClick={() => {
+                      setNewChatDrawerOpen(false);
+                      setNewChatSearch('');
+                      const sorted = [currentUser.username, user.username].sort();
+                      const chatId = `${sorted[0]}-${sorted[1]}`;
+                      router.push(`/chats/${chatId}`);
+                    }}
+                    className="p-3 hover:bg-zinc-900/50 rounded-xl flex items-center justify-between cursor-pointer transition-all"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover border border-zinc-900" />
+                      <div>
+                        <h4 className="text-sm font-bold text-zinc-200">{user.name}</h4>
+                        <p className="text-[10px] text-zinc-500 font-medium">@{user.username}</p>
+                      </div>
                     </div>
                   </div>
-                  <MessageSquare className="w-4 h-4 text-zinc-500" />
-                </div>
-              ))}
+                )
+              )}
+
+            {/* Groups */}
+            {groups
+              .filter(g => g.name.toLowerCase().includes(newChatSearch.toLowerCase()))
+              .map((group) => (
+                  <div
+                    key={group.id}
+                    onClick={() => {
+                      setNewChatDrawerOpen(false);
+                      setNewChatSearch('');
+                      router.push(`/chats/${group.id}`);
+                    }}
+                    className="p-3 hover:bg-zinc-900/50 rounded-xl flex items-center justify-between cursor-pointer transition-all"
+                  >
+                    <div className="flex items-center space-x-3">
+                      <img src={group.avatar} alt={group.name} className="w-10 h-10 rounded-xl object-cover border border-zinc-900" />
+                      <div>
+                        <h4 className="text-sm font-bold text-zinc-200">{group.name}</h4>
+                        <p className="text-[10px] text-zinc-500 font-medium uppercase tracking-wide">Travel Group</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              )}
+              
+            {/* Empty State */}
+            {allUsers.filter(u => u.username !== currentUser.username && (u.name.toLowerCase().includes(newChatSearch.toLowerCase()) || u.username.toLowerCase().includes(newChatSearch.toLowerCase()))).length === 0 && 
+             groups.filter(g => g.name.toLowerCase().includes(newChatSearch.toLowerCase())).length === 0 && (
+               <div className="py-8 text-center text-xs text-zinc-500">No accounts or groups found.</div>
+             )}
           </div>
         </div>
       </Drawer>
