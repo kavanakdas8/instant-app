@@ -76,7 +76,7 @@ export default function Notifications() {
                   <div className="min-w-0">
                     <p className="text-xs text-zinc-300 leading-snug">
                       <span className="font-bold text-white">@{notif.senderUsername}</span>
-                      {" "}reacted <span className="text-base select-all">{notif.emoji}</span> to your Instant
+                      {" "}commented on your post
                     </p>
                     <span className="text-[9px] text-zinc-500 font-bold block mt-0.5">{notif.timestamp}</span>
                   </div>
@@ -104,7 +104,7 @@ export default function Notifications() {
             {/* Navigation Links */}
             <nav className="space-y-2 mt-2">
               <button
-                onClick={() => router.push('/feed')}
+                onClick={() => router.push('/feed?tab=explore')}
                 className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
               >
                 <Compass className="w-6 h-6 text-zinc-400" />
@@ -112,6 +112,7 @@ export default function Notifications() {
               </button>
 
               <button
+                onClick={() => router.push('/feed?tab=following')}
                 className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
               >
                 <UserCheck className="w-6 h-6 text-zinc-400" />
@@ -119,6 +120,7 @@ export default function Notifications() {
               </button>
 
               <button
+                onClick={() => router.push('/feed?tab=friends')}
                 className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
               >
                 <Users className="w-6 h-6 text-zinc-400" />
@@ -208,7 +210,7 @@ export default function Notifications() {
                       <div className="min-w-0">
                         <p className="text-xs text-zinc-200 leading-snug">
                           <span className="font-bold text-white">@{notif.senderUsername}</span>
-                          {" "}reacted <span className="text-base select-all">{notif.emoji}</span> to your shared travel Instant.
+                          {" "}commented on your post
                         </p>
                         <span className="text-[9px] text-zinc-500 font-bold block mt-1">{notif.timestamp}</span>
                       </div>

@@ -24,6 +24,25 @@ export default function Feed() {
   const [activeDeckIndex, setActiveDeckIndex] = useState(0);
   const activeVideoRef = useRef<HTMLVideoElement>(null);
   const [isPlayingActiveCard, setIsPlayingActiveCard] = useState(true);
+  const [activeTab, setActiveTab] = useState<'explore' | 'following' | 'friends'>('explore');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const tab = params.get('tab');
+    if (tab === 'following' || tab === 'friends' || tab === 'explore') {
+      setActiveTab(tab);
+    }
+  }, []);
+
+  const handleTabSwitch = (tab: 'explore' | 'following' | 'friends') => {
+    setActiveTab(tab);
+    window.history.pushState(null, '', `?tab=${tab}`);
+  };
+
+  const mockFollowing = ['emma_in_europe', 'alice_adventures'];
+  const displayFeed = activeTab === 'following' 
+    ? feed.filter(p => mockFollowing.includes(p.authorUsername)) 
+    : feed;
 
   // Notifications and reaction states
   const [toastMessage, setToastMessage] = useState('');
@@ -56,7 +75,7 @@ export default function Feed() {
     showReactToast(emoji);
   };
 
-  const activeCard = feed[activeDeckIndex];
+  const activeCard = displayFeed[activeDeckIndex];
 
   // Autoplay video on deck index changes
   useEffect(() => {
@@ -65,7 +84,7 @@ export default function Feed() {
       activeVideoRef.current.load();
       activeVideoRef.current.play().then(() => setIsPlayingActiveCard(true)).catch(() => setIsPlayingActiveCard(false));
     }
-  }, [activeDeckIndex, feed]);
+  }, [activeDeckIndex, displayFeed]);
 
   const togglePlayActiveCard = () => {
     if (!activeVideoRef.current) return;
@@ -78,13 +97,13 @@ export default function Feed() {
   };
 
   const handleNextCard = () => {
-    if (feed.length === 0) return;
-    setActiveDeckIndex((prev) => (prev + 1) % feed.length);
+    if (displayFeed.length === 0) return;
+    setActiveDeckIndex((prev) => (prev + 1) % displayFeed.length);
   };
 
   const handlePrevCard = () => {
-    if (feed.length === 0) return;
-    setActiveDeckIndex((prev) => (prev - 1 + feed.length) % feed.length);
+    if (displayFeed.length === 0) return;
+    setActiveDeckIndex((prev) => (prev - 1 + displayFeed.length) % displayFeed.length);
   };
 
   const handleOpenComments = (postId: string) => {
@@ -122,7 +141,7 @@ export default function Feed() {
     setTimeout(() => setShareSuccess(false), 2000);
   };
 
-  const activePost = feed.find(p => p.id === selectedPostId);
+  const activePost = displayFeed.find(p => p.id === selectedPostId);
 
   if (!currentUser) return null;
 
@@ -195,7 +214,7 @@ export default function Feed() {
 
         {/* Vertical Reels Container */}
         <div className="flex-1 feed-container no-scrollbar">
-          {feed.length === 0 ? (
+          {displayFeed.length === 0 ? (
             <div className="h-full flex flex-col justify-center items-center px-6 text-center space-y-4">
               <AlertCircle className="w-12 h-12 text-zinc-650 animate-bounce" />
               <p className="text-zinc-400 font-medium">No public Instants shared yet.</p>
@@ -207,7 +226,7 @@ export default function Feed() {
               </button>
             </div>
           ) : (
-            feed.map((post) => (
+            displayFeed.map((post) => (
               <FeedItem
                 key={post.id}
                 post={post}
@@ -243,24 +262,38 @@ export default function Feed() {
             {/* Navigation Links */}
             <nav className="space-y-2 mt-2">
               <button
-                onClick={() => router.push('/feed')}
-                className="w-full flex items-center space-x-4 px-3 py-3 bg-[#18181B] text-white rounded-xl text-[15px] font-bold transition-all border border-[#27272A]"
+                onClick={() => handleTabSwitch('explore')}
+                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${
+                  activeTab === 'explore'
+                    ? 'bg-[#18181B] text-white border border-[#27272A]'
+                    : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                }`}
               >
-                <Compass className="w-6 h-6 text-white" />
+                <Compass className={`w-6 h-6 ${activeTab === 'explore' ? 'text-white' : 'text-zinc-400'}`} />
                 <span>Explore</span>
               </button>
 
               <button
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+                onClick={() => handleTabSwitch('following')}
+                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${
+                  activeTab === 'following'
+                    ? 'bg-[#18181B] text-white border border-[#27272A]'
+                    : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                }`}
               >
-                <UserCheck className="w-6 h-6 text-zinc-400" />
+                <UserCheck className={`w-6 h-6 ${activeTab === 'following' ? 'text-white' : 'text-zinc-400'}`} />
                 <span>Following</span>
               </button>
 
               <button
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+                onClick={() => handleTabSwitch('friends')}
+                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${
+                  activeTab === 'friends'
+                    ? 'bg-[#18181B] text-white border border-[#27272A]'
+                    : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                }`}
               >
-                <Users className="w-6 h-6 text-zinc-400" />
+                <Users className={`w-6 h-6 ${activeTab === 'friends' ? 'text-white' : 'text-zinc-400'}`} />
                 <span>Friends</span>
               </button>
 
@@ -324,7 +357,23 @@ export default function Feed() {
           </div>
 
           <div className="flex-1 flex px-8 overflow-hidden pt-8 pb-12">
-            {feed.length === 0 ? (
+            {activeTab === 'friends' ? (
+              <div className="w-full max-w-4xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar">
+                <h2 className="text-xl font-bold text-white mb-6">Your Friends</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {allUsers.filter(u => u.username !== currentUser.username).map(friend => (
+                    <div key={friend.username} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center text-center">
+                      <img src={friend.avatar} alt={friend.name} className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-zinc-700" />
+                      <h3 className="text-sm font-bold text-white">{friend.name}</h3>
+                      <p className="text-xs text-zinc-400 mb-4">@{friend.username}</p>
+                      <button onClick={() => router.push(`/chats`)} className="w-full py-2 bg-accent-pink/10 text-accent-pink border border-accent-pink/30 hover:bg-accent-pink hover:text-black font-bold text-xs rounded-xl transition-all">
+                        Message
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : displayFeed.length === 0 ? (
               <div className="flex-1 flex flex-col justify-center items-center space-y-4">
                 <AlertCircle className="w-12 h-12 text-zinc-650 mx-auto animate-bounce" />
                 <h2 className="text-lg font-bold text-zinc-200">No Instants Shared</h2>
@@ -347,23 +396,23 @@ export default function Feed() {
                 {/* Stacked Cards */}
                 <div className="relative w-full aspect-[4/5] max-w-[300px] flex justify-center items-center select-none">
                   {/* Third Card */}
-                  {feed.length > 2 && (
+                  {displayFeed.length > 2 && (
                     <div className="absolute -top-4 left-4 w-full h-full scale-[0.92] bg-zinc-950 border border-zinc-800 rounded-[40px] overflow-hidden z-0 pointer-events-none transform rotate-3 shadow-md">
-                      {feed[(activeDeckIndex + 2) % feed.length].type === 'video' ? (
-                        <video src={feed[(activeDeckIndex + 2) % feed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
+                      {displayFeed[(activeDeckIndex + 2) % displayFeed.length].type === 'video' ? (
+                        <video src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
                       ) : (
-                        <img src={feed[(activeDeckIndex + 2) % feed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
+                        <img src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
                       )}
                     </div>
                   )}
 
                   {/* Second Card */}
-                  {feed.length > 1 && (
+                  {displayFeed.length > 1 && (
                     <div className="absolute -top-2 left-1 w-full h-full scale-[0.96] bg-zinc-950 border border-zinc-800 rounded-[48px] overflow-hidden z-10 pointer-events-none transform -rotate-2 shadow-lg">
-                      {feed[(activeDeckIndex + 1) % feed.length].type === 'video' ? (
-                        <video src={feed[(activeDeckIndex + 1) % feed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
+                      {displayFeed[(activeDeckIndex + 1) % displayFeed.length].type === 'video' ? (
+                        <video src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
                       ) : (
-                        <img src={feed[(activeDeckIndex + 1) % feed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
+                        <img src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
                       )}
                     </div>
                   )}
