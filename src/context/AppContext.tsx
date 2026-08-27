@@ -190,6 +190,104 @@ const MOCK_FEED: Instant[] = [
     likedByCurrentUser: false,
     audience: 'Public',
     comments: []
+  },
+  {
+    id: 'f4',
+    url: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=600&auto=format&fit=crop',
+    type: 'image',
+    timestamp: '1 day ago',
+    caption: 'Sydney Opera House vibes! 🇦🇺',
+    author: 'Bob Vance',
+    authorUsername: 'bob_travels',
+    authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+    likes: 145,
+    likedByCurrentUser: false,
+    audience: 'Public',
+    comments: []
+  },
+  {
+    id: 'f5',
+    url: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=600&auto=format&fit=crop', // Positano Italy
+    type: 'image',
+    timestamp: '2 days ago',
+    caption: 'Cinque Terre is breathtaking. 🍝',
+    author: 'Emma Watson',
+    authorUsername: 'emma_in_europe',
+    authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+    likes: 543,
+    likedByCurrentUser: true,
+    audience: 'Public',
+    comments: []
+  },
+  {
+    id: 'f6',
+    url: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=600&auto=format&fit=crop', // Dubai Desert
+    type: 'image',
+    timestamp: '3 days ago',
+    caption: 'Desert safari in Dubai! 🐪',
+    author: 'Alice Cooper',
+    authorUsername: 'alice_adventures',
+    authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+    likes: 890,
+    likedByCurrentUser: false,
+    audience: 'Public',
+    comments: []
+  },
+  {
+    id: 'f7',
+    url: 'https://images.unsplash.com/photo-1500835595397-b0db40478b03?q=80&w=600&auto=format&fit=crop', // Swiss Alps
+    type: 'image',
+    timestamp: '3 days ago',
+    caption: 'The Alps are calling. 🏔️',
+    author: 'Kento Sato',
+    authorUsername: 'kento_tokyo',
+    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    likes: 432,
+    likedByCurrentUser: false,
+    audience: 'Public',
+    comments: []
+  },
+  {
+    id: 'f8',
+    url: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?q=80&w=600&auto=format&fit=crop', // Kyoto Fushimi Inari
+    type: 'image',
+    timestamp: '4 days ago',
+    caption: 'Fushimi Inari gates. Kyoto is magic. ⛩️',
+    author: 'Kento Sato',
+    authorUsername: 'kento_tokyo',
+    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+    likes: 955,
+    likedByCurrentUser: true,
+    audience: 'Public',
+    comments: []
+  },
+  {
+    id: 'f9',
+    url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80', // Arizona road trip
+    type: 'image',
+    timestamp: '5 days ago',
+    caption: 'Monument Valley roadtrip! 🚐',
+    author: 'Bob Vance',
+    authorUsername: 'bob_travels',
+    authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+    likes: 120,
+    likedByCurrentUser: false,
+    audience: 'Public',
+    comments: []
+  },
+  {
+    id: 'f10',
+    url: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80', // Santorini sunset
+    type: 'image',
+    timestamp: '1 week ago',
+    caption: 'Santorini sunset. Unreal. 🌅',
+    author: 'Bob Vance',
+    authorUsername: 'bob_travels',
+    authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+    likes: 243,
+    likedByCurrentUser: false,
+    audience: 'Public',
+    comments: []
   }
 ];
 

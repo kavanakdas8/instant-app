@@ -361,16 +361,21 @@ export default function Feed() {
               <div className="w-full max-w-4xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar">
                 <h2 className="text-xl font-bold text-white mb-6">Your Friends</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {allUsers.filter(u => u.username !== currentUser.username).map(friend => (
-                    <div key={friend.username} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center text-center">
-                      <img src={friend.avatar} alt={friend.name} className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-zinc-700" />
-                      <h3 className="text-sm font-bold text-white">{friend.name}</h3>
-                      <p className="text-xs text-zinc-400 mb-4">@{friend.username}</p>
-                      <button onClick={() => router.push(`/chats`)} className="w-full py-2 bg-accent-pink/10 text-accent-pink border border-accent-pink/30 hover:bg-accent-pink hover:text-black font-bold text-xs rounded-xl transition-all">
-                        Message
-                      </button>
-                    </div>
-                  ))}
+                  {allUsers.filter(u => u.username !== currentUser.username).map(friend => {
+                    const sorted = [currentUser.username, friend.username].sort();
+                    const chatId = `${sorted[0]}-${sorted[1]}`;
+                    
+                    return (
+                      <div key={friend.username} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center text-center">
+                        <img src={friend.avatar} alt={friend.name} className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-zinc-700" />
+                        <h3 className="text-sm font-bold text-white">{friend.name}</h3>
+                        <p className="text-xs text-zinc-400 mb-4">@{friend.username}</p>
+                        <button onClick={() => router.push(`/chats/${chatId}`)} className="w-full py-2 bg-accent-pink/10 text-accent-pink border border-accent-pink/30 hover:bg-accent-pink hover:text-black font-bold text-xs rounded-xl transition-all">
+                          Message
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ) : displayFeed.length === 0 ? (
