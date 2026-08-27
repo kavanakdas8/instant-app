@@ -18,6 +18,7 @@ export default function Feed() {
   const [shareSuccess, setShareSuccess] = useState(false);
   const [shareDrawerOpen, setShareDrawerOpen] = useState(false);
   const [postToShare, setPostToShare] = useState<Instant | null>(null);
+  const [selectedShareRecipients, setSelectedShareRecipients] = useState<Set<string>>(new Set());
   const [muted, setMuted] = useState(true); // default to muted for autoplay compatibility
 
   // Desktop states
@@ -122,20 +123,28 @@ export default function Feed() {
 
   const handleShare = (post: Instant) => {
     setPostToShare(post);
+    setSelectedShareRecipients(new Set());
     setShareDrawerOpen(true);
   };
 
-  const executeShareToGroup = (groupId: string) => {
-    if (!postToShare) return;
-    sendGroupMessage(groupId, "Check out this Instant!", postToShare);
-    setShareSuccess(true);
-    setShareDrawerOpen(false);
-    setTimeout(() => setShareSuccess(false), 2000);
+  const toggleShareRecipient = (id: string) => {
+    const next = new Set(selectedShareRecipients);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setSelectedShareRecipients(next);
   };
 
-  const executeShareToUser = (username: string) => {
-    if (!postToShare) return;
-    sendPersonalMessage(username, "Check out this Instant!", postToShare);
+  const executeBatchShare = () => {
+    if (!postToShare || selectedShareRecipients.size === 0) return;
+    
+    selectedShareRecipients.forEach(id => {
+      if (groups.some(g => g.id === id)) {
+        sendGroupMessage(id, "Check out this Instant!", postToShare);
+      } else {
+        sendPersonalMessage(id, "Check out this Instant!", postToShare);
+      }
+    });
+
     setShareSuccess(true);
     setShareDrawerOpen(false);
     setTimeout(() => setShareSuccess(false), 2000);
@@ -560,43 +569,68 @@ export default function Feed() {
         className="md:left-[260px]"
         maxHeight="h-[70vh]"
       >
-        <div className="flex flex-col space-y-6 pb-4">
-          {/* Groups Section */}
-          {groups.length > 0 && (
-            <div>
-              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">Groups</h4>
-              <div className="space-y-1">
-                {groups.map(group => (
-                  <div key={group.id} className="flex items-center justify-between p-2 hover:bg-zinc-900/50 rounded-xl transition-colors cursor-pointer group" onClick={() => executeShareToGroup(group.id)}>
-                    <div className="flex items-center space-x-3">
-                      <img src={group.avatar} className="w-10 h-10 rounded-full object-cover border border-zinc-800" />
-                      <span className="text-sm font-semibold text-zinc-200">{group.name}</span>
-                    </div>
-                    <button className="text-[10px] bg-white/10 hover:bg-white text-white hover:text-black px-4 py-2 rounded-full font-bold transition-colors">Send</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* People Section */}
-          {allUsers.length > 0 && (
-            <div>
-              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">People</h4>
-              <div className="space-y-1">
-                {allUsers.filter(u => u.username !== currentUser?.username).map(user => (
-                  <div key={user.username} className="flex items-center justify-between p-2 hover:bg-zinc-900/50 rounded-xl transition-colors cursor-pointer group" onClick={() => executeShareToUser(user.username)}>
-                    <div className="flex items-center space-x-3">
-                      <img src={user.avatar} className="w-10 h-10 rounded-full object-cover border border-zinc-800" />
-                      <div className="flex flex-col">
-                        <span className="text-sm font-semibold text-zinc-200">{user.name}</span>
-                        <span className="text-[10px] text-zinc-500 font-medium">@{user.username}</span>
+        <div className="flex flex-col h-full relative">
+          <div className="flex-1 overflow-y-auto space-y-6 pb-20 no-scrollbar">
+            {/* Groups Section */}
+            {groups.length > 0 && (
+              <div>
+                <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">Groups</h4>
+                <div className="space-y-1">
+                  {groups.map(group => {
+                    const isSelected = selectedShareRecipients.has(group.id);
+                    return (
+                      <div key={group.id} className="flex items-center justify-between p-2 hover:bg-zinc-900/50 rounded-xl transition-colors cursor-pointer group" onClick={() => toggleShareRecipient(group.id)}>
+                        <div className="flex items-center space-x-3">
+                          <img src={group.avatar} className="w-10 h-10 rounded-full object-cover border border-zinc-800" />
+                          <span className="text-sm font-semibold text-zinc-200">{group.name}</span>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isSelected ? 'bg-accent-cyan border-accent-cyan' : 'border-zinc-700'}`}>
+                          {isSelected && <UserCheck className="w-3 h-3 text-black" />}
+                        </div>
                       </div>
-                    </div>
-                    <button className="text-[10px] bg-white/10 hover:bg-white text-white hover:text-black px-4 py-2 rounded-full font-bold transition-colors">Send</button>
-                  </div>
-                ))}
+                    );
+                  })}
+                </div>
               </div>
+            )}
+
+            {/* People Section */}
+            {allUsers.length > 0 && (
+              <div>
+                <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">People</h4>
+                <div className="space-y-1">
+                  {allUsers.filter(u => u.username !== currentUser?.username).map(user => {
+                    const isSelected = selectedShareRecipients.has(user.username);
+                    return (
+                      <div key={user.username} className="flex items-center justify-between p-2 hover:bg-zinc-900/50 rounded-xl transition-colors cursor-pointer group" onClick={() => toggleShareRecipient(user.username)}>
+                        <div className="flex items-center space-x-3">
+                          <img src={user.avatar} className="w-10 h-10 rounded-full object-cover border border-zinc-800" />
+                          <div className="flex flex-col">
+                            <span className="text-sm font-semibold text-zinc-200">{user.name}</span>
+                            <span className="text-[10px] text-zinc-500 font-medium">@{user.username}</span>
+                          </div>
+                        </div>
+                        <div className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${isSelected ? 'bg-accent-cyan border-accent-cyan' : 'border-zinc-700'}`}>
+                          {isSelected && <UserCheck className="w-3 h-3 text-black" />}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+          
+          {/* Sticky Send Button */}
+          {selectedShareRecipients.size > 0 && (
+            <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#18181B] via-[#18181B] to-transparent">
+              <button 
+                onClick={executeBatchShare}
+                className="w-full bg-accent-cyan text-black font-black py-3.5 rounded-xl hover:bg-white transition-all active:scale-95 shadow-lg shadow-accent-cyan/10 flex items-center justify-center space-x-2"
+              >
+                <span>Send to {selectedShareRecipients.size} {selectedShareRecipients.size === 1 ? 'chat' : 'chats'}</span>
+                <Send className="w-4 h-4 ml-1" />
+              </button>
             </div>
           )}
         </div>
