@@ -5,17 +5,19 @@ import { useRouter } from 'next/navigation';
 import { useApp, Instant } from '@/context/AppContext';
 import {
   Heart, MessageCircle, Send, Volume2, VolumeX, AlertCircle,
-  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles
+  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 
 export default function Feed() {
   const router = useRouter();
-  const { currentUser, feed, likePost, addComment, notifications, addNotification } = useApp();
+  const { currentUser, feed, likePost, addComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage } = useApp();
   const [commentOpen, setCommentOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
   const [shareSuccess, setShareSuccess] = useState(false);
+  const [shareDrawerOpen, setShareDrawerOpen] = useState(false);
+  const [postToShare, setPostToShare] = useState<Instant | null>(null);
   const [muted, setMuted] = useState(true); // default to muted for autoplay compatibility
 
   // Desktop states
@@ -100,9 +102,23 @@ export default function Feed() {
 
 
   const handleShare = (post: Instant) => {
-    // Simulate link copying
-    navigator.clipboard.writeText(`${window.location.origin}/post/${post.id}`);
+    setPostToShare(post);
+    setShareDrawerOpen(true);
+  };
+
+  const executeShareToGroup = (groupId: string) => {
+    if (!postToShare) return;
+    sendGroupMessage(groupId, "Check out this Instant!", postToShare);
     setShareSuccess(true);
+    setShareDrawerOpen(false);
+    setTimeout(() => setShareSuccess(false), 2000);
+  };
+
+  const executeShareToUser = (username: string) => {
+    if (!postToShare) return;
+    sendPersonalMessage(username, "Check out this Instant!", postToShare);
+    setShareSuccess(true);
+    setShareDrawerOpen(false);
     setTimeout(() => setShareSuccess(false), 2000);
   };
 
@@ -110,12 +126,57 @@ export default function Feed() {
 
   if (!currentUser) return null;
 
+  const commentsUI = activePost ? (
+    <div className="flex flex-col h-full w-full">
+      <div className="flex-1 space-y-4 overflow-y-auto pr-2 pb-4 no-scrollbar">
+        {activePost.comments.length === 0 ? (
+          <div className="py-12 text-center">
+            <p className="text-sm text-zinc-550">Be the first to share your thoughts!</p>
+          </div>
+        ) : (
+          activePost.comments.map((comment) => (
+            <div key={comment.id} className="flex space-x-3 items-start animate-fade-in-up">
+              <img
+                src={comment.authorAvatar}
+                alt={comment.author}
+                className="w-8 h-8 rounded-full object-cover border border-zinc-900 shadow-sm"
+              />
+              <div className="flex-1 flex flex-col items-start bg-zinc-950/60 border border-zinc-900/60 p-3 rounded-2xl rounded-tl-sm">
+                <div className="flex justify-between items-center w-full mb-1">
+                  <span className="text-xs font-bold text-zinc-200">@{comment.authorUsername}</span>
+                  <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
+                </div>
+                <p className="text-sm text-zinc-300 leading-relaxed">{comment.text}</p>
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+
+      <form onSubmit={handlePostComment} className="border-t border-zinc-900/60 pt-4 pb-2 flex items-center space-x-3 sticky bottom-0 z-10 bg-[#18181B] md:bg-transparent">
+        <input
+          type="text"
+          placeholder="Type a comment..."
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          className="flex-1 bg-[#080808] border border-zinc-800 rounded-2xl px-5 py-3.5 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10 shadow-inner"
+        />
+        <button
+          type="submit"
+          disabled={!newComment.trim()}
+          className="p-3.5 bg-accent-cyan text-black font-black rounded-2xl disabled:opacity-40 hover:bg-white active:scale-95 transition-all text-sm shadow-md"
+        >
+          <Send className="w-5 h-5 ml-0.5" />
+        </button>
+      </form>
+    </div>
+  ) : null;
+
   return (
-    <div className="flex-1 flex flex-col bg-black relative">
+    <div className="h-screen w-full bg-[#000000] text-white flex flex-col overflow-hidden">
+      {/* MOBILE APP VIEW (md:hidden)                                   */}
       {/* ============================================================== */}
-      {/* MOBILE PORTRAIT VIEW (md:hidden)                               */}
-      {/* ============================================================== */}
-      <div className="md:hidden flex flex-col flex-1 relative bg-black">
+      <div className="md:hidden h-screen w-full bg-[#000000] relative overflow-hidden flex flex-col font-sans">
         {/* Top Feed Header */}
         <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center px-4 z-30 select-none">
           <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
@@ -179,108 +240,112 @@ export default function Feed() {
               </button>
             </div>
 
-            {/* User Profile Card */}
-            <div
-              onClick={() => router.push(`/profile/${currentUser.username}`)}
-              className="flex items-center space-x-3 bg-[#18181B] border border-[#27272A] hover:border-zinc-700/60 p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] mb-8"
-            >
-              <img src={currentUser.avatar} alt={currentUser.name} className="w-7 h-7 rounded-full object-cover border border-zinc-900" />
-              <div className="min-w-0">
-                <h3 className="text-xs font-black text-zinc-150 truncate leading-tight">{currentUser.name}</h3>
-                <p className="text-[10px] text-zinc-500 font-bold">@{currentUser.username}</p>
-              </div>
-            </div>
-
             {/* Navigation Links */}
-            <nav className="space-y-4">
+            <nav className="space-y-2 mt-2">
               <button
                 onClick={() => router.push('/feed')}
-                className="w-full flex items-center space-x-3 px-4 py-3 bg-[#18181B] text-white rounded-xl text-xs font-bold transition-all border border-[#27272A]"
+                className="w-full flex items-center space-x-4 px-3 py-3 bg-[#18181B] text-white rounded-xl text-[15px] font-bold transition-all border border-[#27272A]"
               >
-                <Compass className="w-4 h-4 text-accent-cyan" />
-                <span>Feed</span>
+                <Compass className="w-6 h-6 text-white" />
+                <span>Explore</span>
               </button>
 
-              <div
-                onClick={() => router.push('/chats')}
-                className="w-full flex flex-col px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all group cursor-pointer"
+              <button
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
               >
-                <div className="w-full flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <MessageSquare className="w-4 h-4 text-zinc-500 group-hover:text-zinc-350" />
-                    <span>Chats</span>
-                  </div>
-                </div>
+                <UserCheck className="w-6 h-6 text-zinc-400" />
+                <span>Following</span>
+              </button>
 
-                {/* Sub-sections / Badges for Groups and Personal Messages */}
-                <div className="w-full pl-7 mt-2 space-y-1.5 border-l border-zinc-800 text-left">
-                  <div 
-                    onClick={(e) => { e.stopPropagation(); router.push('/chats?tab=groups'); }}
-                    className="flex items-center justify-between text-[10px] text-zinc-500 hover:text-zinc-300 font-semibold uppercase tracking-wider py-0.5 hover:bg-zinc-900/50 rounded px-1 -mx-1"
-                  >
-                    <span>Groups</span>
-                    <span className="bg-accent-pink/15 text-accent-pink px-2 py-0.5 rounded-full text-[8px] font-black">3</span>
-                  </div>
-                  <div 
-                    onClick={(e) => { e.stopPropagation(); router.push('/chats?tab=dms'); }}
-                    className="flex items-center justify-between text-[10px] text-zinc-500 hover:text-zinc-300 font-semibold uppercase tracking-wider py-0.5 hover:bg-zinc-900/50 rounded px-1 -mx-1"
-                  >
-                    <span>DMs</span>
-                    <span className="bg-accent-cyan/15 text-accent-cyan px-2 py-0.5 rounded-full text-[8px] font-black">2</span>
-                  </div>
-                </div>
-              </div>
+              <button
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+              >
+                <Users className="w-6 h-6 text-zinc-400" />
+                <span>Friends</span>
+              </button>
 
-              {/* Notifications Option */}
+              <button
+                onClick={() => router.push('/capture')}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+              >
+                <PlusSquare className="w-6 h-6 text-zinc-400" />
+                <span>Upload</span>
+              </button>
+
               <button
                 onClick={() => router.push('/notifications')}
-                className="w-full flex items-center justify-between px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all border border-transparent"
+                className="w-full flex items-center justify-between px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all group"
               >
-                <div className="flex items-center space-x-3">
-                  <Bell className="w-4 h-4 text-zinc-505" />
-                  <span>Notifications</span>
+                <div className="flex items-center space-x-4">
+                  <Bell className="w-6 h-6 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
+                  <span>Activity</span>
                 </div>
                 {unreadCount > 0 && (
-                  <span className="bg-accent-pink text-white px-2 py-0.5 rounded-full text-[8px] font-black animate-pulse">
+                  <span className="bg-accent-pink text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
                     {unreadCount}
                   </span>
                 )}
               </button>
-            </nav>
-          </div>
 
-          <div className="flex flex-col space-y-4">
-            <button
-              onClick={() => router.push('/capture')}
-              className="w-full py-3.5 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-90 active:scale-[0.98] text-black font-black rounded-2xl text-xs flex items-center justify-center space-x-2.5 transition-all shadow-md shadow-accent-pink/5"
-            >
-              <Camera className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>Capture Instant</span>
-            </button>
+              <button
+                onClick={() => router.push('/chats')}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all group"
+              >
+                <Send className="w-6 h-6 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
+                <span>Messages</span>
+              </button>
+
+              <button
+                onClick={() => router.push(`/profile/${currentUser.username}`)}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+              >
+                <img src={currentUser.avatar} alt="Profile" className="w-6 h-6 rounded-full object-cover border border-zinc-700" />
+                <span>Profile</span>
+              </button>
+            </nav>
           </div>
         </aside>
 
         {/* Main Content Space */}
-        <div className="flex-1 ml-[260px] flex items-center justify-center p-8 bg-[#000000]">
-          {feed.length === 0 ? (
-            <div className="max-w-md text-center space-y-4">
-              <AlertCircle className="w-12 h-12 text-zinc-650 mx-auto animate-bounce" />
-              <h2 className="text-lg font-bold text-zinc-200">No Instants Shared</h2>
-              <p className="text-xs text-zinc-500">Capture a moment to start the deck!</p>
-              <button
-                onClick={() => router.push('/capture')}
-                className="py-2.5 px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-xl text-xs"
-              >
-                Go to Camera
-              </button>
+        <div className="flex-1 ml-[260px] flex flex-col bg-[#000000] relative min-h-screen overflow-hidden">
+          
+          {/* Top Search Bar */}
+          <div className="w-full pt-8 pb-4 flex items-center px-8 flex-shrink-0 z-20">
+            <div className="relative w-full max-w-2xl mx-auto">
+              <input 
+                type="text" 
+                placeholder="Search" 
+                className="w-full bg-[#18181B] border border-zinc-800/80 rounded-full py-3 pl-6 pr-12 text-white focus:outline-none focus:border-zinc-700 placeholder-zinc-500 font-medium text-sm transition-all"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-zinc-900 rounded-full cursor-pointer hover:bg-zinc-800 transition-all">
+                <Search className="w-4 h-4 text-zinc-300" />
+              </div>
             </div>
-          ) : (
-            <div className="w-full flex items-center justify-center">
-              <div className="w-full max-w-[420px] flex flex-col items-center justify-center relative pb-12">
+          </div>
+
+          <div className="flex-1 flex px-8 overflow-hidden pt-8 pb-12">
+            {feed.length === 0 ? (
+              <div className="flex-1 flex flex-col justify-center items-center space-y-4">
+                <AlertCircle className="w-12 h-12 text-zinc-650 mx-auto animate-bounce" />
+                <h2 className="text-lg font-bold text-zinc-200">No Instants Shared</h2>
+                <p className="text-xs text-zinc-500">Capture a moment to start the deck!</p>
+                <button
+                  onClick={() => router.push('/capture')}
+                  className="py-2.5 px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-xl text-xs"
+                >
+                  Go to Camera
+                </button>
+              </div>
+            ) : (
+              <div className="flex-1 flex h-full justify-center lg:justify-start w-full">
+                
+                {/* Stacked Cards Column */}
+                <div className={`flex flex-col items-center justify-center transition-all duration-500 ease-in-out h-full ${commentOpen ? 'flex-1 xl:ml-24' : 'w-full max-w-3xl'}`}>
+                  <div className="w-full max-w-[380px] flex flex-col items-center justify-center relative h-full">
 
 
                 {/* Stacked Cards */}
-                <div className="relative w-full aspect-[4/5] max-w-[360px] flex justify-center items-center select-none">
+                <div className="relative w-full aspect-[4/5] max-w-[300px] flex justify-center items-center select-none">
                   {/* Third Card */}
                   {feed.length > 2 && (
                     <div className="absolute -top-4 left-4 w-full h-full scale-[0.92] bg-zinc-950 border border-zinc-800 rounded-[40px] overflow-hidden z-0 pointer-events-none transform rotate-3 shadow-md">
@@ -304,7 +369,7 @@ export default function Feed() {
                   )}
 
                   {/* Top Active Card */}
-                  <div className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[54px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up">
+                  <div className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[48px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up">
                     {/* Media content */}
                     {activeCard.type === 'video' ? (
                       <div className="w-full h-full relative cursor-pointer" onClick={togglePlayActiveCard}>
@@ -343,37 +408,37 @@ export default function Feed() {
                     <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
 
                     {/* Top Info Overlay */}
-                    <div className="absolute left-5 top-5 z-20 flex items-center space-x-3 drop-shadow-md">
+                    <div className="absolute left-4 top-4 z-20 flex items-center space-x-3 drop-shadow-md">
                       <img
                         src={activeCard.authorAvatar}
                         alt={activeCard.authorUsername}
-                        className="w-9 h-9 rounded-full object-cover border border-zinc-800 shadow-sm"
+                        className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
                       />
                       <div className="flex flex-col">
-                        <h3 className="text-sm font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                        <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
                       </div>
                     </div>
 
                     {/* Bottom Info Overlay */}
-                    <div className="absolute left-6 right-6 bottom-6 z-20 text-left drop-shadow-md">
+                    <div className="absolute left-5 right-5 bottom-5 z-20 text-left drop-shadow-md">
                       {activeCard.caption && (
-                        <p className="text-sm font-medium text-white line-clamp-2 mb-1.5">
+                        <p className="text-xs font-medium text-white line-clamp-2 mb-1.5">
                           {activeCard.caption}
                         </p>
                       )}
-                      <p className="text-[11px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
+                      <p className="text-[10px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
                     </div>
                   </div>
                 </div>
 
                 {/* Minimalist Action Controls */}
-                <div className="w-full max-w-[360px] flex items-center justify-between mt-6 px-1">
+                <div className="w-full max-w-[300px] flex items-center justify-between mt-5 px-1">
                   {/* Comment Bar */}
                   <div 
                     onClick={() => handleOpenComments(activeCard.id)}
-                    className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3.5 px-5 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
+                    className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
                   >
-                    <span className="text-sm font-medium text-zinc-400">Add a comment...</span>
+                    <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
                     <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
                       <MessageCircle className="w-3.5 h-3.5" />
                       <span className="text-[11px] font-bold font-mono">{activeCard.comments.length}</span>
@@ -390,71 +455,104 @@ export default function Feed() {
                 </div>
 
               </div>
-            </div>
-          )}
+                  </div>
+
+                {/* Right Side Comments Panel (Desktop) */}
+                {commentOpen && activePost && (
+                  <div className="hidden md:flex w-[400px] flex-shrink-0 ml-12 bg-[#18181B] rounded-[32px] border border-[#27272A] flex-col overflow-hidden h-full shadow-2xl animate-fade-in relative z-10">
+                    {/* Panel Header */}
+                    <div className="px-6 py-5 flex justify-between items-center border-b border-zinc-900/50 bg-[#18181B]">
+                      <h3 className="text-base font-bold tracking-wide text-zinc-100">
+                        {activePost.comments.length} comments
+                      </h3>
+                      <button
+                        onClick={() => setCommentOpen(false)}
+                        className="p-2 rounded-full bg-zinc-900 text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all active:scale-95"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    {/* Panel Content */}
+                    <div className="flex-1 overflow-hidden p-6 flex flex-col">
+                      {commentsUI}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Comments Drawer */}
-      <Drawer
-        isOpen={commentOpen}
-        onClose={() => setCommentOpen(false)}
-        title="Comments"
-      >
-        {activePost && (
-          <div className="flex flex-col h-full">
-            {/* Comments List */}
-            <div className="flex-1 space-y-4 overflow-y-auto pr-1 pb-4">
-              {activePost.comments.length === 0 ? (
-                <div className="py-12 text-center">
-                  <p className="text-sm text-zinc-550">Be the first to share your thoughts!</p>
-                </div>
-              ) : (
-                activePost.comments.map((comment) => (
-                  <div key={comment.id} className="flex space-x-3 items-start animate-fade-in-up">
-                    <img
-                      src={comment.authorAvatar}
-                      alt={comment.author}
-                      className="w-6 h-6 rounded-full object-cover border border-zinc-900"
-                    />
-                    <div className="flex-1 bg-zinc-950/60 border border-zinc-900/60 p-3 rounded-2xl">
-                      <div className="flex justify-between items-center mb-1">
-                        <span className="text-xs font-bold text-zinc-200">@{comment.authorUsername}</span>
-                        <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
-                      </div>
-                      <p className="text-xs text-zinc-300 leading-relaxed">{comment.text}</p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+      {/* Comments Drawer (Mobile Only) */}
+      <div className="md:hidden">
+        <Drawer
+          isOpen={commentOpen}
+          onClose={() => setCommentOpen(false)}
+          title="Comments"
+          maxHeight="h-[60vh]"
+          disableScroll={true}
+        >
+          {commentsUI}
+        </Drawer>
+      </div>
 
-            {/* Input Form at bottom of drawer */}
-            <form onSubmit={handlePostComment} className="border-t border-zinc-900/60 pt-3 flex items-center space-x-2">
-              <input
-                type="text"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="flex-1 bg-[#080808] border border-zinc-900 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10"
-              />
-              <button
-                type="submit"
-                disabled={!newComment.trim()}
-                className="p-2.5 bg-white text-black font-bold rounded-xl disabled:opacity-40 hover:bg-zinc-200 active:scale-95 transition-all text-xs"
-              >
-                Send
-              </button>
-            </form>
-          </div>
-        )}
+      {/* Share Drawer */}
+      <Drawer
+        isOpen={shareDrawerOpen}
+        onClose={() => setShareDrawerOpen(false)}
+        title="Share to..."
+        className="md:left-[260px]"
+        maxHeight="h-[70vh]"
+      >
+        <div className="flex flex-col space-y-6 pb-4">
+          {/* Groups Section */}
+          {groups.length > 0 && (
+            <div>
+              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">Groups</h4>
+              <div className="space-y-1">
+                {groups.map(group => (
+                  <div key={group.id} className="flex items-center justify-between p-2 hover:bg-zinc-900/50 rounded-xl transition-colors cursor-pointer group" onClick={() => executeShareToGroup(group.id)}>
+                    <div className="flex items-center space-x-3">
+                      <img src={group.avatar} className="w-10 h-10 rounded-full object-cover border border-zinc-800" />
+                      <span className="text-sm font-semibold text-zinc-200">{group.name}</span>
+                    </div>
+                    <button className="text-[10px] bg-white/10 hover:bg-white text-white hover:text-black px-4 py-2 rounded-full font-bold transition-colors">Send</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* People Section */}
+          {allUsers.length > 0 && (
+            <div>
+              <h4 className="text-[10px] font-black text-zinc-500 uppercase tracking-widest mb-3 px-1">People</h4>
+              <div className="space-y-1">
+                {allUsers.filter(u => u.username !== currentUser?.username).map(user => (
+                  <div key={user.username} className="flex items-center justify-between p-2 hover:bg-zinc-900/50 rounded-xl transition-colors cursor-pointer group" onClick={() => executeShareToUser(user.username)}>
+                    <div className="flex items-center space-x-3">
+                      <img src={user.avatar} className="w-10 h-10 rounded-full object-cover border border-zinc-800" />
+                      <div className="flex flex-col">
+                        <span className="text-sm font-semibold text-zinc-200">{user.name}</span>
+                        <span className="text-[10px] text-zinc-500 font-medium">@{user.username}</span>
+                      </div>
+                    </div>
+                    <button className="text-[10px] bg-white/10 hover:bg-white text-white hover:text-black px-4 py-2 rounded-full font-bold transition-colors">Send</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </Drawer>
 
       {/* Share Toast Notification */}
       {shareSuccess && (
         <div className="absolute bottom-20 left-1/2 -translate-x-1/2 px-4 py-2 bg-zinc-900 border border-zinc-800 text-white text-xs font-bold rounded-full shadow-lg z-50 flex items-center space-x-2 animate-fade-in-up">
           <Send className="w-3.5 h-3.5 text-accent-cyan" />
-          <span>Post link copied to clipboard!</span>
+          <span>Shared successfully!</span>
         </div>
       )}
 
@@ -580,7 +678,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
           onClick={onCommentClick}
           className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3.5 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm"
         >
-          <span className="text-sm font-medium text-zinc-400">Add a comment...</span>
+          <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
           <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
             <MessageCircle className="w-3.5 h-3.5" />
             <span className="text-[11px] font-bold font-mono">{post.comments.length}</span>

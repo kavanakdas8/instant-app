@@ -10,6 +10,8 @@ interface DrawerProps {
   title?: string;
   children: React.ReactNode;
   maxHeight?: string; // e.g. "h-[80vh]"
+  className?: string; // Add className for custom positioning
+  disableScroll?: boolean;
 }
 
 export const Drawer: React.FC<DrawerProps> = ({
@@ -17,7 +19,9 @@ export const Drawer: React.FC<DrawerProps> = ({
   onClose,
   title,
   children,
-  maxHeight = "h-[75vh]"
+  maxHeight = "h-[75vh]",
+  className = "",
+  disableScroll = false
 }) => {
   // Prevent body scrolling when drawer is open
   useEffect(() => {
@@ -34,7 +38,7 @@ export const Drawer: React.FC<DrawerProps> = ({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="absolute inset-0 z-50 overflow-hidden flex flex-col justify-end">
+        <div className={`absolute inset-0 z-50 overflow-hidden flex flex-col justify-end ${className}`}>
           {/* Backdrop overlay */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -71,7 +75,7 @@ export const Drawer: React.FC<DrawerProps> = ({
             </div>
 
             {/* Content body */}
-            <div className="flex-1 overflow-y-auto no-scrollbar p-4">
+            <div className={`flex-1 ${disableScroll ? 'overflow-hidden flex flex-col' : 'overflow-y-auto no-scrollbar'} p-4`}>
               {children}
             </div>
           </motion.div>

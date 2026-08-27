@@ -3,7 +3,7 @@
 import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Bell, ArrowLeft, Check, Compass, MessageSquare, Camera } from 'lucide-react';
+import { Bell, ArrowLeft, Check, Compass, MessageSquare, Camera, UserCheck, Users, PlusSquare, Send } from 'lucide-react';
 
 export default function Notifications() {
   const router = useRouter();
@@ -101,78 +101,69 @@ export default function Notifications() {
               <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
             </div>
 
-            {/* User Profile Card */}
-            <div 
-              onClick={() => router.push(`/profile/${currentUser.username}`)}
-              className="flex items-center space-x-3 bg-[#18181B] border border-[#27272A] hover:border-zinc-700/60 p-4 rounded-2xl cursor-pointer transition-all active:scale-[0.98] mb-8"
-            >
-              <img src={currentUser.avatar} alt={currentUser.name} className="w-7 h-7 rounded-full object-cover border border-zinc-900" />
-              <div className="min-w-0">
-                <h3 className="text-xs font-black text-zinc-150 truncate leading-tight">{currentUser.name}</h3>
-                <p className="text-[10px] text-zinc-500 font-bold">@{currentUser.username}</p>
-              </div>
-            </div>
-
             {/* Navigation Links */}
-            <nav className="space-y-4">
-              <button 
+            <nav className="space-y-2 mt-2">
+              <button
                 onClick={() => router.push('/feed')}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all border border-transparent"
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
               >
-                <Compass className="w-4 h-4 text-zinc-505" />
-                <span>Feed</span>
+                <Compass className="w-6 h-6 text-zinc-400" />
+                <span>Explore</span>
               </button>
 
-              <button 
-                onClick={() => router.push('/chats')}
-                className="w-full flex flex-col px-4 py-3 text-zinc-400 hover:text-zinc-200 hover:bg-zinc-950/40 rounded-xl text-xs font-bold transition-all group"
+              <button
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
               >
-                <div className="w-full flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <MessageSquare className="w-4 h-4 text-zinc-500 group-hover:text-zinc-350" />
-                    <span>Chats</span>
-                  </div>
-                </div>
-                
-                {/* Sub-sections / Badges for Groups and Personal Messages */}
-                <div className="w-full pl-7 mt-2 space-y-1.5 border-l border-zinc-800 text-left">
-                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider py-0.5">
-                    <span>Groups</span>
-                    <span className="bg-accent-pink/15 text-accent-pink px-2 py-0.5 rounded-full text-[8px] font-black">3</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[10px] text-zinc-500 font-semibold uppercase tracking-wider py-0.5">
-                    <span>DMs</span>
-                    <span className="bg-accent-cyan/15 text-accent-cyan px-2 py-0.5 rounded-full text-[8px] font-black">2</span>
-                  </div>
-                </div>
+                <UserCheck className="w-6 h-6 text-zinc-400" />
+                <span>Following</span>
               </button>
 
-              {/* Notifications Link (Active) */}
-              <button 
+              <button
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+              >
+                <Users className="w-6 h-6 text-zinc-400" />
+                <span>Friends</span>
+              </button>
+
+              <button
+                onClick={() => router.push('/capture')}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+              >
+                <PlusSquare className="w-6 h-6 text-zinc-400" />
+                <span>Upload</span>
+              </button>
+
+              <button
                 onClick={() => router.push('/notifications')}
-                className="w-full flex items-center justify-between px-4 py-3 bg-[#18181B] text-white rounded-xl text-xs font-bold transition-all border border-[#27272A]"
+                className="w-full flex items-center justify-between px-3 py-3 bg-[#18181B] text-white rounded-xl text-[15px] font-bold transition-all border border-[#27272A] group"
               >
-                <div className="flex items-center space-x-3">
-                  <Bell className="w-4 h-4 text-accent-cyan" />
-                  <span>Notifications</span>
+                <div className="flex items-center space-x-4">
+                  <Bell className="w-6 h-6 text-white" />
+                  <span>Activity</span>
                 </div>
                 {unreadCount > 0 && (
-                  <span className="bg-accent-pink text-white px-2 py-0.5 rounded-full text-[8px] font-black animate-pulse">
+                  <span className="bg-accent-pink text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
                     {unreadCount}
                   </span>
                 )}
               </button>
-            </nav>
-          </div>
 
-          <div className="flex flex-col space-y-4">
-            <button 
-              onClick={() => router.push('/capture')}
-              className="w-full py-3.5 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-90 active:scale-[0.98] text-black font-black rounded-2xl text-xs flex items-center justify-center space-x-2.5 transition-all shadow-md shadow-accent-pink/5"
-            >
-              <Camera className="w-4 h-4 text-black stroke-[2.5]" />
-              <span>Capture Instant</span>
-            </button>
+              <button
+                onClick={() => router.push('/chats')}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all group"
+              >
+                <Send className="w-6 h-6 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
+                <span>Messages</span>
+              </button>
+
+              <button
+                onClick={() => router.push(`/profile/${currentUser.username}`)}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+              >
+                <img src={currentUser.avatar} alt="Profile" className="w-6 h-6 rounded-full object-cover border border-zinc-700" />
+                <span>Profile</span>
+              </button>
+            </nav>
           </div>
         </aside>
 
