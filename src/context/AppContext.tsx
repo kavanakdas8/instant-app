@@ -115,6 +115,7 @@ interface AppContextType {
   addNotification: (recipientUsername: string, emoji: string, postId: string, postUrl: string) => void;
   markNotificationsAsRead: () => void;
   captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string) => void;
+  deleteInstant: (instantId: string) => void;
   playShutterSound: () => void;
 }
 
@@ -789,6 +790,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
+  const deleteInstant = (instantId: string) => {
+    if (!currentUser) return;
+    
+    // Remove from global feed if it exists there
+    setFeed(prevFeed => prevFeed.filter(inst => inst.id !== instantId));
+    
+    // Remove from current user's profile
+    setCurrentUser(prevUser => {
+      if (!prevUser) return null;
+      return {
+        ...prevUser,
+        instants: prevUser.instants.filter(inst => inst.id !== instantId)
+      };
+    });
+  };
+
   // Sound synthesis to create a premium tactile camera click
   const playShutterSound = () => {
     try {
@@ -832,7 +849,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       type: 'reaction',
       senderUsername: currentUser.username,
       senderName: currentUser.name,
-      senderUsername2: currentUser.username, // placeholder just in case
       senderAvatar: currentUser.avatar,
       emoji,
       postId,
@@ -880,6 +896,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         addNotification,
         markNotificationsAsRead,
         captureInstant,
+        deleteInstant,
         playShutterSound
       }}
     >
