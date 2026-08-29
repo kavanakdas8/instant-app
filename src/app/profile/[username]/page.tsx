@@ -65,9 +65,9 @@ export default function Profile() {
   };
 
   // Stats calculation
-  const totalInstants = profileUser.instants.length;
-  const totalLikes = profileUser.instants.reduce((acc, curr) => acc + curr.likes, 0);
-  const activeGroups = groups.filter(g => g.members.includes(profileUser.username)).length;
+  const totalInstants = profileUser.instants?.length || 0;
+  const totalLikes = (profileUser.instants || []).reduce((acc, curr) => acc + (curr.likes || 0), 0);
+  const activeGroups = groups.filter(g => g.members && g.members.includes(profileUser.username)).length;
 
   return (
     <div className="flex-1 flex flex-col bg-black px-4 pt-6 pb-20 select-none">

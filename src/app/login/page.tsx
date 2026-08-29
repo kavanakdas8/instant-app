@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Sun, Moon, Eye, EyeOff, Lock, Mail } from 'lucide-react';
+import { Sun, Moon, Eye, EyeOff, Lock, Mail, UserPlus, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 
 const STORY_CIRCLES = [
   {
@@ -47,6 +47,7 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [error, setError] = useState('');
+  const [noAccountFound, setNoAccountFound] = useState(false);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemos, setShowDemos] = useState(false);
@@ -68,25 +69,32 @@ export default function Login() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim()) {
-      setError('Email is required');
+      setError('Email or username is required');
+      setNoAccountFound(false);
       return;
     }
     if (!password.trim()) {
       setError('Password is required');
+      setNoAccountFound(false);
       return;
     }
     if (password.length < 8) {
       setError('Password must be at least 8 characters');
+      setNoAccountFound(false);
       return;
     }
 
     setLoading(true);
     setError('');
+    setNoAccountFound(false);
 
     // Simulate database lookup/validation delay
     setTimeout(() => {
       // Map email to potential user credentials
-      const cleanUsername = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const cleanUsername = email.includes('@')
+        ? email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '')
+        : email.toLowerCase().replace(/[^a-z0-9_]/g, '');
+
       const loginSuccess = login(cleanUsername);
 
       if (loginSuccess) {
@@ -94,16 +102,19 @@ export default function Login() {
         setLoading(false);
         setTimeout(() => {
           router.push('/feed');
-        }, 800);
+        }, 600);
       } else {
-        setError('Login failed. Please verify credentials.');
+        setNoAccountFound(true);
+        setError(`No account found for "${email}". If you don't have an account, sign up below!`);
         setLoading(false);
       }
-    }, 1000);
+    }, 750);
   };
 
   const handleDemoLogin = (demoName: string) => {
     setLoading(true);
+    setError('');
+    setNoAccountFound(false);
     setTimeout(() => {
       login(demoName);
       setSuccess(true);
@@ -111,7 +122,7 @@ export default function Login() {
       setTimeout(() => {
         router.push('/feed');
       }, 500);
-    }, 800);
+    }, 600);
   };
 
   // Color mapping variables based on theme state
@@ -142,7 +153,10 @@ export default function Login() {
       <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen bg-slate-950 bg-gradient-to-br from-indigo-950 via-slate-900 to-[#FF2E93]/20 flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
 
         {/* Brand Logo & Name */}
-        <div className="flex items-center z-10">
+        <div className="flex items-center z-10 space-x-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-pink to-accent-cyan flex items-center justify-center shadow-lg shadow-accent-pink/20">
+            <span className="text-black font-black italic text-sm">I</span>
+          </div>
           <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
         </div>
 
@@ -184,48 +198,67 @@ export default function Login() {
 
           <div>
             {/* Top Branding Section */}
-            <div className="flex items-center mb-8">
+            <div className="flex items-center justify-between mb-8">
               <span className="text-base font-black tracking-wider uppercase">Instants</span>
+              <span className="text-[10px] font-mono uppercase tracking-widest px-2.5 py-1 rounded-full bg-accent-pink/10 text-accent-pink border border-accent-pink/20 font-bold">
+                Account Sign In
+              </span>
             </div>
 
             {/* Heading */}
             <div className="mb-6">
               <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">
-                Welcome to Instants
+                Welcome back
               </h1>
               <p className={`text-xs ${subTextColor} leading-relaxed`}>
-                Your community is waiting. Sign in to share and discover real-life moments.
+                Sign in to your account. If you don't have one yet, you can sign up in seconds.
               </p>
             </div>
 
             {/* Form Area */}
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Error / Account not found banner */}
               {error && (
-                <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-xl font-medium animate-pulse">
-                  {error}
+                <div className="p-3.5 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-2xl font-medium space-y-2">
+                  <div className="flex items-start space-x-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5" />
+                    <span>{error}</span>
+                  </div>
+                  {noAccountFound && (
+                    <Link
+                      href={`/signup?email=${encodeURIComponent(email)}`}
+                      className="w-full py-2.5 px-3 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-95 text-black font-bold text-xs rounded-xl flex items-center justify-center space-x-1.5 shadow-md transition-all active:scale-[0.98]"
+                    >
+                      <UserPlus className="w-3.5 h-3.5" />
+                      <span>Create Account with this Email →</span>
+                    </Link>
+                  )}
                 </div>
               )}
+
               {success && (
-                <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-xs rounded-xl font-medium">
-                  Success! Entering Instants Feed...
+                <div className="p-3 bg-green-500/10 border border-green-500/20 text-green-500 text-xs rounded-xl font-medium flex items-center space-x-2">
+                  <Sparkles className="w-4 h-4" />
+                  <span>Success! Entering Instants Feed...</span>
                 </div>
               )}
 
               <div>
                 <label htmlFor="email" className={`block text-[10px] font-bold uppercase tracking-wider mb-1.5 ${isLight ? 'text-slate-600' : 'text-zinc-400'}`}>
-                  Email Address
+                  Email Address or Username
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                   <input
                     id="email"
-                    type="email"
-                    placeholder="example@email.com"
+                    type="text"
+                    placeholder="example@email.com or username"
                     value={email}
                     disabled={loading || success}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       setError('');
+                      setNoAccountFound(false);
                     }}
                     className={`block w-full pl-10 pr-4 py-2.5 ${inputBg} border ${inputBorder} rounded-xl text-sm transition-all focus:outline-none focus:ring-2`}
                     required
@@ -253,6 +286,7 @@ export default function Login() {
                     onChange={(e) => {
                       setPassword(e.target.value);
                       setError('');
+                      setNoAccountFound(false);
                     }}
                     className={`block w-full pl-10 pr-10 py-2.5 ${inputBg} border ${inputBorder} rounded-xl text-sm transition-all focus:outline-none focus:ring-2`}
                     required
@@ -275,7 +309,10 @@ export default function Login() {
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                 ) : (
-                  <span>Sign in</span>
+                  <>
+                    <span>Sign in</span>
+                    <ArrowRight className="w-4 h-4 ml-1" />
+                  </>
                 )}
               </button>
             </form>
@@ -285,7 +322,7 @@ export default function Login() {
               <div className="relative flex py-1.5 items-center">
                 <div className={`flex-grow border-t ${dividerBorder}`}></div>
                 <span className={`flex-shrink mx-4 text-[9px] uppercase font-bold tracking-widest ${subTextColor}`}>
-                  Or sign in with
+                  Or quick test login
                 </span>
                 <div className={`flex-grow border-t ${dividerBorder}`}></div>
               </div>
@@ -297,10 +334,7 @@ export default function Login() {
                   className={`flex items-center justify-center space-x-2 py-2.5 px-4 border rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all ${isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100' : 'bg-slate-950 border-slate-800 text-zinc-300 hover:bg-slate-900'
                     }`}
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.465 0-6.28-2.815-6.28-6.28s2.815-6.28 6.28-6.28c1.637 0 3.125.63 4.254 1.652l3.078-3.077C19.347 2.683 15.975 1.5 12.24 1.5 5.867 1.5.7 6.667.7 13s5.167 11.5 11.54 11.5c6.518 0 11.233-4.582 11.233-11.233 0-.771-.082-1.35-.193-1.982H12.24Z" />
-                  </svg>
-                  <span className="text-xs font-semibold">Google</span>
+                  <span className="text-xs font-semibold">Alice (Admin)</span>
                 </button>
 
                 <button
@@ -309,35 +343,32 @@ export default function Login() {
                   className={`flex items-center justify-center space-x-2 py-2.5 px-4 border rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all ${isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100' : 'bg-slate-950 border-slate-800 text-zinc-300 hover:bg-slate-900'
                     }`}
                 >
-                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
-                  </svg>
-                  <span className="text-xs font-semibold">Facebook</span>
+                  <span className="text-xs font-semibold">Emma (Traveler)</span>
                 </button>
               </div>
             </div>
 
-            {/* Quick Demo Access */}
+            {/* Quick Demo Access Toggle */}
             <div className="mt-5 text-center">
               <button
                 type="button"
                 onClick={() => setShowDemos(!showDemos)}
                 className={`text-xs font-semibold underline ${subTextColor} hover:text-slate-400 transition-colors`}
               >
-                {showDemos ? 'Hide Demo Accounts' : 'Show Demo Accounts (Quick Login)'}
+                {showDemos ? 'Hide All Test Accounts' : 'Show All Test Accounts'}
               </button>
 
               {showDemos && (
-                <div className={`mt-3 p-3.5 rounded-xl border text-left space-y-2.5 transition-all duration-300 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
+                <div className={`mt-3 p-3.5 rounded-xl border text-left space-y-2 transition-all duration-300 ${isLight ? 'bg-slate-50 border-slate-200' : 'bg-slate-950 border-slate-800'
                   }`}>
-                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Click to instantly log in as:</p>
+                  <p className="text-[9px] font-bold uppercase tracking-wider text-slate-500">Select any pre-configured user:</p>
                   <button
                     type="button"
                     onClick={() => handleDemoLogin('alice_adventures')}
                     className={`w-full flex items-center justify-between p-2 rounded-lg border text-xs font-semibold transition-all hover:scale-[1.01] ${isLight ? 'bg-white border-slate-200 hover:bg-slate-100 text-slate-800' : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-zinc-200'
                       }`}
                   >
-                    <span>Alice Cooper (Admin)</span>
+                    <span>Alice Cooper</span>
                     <span className="font-mono text-[9px] text-accent-pink">@alice_adventures</span>
                   </button>
                   <button
@@ -346,8 +377,26 @@ export default function Login() {
                     className={`w-full flex items-center justify-between p-2 rounded-lg border text-xs font-semibold transition-all hover:scale-[1.01] ${isLight ? 'bg-white border-slate-200 hover:bg-slate-100 text-slate-800' : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-zinc-200'
                       }`}
                   >
-                    <span>Emma Watson (Traveler)</span>
+                    <span>Emma Watson</span>
                     <span className="font-mono text-[9px] text-accent-cyan">@emma_in_europe</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('kento_tokyo')}
+                    className={`w-full flex items-center justify-between p-2 rounded-lg border text-xs font-semibold transition-all hover:scale-[1.01] ${isLight ? 'bg-white border-slate-200 hover:bg-slate-100 text-slate-800' : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-zinc-200'
+                      }`}
+                  >
+                    <span>Kento Sato</span>
+                    <span className="font-mono text-[9px] text-purple-400">@kento_tokyo</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleDemoLogin('bob_travels')}
+                    className={`w-full flex items-center justify-between p-2 rounded-lg border text-xs font-semibold transition-all hover:scale-[1.01] ${isLight ? 'bg-white border-slate-200 hover:bg-slate-100 text-slate-800' : 'bg-slate-900 border-slate-800 hover:bg-slate-800 text-zinc-200'
+                      }`}
+                  >
+                    <span>Bob Vance</span>
+                    <span className="font-mono text-[9px] text-emerald-400">@bob_travels</span>
                   </button>
                 </div>
               )}
@@ -356,9 +405,9 @@ export default function Login() {
 
           {/* Signup Redirect & Copyright */}
           <div className="mt-8 text-center pt-4 border-t border-slate-100 dark:border-slate-800">
-            <p className="text-xs mb-3">
-              Don't you have an account?{' '}
-              <Link href="/signup" className="font-bold text-accent-cyan hover:underline">
+            <p className="text-xs mb-3 font-medium">
+              Don't have an account?{' '}
+              <Link href="/signup" className="font-bold text-accent-cyan hover:underline ml-1">
                 Sign up
               </Link>
             </p>

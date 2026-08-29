@@ -37,13 +37,17 @@ export default function Capture() {
   const [flashing, setFlashing] = useState(false);
   const [presetIndex, setPresetIndex] = useState(0);
   const [showLastInstant, setShowLastInstant] = useState(false);
-  const [showInstantMenu, setShowInstantMenu] = useState(false);
 
   // Start WebRTC Camera stream
   const startCamera = async () => {
     try {
       if (stream) {
         stream.getTracks().forEach(track => track.stop());
+      }
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        console.warn("Camera mediaDevices not supported in this environment.");
+        setCameraActive(false);
+        return;
       }
       const newStream = await navigator.mediaDevices.getUserMedia({
         video: { 
@@ -148,8 +152,7 @@ export default function Capture() {
     return group ? group.name : audience;
   };
 
-  // Preview thumbnail of last capture
-  const lastCapture = currentUser.instants[0];
+  // Find audience label
 
   return (
     <div className="flex flex-col bg-[#0c0c14] w-full h-screen relative select-none">
@@ -294,61 +297,51 @@ export default function Capture() {
         </div>
       </div>
 
-      {/* Last Instant Modal */}
+      {/* All Instants Modal */}
       {showLastInstant && (
-        <div className="absolute inset-0 z-50 bg-[#0c0c14] flex flex-col items-center justify-center animate-fade-in px-4">
+        <div className="absolute inset-0 z-50 bg-[#0c0c14] flex flex-col animate-fade-in">
           {/* Top Header of Modal */}
-          <div className="absolute top-0 left-0 right-0 flex justify-between items-center px-5 pt-8 pb-4 z-50 bg-gradient-to-b from-black/80 to-transparent">
+          <div className="flex justify-between items-center px-5 pt-8 pb-4 bg-zinc-950/80 backdrop-blur-md border-b border-zinc-900">
+            <h2 className="text-white font-bold text-lg pl-2">Your Instants</h2>
             <button onClick={() => setShowLastInstant(false)} className="text-white p-2 hover:bg-white/10 rounded-full transition-all">
               <X className="w-8 h-8" />
             </button>
-            <div className="relative">
-              <button onClick={() => setShowInstantMenu(!showInstantMenu)} className="text-white p-2 hover:bg-white/10 rounded-full transition-all">
-                <MoreVertical className="w-8 h-8" />
-              </button>
-              {showInstantMenu && (
-                <div className="absolute top-full right-0 mt-2 w-40 bg-zinc-900 rounded-2xl shadow-xl py-2 z-50 border border-zinc-800">
-                  <button 
-                    onClick={() => {
-                      if (lastCapture) {
-                        deleteInstant(lastCapture.id);
-                      }
-                      setShowInstantMenu(false);
-                      setShowLastInstant(false);
-                    }}
-                    className="w-full px-5 py-3 text-left text-sm font-bold text-red-500 hover:bg-zinc-800 flex items-center space-x-3 transition-colors"
-                  >
-                    <Trash className="w-5 h-5" />
-                    <span>Delete</span>
-                  </button>
-                </div>
-              )}
-            </div>
           </div>
 
-          {/* Instant Card */}
-          {lastCapture ? (
-            <div className="w-full max-w-[420px] aspect-[4/5] bg-zinc-950 rounded-[72px] relative overflow-hidden shadow-2xl border-4 border-[#0c0c14]">
-              {lastCapture.type === 'video' ? (
-                <video src={lastCapture.url} className="w-full h-full object-cover" autoPlay loop muted playsInline />
-              ) : (
-                <img src={lastCapture.url} alt="Last capture" className="w-full h-full object-cover" />
-              )}
-              {/* Optional caption overlay */}
-              {lastCapture.caption && (
-                <div className="absolute bottom-10 left-0 right-0 px-8 z-20">
-                  <div className="w-full bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4 text-sm text-center text-white shadow-lg">
-                    {lastCapture.caption}
-                  </div>
+          {/* Instants List */}
+          <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
+            {currentUser?.instants && currentUser.instants.length > 0 ? (
+              currentUser.instants.map(instant => (
+                <div key={instant.id} className="w-full max-w-[420px] mx-auto bg-zinc-950 rounded-[48px] relative overflow-hidden shadow-2xl border-4 border-zinc-900">
+                  {/* Delete Button */}
+                  <button 
+                    onClick={() => deleteInstant(instant.id)}
+                    className="absolute top-4 right-4 z-10 w-12 h-12 bg-black/60 backdrop-blur-md border border-white/10 rounded-full flex items-center justify-center hover:bg-red-500/90 transition-colors"
+                  >
+                    <Trash className="w-6 h-6 text-white" />
+                  </button>
+                  
+                  {instant.type === 'video' ? (
+                    <video src={instant.url} className="w-full aspect-[4/5] object-cover" autoPlay loop muted playsInline />
+                  ) : (
+                    <img src={instant.url} alt="Instant" className="w-full aspect-[4/5] object-cover" />
+                  )}
+                  {instant.caption && (
+                    <div className="absolute bottom-6 left-0 right-0 px-6 z-20">
+                      <div className="w-full bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl px-5 py-4 text-sm text-center text-white shadow-lg">
+                        {instant.caption}
+                      </div>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ) : (
-            <div className="text-zinc-500 text-sm font-bold flex flex-col items-center space-y-3">
-              <Camera className="w-10 h-10 text-zinc-700" />
-              <p>No recent instant taken yet.</p>
-            </div>
-          )}
+              ))
+            ) : (
+              <div className="text-zinc-500 h-full text-sm font-bold flex flex-col items-center justify-center space-y-3 pt-20">
+                <Camera className="w-10 h-10 text-zinc-700" />
+                <p>No instants taken yet.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

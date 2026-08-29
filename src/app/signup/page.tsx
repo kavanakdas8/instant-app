@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, Suspense } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Sun, Moon, Camera, ArrowRight, Check, AlertCircle } from 'lucide-react';
+import { Sun, Moon, Camera, ArrowRight, Check, AlertCircle, Sparkles, User, Image as ImageIcon } from 'lucide-react';
 
 const STORY_CIRCLES = [
   {
@@ -39,19 +39,46 @@ const STORY_CIRCLES = [
   }
 ];
 
+const AVATAR_PRESETS = [
+  'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80',
+  'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=150&q=80',
+];
+
+function SignupParamsHandler({
+  onEmailFound
+}: {
+  onEmailFound: (email: string) => void;
+}) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const emailParam = searchParams.get('email');
+    if (emailParam) {
+      onEmailFound(emailParam);
+    }
+  }, [searchParams, onEmailFound]);
+
+  return null;
+}
+
 export default function Signup() {
   const router = useRouter();
   const { signup } = useApp();
-  
-  // Step navigation (1: Form details, 2: Setup Camera)
+
+  // Step navigation (1: Form details, 2: Setup Camera / Avatar)
   const [step, setStep] = useState<1 | 2>(1);
-  
+
   // Form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
+  const [bio, setBio] = useState('');
+  const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[4]);
+
   // States
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [error, setError] = useState('');
@@ -74,7 +101,7 @@ export default function Signup() {
   useEffect(() => {
     return () => {
       if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream.getTracks().forEach((track) => track.stop());
       }
     };
   }, [cameraStream]);
@@ -87,8 +114,8 @@ export default function Signup() {
 
   const handleCreateAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!firstName.trim() || !lastName.trim()) {
-      setError('First name and Last name are required');
+    if (!firstName.trim()) {
+      setError('First name is required');
       return;
     }
     if (!email.trim()) {
@@ -110,39 +137,50 @@ export default function Signup() {
     // Simulate account setup delay
     setTimeout(() => {
       setLoading(false);
-      setStep(2); // Proceed to camera setup page
-    }, 800);
+      setStep(2); // Proceed to camera/avatar setup page
+    }, 500);
   };
 
   const handleStartCamera = async () => {
     setError('');
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: 320, height: 320, facingMode: 'user' } });
+      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setCameraPermission('denied');
+        setError('Camera access not supported in this browser.');
+        return;
+      }
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { width: 320, height: 320, facingMode: 'user' }
+      });
       setCameraStream(stream);
       setCameraPermission('granted');
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
     } catch (err) {
-      console.warn("Webcam permission denied or unavailable:", err);
+      console.warn('Webcam permission denied or unavailable:', err);
       setCameraPermission('denied');
-      setError('Camera access denied. Showing a simulated video feed instead.');
+      setError('Camera permission unavailable. Choose an avatar or proceed with default.');
     }
   };
 
   const handleCompleteRegistration = () => {
     setLoading(true);
-    
+
     // Stop camera streams
     if (cameraStream) {
-      cameraStream.getTracks().forEach(track => track.stop());
+      cameraStream.getTracks().forEach((track) => track.stop());
     }
 
-    const username = `${firstName.toLowerCase()}_${lastName.toLowerCase()}`.replace(/[^a-z0-9_]/g, '');
-    const bioText = 'New adventurer sharing real life on Instants.';
+    const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
+    const baseUsername = email.includes('@')
+      ? email.split('@')[0]
+      : `${firstName}_${lastName || 'traveler'}`;
+    const cleanUsername = baseUsername.toLowerCase().replace(/[^a-z0-9_]/g, '') || `user_${Date.now()}`;
+    const bioText = bio.trim() || 'New adventurer sharing real life on Instants. 🌍✨';
 
     setTimeout(() => {
-      const success = signup(`${firstName} ${lastName}`, username, bioText);
+      const success = signup(fullName, cleanUsername, bioText, selectedAvatar);
       setLoading(false);
       if (success) {
         router.push('/feed');
@@ -150,25 +188,40 @@ export default function Signup() {
         setError('Registration failed. Please try again.');
         setStep(1);
       }
-    }, 1000);
+    }, 700);
   };
 
   // Color mapping variables based on theme state
   const isLight = theme === 'light';
-  const bgColor = isLight ? 'bg-[#F8FAFC]' : 'bg-slate-950'; // Off-white signup background
-  const cardBg = isLight ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-800';
+  const bgColor = isLight ? 'bg-[#F8FAFC]' : 'bg-slate-950';
+  const cardBg = isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-none';
   const textColor = isLight ? 'text-slate-900' : 'text-zinc-100';
   const subTextColor = isLight ? 'text-slate-500' : 'text-zinc-400';
   const inputBg = isLight ? 'bg-slate-50' : 'bg-slate-950';
-  const inputBorder = isLight ? 'border-slate-200 focus:border-purple-500 focus:ring-purple-200' : 'border-slate-800 focus:border-purple-600 focus:ring-purple-950';
-  const labelColor = isLight ? 'text-slate-500' : 'text-zinc-400';
+  const inputBorder = isLight
+    ? 'border-slate-200 focus:border-purple-500 focus:ring-purple-200'
+    : 'border-slate-800 focus:border-purple-600 focus:ring-purple-950';
+  const labelColor = isLight ? 'text-slate-600' : 'text-zinc-400';
   const dividerBorder = isLight ? 'border-slate-100' : 'border-slate-800';
 
   return (
     <div className={`flex-1 flex flex-col lg:flex-row min-h-screen ${bgColor} ${textColor} transition-colors duration-300 font-sans`}>
-      
+      <Suspense fallback={null}>
+        <SignupParamsHandler
+          onEmailFound={(emailVal) => {
+            setEmail(emailVal);
+            if (emailVal.includes('@')) {
+              const namePart = emailVal.split('@')[0].split('.')[0];
+              if (namePart && !firstName) {
+                setFirstName(namePart.charAt(0).toUpperCase() + namePart.slice(1));
+              }
+            }
+          }}
+        />
+      </Suspense>
+
       {/* Theme Toggle Floating Button */}
-      <button 
+      <button
         onClick={toggleTheme}
         className={`absolute top-4 right-4 z-50 p-2.5 rounded-full border shadow-sm transition-all duration-300 ${
           isLight ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
@@ -180,9 +233,11 @@ export default function Signup() {
 
       {/* LEFT COLUMN: Reskinned Brand Image Area with Story Circle Art */}
       <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen bg-slate-950 bg-gradient-to-br from-indigo-950 via-slate-900 to-[#FF2E93]/20 flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
-        
         {/* Brand Logo & Name */}
-        <div className="flex items-center z-10">
+        <div className="flex items-center z-10 space-x-2">
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-pink to-accent-cyan flex items-center justify-center shadow-lg shadow-accent-pink/20">
+            <span className="text-black font-black italic text-sm">I</span>
+          </div>
           <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
         </div>
 
@@ -192,12 +247,11 @@ export default function Signup() {
             <div
               key={circle.id}
               className={`${circle.className} overflow-hidden bg-cover bg-center cursor-pointer transition-all duration-500 hover:scale-[1.1] hover:border-accent-cyan/80`}
-              style={{ 
+              style={{
                 backgroundImage: `url(${circle.url})`,
                 animationDelay: circle.delay
               }}
             >
-              {/* Semi-transparent blur overlay ring inside circle */}
               <div className="w-full h-full bg-black/5 hover:bg-transparent transition-colors" />
             </div>
           ))}
@@ -219,26 +273,30 @@ export default function Signup() {
 
       {/* RIGHT COLUMN: Interactive Registration / Camera Setup Form Area */}
       <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen">
-        
         <div className={`w-full max-w-[480px] p-6 sm:p-8 rounded-3xl border shadow-md ${cardBg} transition-all duration-300`}>
-          
           {/* STEP 1: CREATE ACCOUNT */}
           {step === 1 && (
             <div>
-              <div className="mb-6">
-                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-2">Create Account</h1>
-                <p className={`text-xs ${subTextColor}`}>Fill in details to set up your candid profile.</p>
+              <div className="flex justify-between items-center mb-6">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1">Create Account</h1>
+                  <p className={`text-xs ${subTextColor}`}>Fill in details to set up your candid profile.</p>
+                </div>
+                <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
+                  Step 1/2
+                </span>
               </div>
 
               <form onSubmit={handleCreateAccountSubmit} className="space-y-4">
                 {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-xl font-medium">
-                    {error}
+                  <div className="p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl font-medium flex items-center space-x-2">
+                    <AlertCircle className="w-4 h-4 text-red-500 flex-shrink-0" />
+                    <span>{error}</span>
                   </div>
                 )}
 
                 {/* Name Row (Side by side) */}
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3.5">
                   <div>
                     <label htmlFor="firstName" className={`block text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>
                       First Name
@@ -253,7 +311,7 @@ export default function Signup() {
                       required
                     />
                   </div>
-                  
+
                   <div>
                     <label htmlFor="lastName" className={`block text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>
                       Last Name
@@ -261,11 +319,10 @@ export default function Signup() {
                     <input
                       id="lastName"
                       type="text"
-                      placeholder="Doe"
+                      placeholder="Doe (optional)"
                       value={lastName}
                       onChange={(e) => setLastName(e.target.value)}
                       className={`block w-full px-3.5 py-2.5 ${inputBg} border ${inputBorder} rounded-xl text-sm transition-all focus:outline-none focus:ring-2`}
-                      required
                     />
                   </div>
                 </div>
@@ -302,6 +359,21 @@ export default function Signup() {
                   />
                 </div>
 
+                {/* Bio Field (Optional) */}
+                <div>
+                  <label htmlFor="bio" className={`block text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>
+                    Short Bio (Optional)
+                  </label>
+                  <input
+                    id="bio"
+                    type="text"
+                    placeholder="E.g. Solo hiker, café lover & travel photographer 🎒"
+                    value={bio}
+                    onChange={(e) => setBio(e.target.value)}
+                    className={`block w-full px-3.5 py-2.5 ${inputBg} border ${inputBorder} rounded-xl text-sm transition-all focus:outline-none focus:ring-2`}
+                  />
+                </div>
+
                 <button
                   type="submit"
                   disabled={loading}
@@ -311,103 +383,86 @@ export default function Signup() {
                     <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>Create Account</span>
+                      <span>Continue to Profile Setup</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
                 </button>
               </form>
 
-              {/* Social Logins */}
-              <div className="mt-6">
-                <div className="relative flex py-2 items-center">
-                  <div className={`flex-grow border-t ${dividerBorder}`}></div>
-                  <span className={`flex-shrink mx-4 text-[9px] uppercase font-bold tracking-widest ${subTextColor}`}>
-                    or
-                  </span>
-                  <div className={`flex-grow border-t ${dividerBorder}`}></div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3.5 mt-3">
-                  <button 
-                    type="button" 
-                    onClick={() => { setFirstName('Emma'); setLastName('Watson'); setEmail('emma_in_europe@email.com'); setPassword('password123'); setStep(2); }}
-                    className={`flex items-center justify-center space-x-2 py-3 px-4 border rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all text-xs font-semibold ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100' : 'bg-slate-950 border-slate-800 text-zinc-300 hover:bg-slate-900'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 fill-[#1877F2]" viewBox="0 0 24 24">
-                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                    </svg>
-                    <span>Sign up with Facebook</span>
-                  </button>
-
-                  <button 
-                    type="button"
-                    onClick={() => { setFirstName('Kento'); setLastName('Sato'); setEmail('kento_tokyo@email.com'); setPassword('password123'); setStep(2); }}
-                    className={`flex items-center justify-center space-x-2 py-3 px-4 border rounded-xl hover:scale-[1.01] active:scale-[0.99] transition-all text-xs font-semibold ${
-                      isLight ? 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100' : 'bg-slate-950 border-slate-800 text-zinc-300 hover:bg-slate-900'
-                    }`}
-                  >
-                    <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-                    </svg>
-                    <span>Sign up with X</span>
-                  </button>
-                </div>
-              </div>
-
-              <div className="mt-6 text-center text-xs">
+              {/* Already have an account */}
+              <div className="mt-6 text-center text-xs font-medium pt-4 border-t border-slate-100 dark:border-slate-800">
                 Already have an account?{' '}
-                <Link href="/login" className="font-bold text-accent-cyan hover:underline">
+                <Link href="/login" className="font-bold text-accent-cyan hover:underline ml-1">
                   Log in
                 </Link>
               </div>
             </div>
           )}
 
-          {/* STEP 2: SETUP CAMERA */}
+          {/* STEP 2: SETUP CAMERA / AVATAR */}
           {step === 2 && (
             <div className="flex flex-col items-center">
-              <div className="w-12 h-12 rounded-2xl bg-accent-pink/10 border border-accent-pink/20 flex items-center justify-center text-accent-pink mb-4">
+              <div className="flex justify-between items-center w-full mb-4">
+                <button
+                  type="button"
+                  onClick={() => setStep(1)}
+                  className={`text-xs font-semibold ${subTextColor} hover:text-slate-300 transition-colors`}
+                >
+                  ← Back to details
+                </button>
+                <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-accent-pink/10 text-accent-pink border border-accent-pink/20">
+                  Step 2/2
+                </span>
+              </div>
+
+              <div className="w-12 h-12 rounded-2xl bg-accent-pink/10 border border-accent-pink/20 flex items-center justify-center text-accent-pink mb-3">
                 <Camera className="w-6 h-6" />
               </div>
-              
-              <h2 className="text-xl sm:text-2xl font-black text-center mb-1">Setup Your Camera</h2>
+
+              <h2 className="text-xl sm:text-2xl font-black text-center mb-1">Set Your Profile Picture</h2>
               <p className={`text-xs ${subTextColor} text-center max-w-sm mb-5 leading-relaxed`}>
-                Instants requires real-time capturing to post. Grant camera permission to set up your profile snap.
+                Choose an avatar preset or allow camera access to take your profile snap.
               </p>
 
-              {/* Camera Preview Box */}
-              <div className="w-[220px] h-[220px] rounded-full overflow-hidden border-4 border-slate-200 dark:border-slate-800 relative bg-slate-950 shadow-inner flex flex-col justify-center items-center mb-6">
-                
+              {/* Avatar / Camera Preview Box */}
+              <div className="w-[150px] h-[150px] rounded-full overflow-hidden border-4 border-accent-pink/40 relative bg-slate-950 shadow-xl flex flex-col justify-center items-center mb-4">
                 {/* Active Webcam Feed */}
-                {cameraPermission === 'granted' && (
-                  <video
-                    ref={videoRef}
-                    autoPlay
-                    playsInline
-                    muted
-                    className="w-full h-full object-cover scale-x-[-1]"
-                  />
+                {cameraPermission === 'granted' ? (
+                  <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
+                ) : (
+                  <img src={selectedAvatar} alt="Selected Avatar" className="w-full h-full object-cover" />
                 )}
+              </div>
 
-                {/* Simulated/No Stream fallback */}
-                {cameraPermission !== 'granted' && (
-                  <div className="w-full h-full flex flex-col items-center justify-center p-4 text-center text-zinc-500 relative select-none">
-                    <div className="absolute inset-0 bg-cover bg-center opacity-40 blur-xs" style={{ backgroundImage: `url('https://images.unsplash.com/photo-1486916856992-e4db22c8df33?auto=format&fit=crop&w=200&q=80')` }} />
-                    <div className="absolute inset-0 bg-black/60" />
-                    
-                    <div className="z-10 flex flex-col items-center space-y-2">
-                      <Camera className="w-8 h-8 text-zinc-500 animate-pulse" />
-                      <p className="text-[10px] font-semibold text-zinc-300">Camera Feed Simulator</p>
-                      <div className="flex space-x-1 items-center bg-black/50 px-2 py-0.5 rounded border border-white/5">
-                        <span className="w-1.5 h-1.5 bg-[#FF2E93] rounded-full animate-ping" />
-                        <span className="text-[8px] text-white/80 font-bold font-mono">REC STANDBY</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
+              {/* Avatar Preset Grid */}
+              <div className="w-full mb-5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2 text-center">
+                  Select an Avatar Preset
+                </p>
+                <div className="flex justify-center space-x-2.5">
+                  {AVATAR_PRESETS.map((url, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setSelectedAvatar(url);
+                        if (cameraStream) {
+                          cameraStream.getTracks().forEach((track) => track.stop());
+                          setCameraStream(null);
+                          setCameraPermission('prompt');
+                        }
+                      }}
+                      className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-transform ${
+                        selectedAvatar === url && cameraPermission !== 'granted'
+                          ? 'border-accent-pink scale-110 shadow-md shadow-accent-pink/30'
+                          : 'border-transparent hover:scale-105 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {error && (
@@ -423,9 +478,10 @@ export default function Signup() {
                   <button
                     type="button"
                     onClick={handleStartCamera}
-                    className="w-full py-3 bg-white text-black hover:bg-zinc-100 text-sm font-bold rounded-xl border border-slate-200 transition-all flex items-center justify-center space-x-2"
+                    className="w-full py-2.5 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-zinc-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-2"
                   >
-                    <span>Allow Camera Access</span>
+                    <Camera className="w-4 h-4" />
+                    <span>Or Snap Live Webcam Photo</span>
                   </button>
                 )}
 
@@ -442,26 +498,15 @@ export default function Signup() {
                   ) : (
                     <>
                       <Check className="w-4 h-4 stroke-[2.5]" />
-                      <span>{cameraPermission === 'granted' ? 'Save & Start Sharing' : 'Skip & Start Sharing'}</span>
+                      <span>Complete Signup & Start Exploring</span>
                     </>
                   )}
-                </button>
-                
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className={`w-full py-2.5 text-xs font-semibold ${subTextColor} hover:text-slate-300 transition-colors`}
-                >
-                  Go Back
                 </button>
               </div>
             </div>
           )}
-
         </div>
-
       </div>
-
     </div>
   );
 }

@@ -93,6 +93,7 @@ export interface AppNotification {
 
 interface AppContextType {
   currentUser: UserProfile | null;
+  isInitialized: boolean;
   feed: Instant[];
   groups: TravelGroup[];
   joinRequests: JoinRequest[];
@@ -101,7 +102,7 @@ interface AppContextType {
   notifications: AppNotification[];
   setCurrentUser: (user: UserProfile | null) => void;
   login: (username: string) => boolean;
-  signup: (name: string, username: string, bio: string) => boolean;
+  signup: (name: string, username: string, bio: string, avatarUrl?: string) => boolean;
   logout: () => void;
   likePost: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
@@ -541,6 +542,7 @@ export const MOCK_NOTIFICATIONS: AppNotification[] = [
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
+  const [isInitialized, setIsInitialized] = useState<boolean>(false);
   const [feed, setFeed] = useState<Instant[]>(MOCK_FEED);
   const [groups, setGroups] = useState<TravelGroup[]>(MOCK_GROUPS);
   const [joinRequests, setJoinRequests] = useState<JoinRequest[]>(MOCK_REQUESTS);
@@ -548,66 +550,111 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [allUsers, setAllUsers] = useState<UserProfile[]>(MOCK_USERS);
   const [notifications, setNotifications] = useState<AppNotification[]>(MOCK_NOTIFICATIONS);
 
+  // Restore user session on startup and load any registered users
   useEffect(() => {
-    setAllUsers(MOCK_USERS.map(user => ({
-      ...user,
-      instants: feed.filter(f => f.authorUsername === user.username)
-    })));
+    try {
+      if (typeof window !== 'undefined') {
+        const storedUsers = localStorage.getItem('instants_registered_users');
+        if (storedUsers) {
+          const parsed = JSON.parse(storedUsers) as UserProfile[];
+          setAllUsers(parsed);
+        }
+
+        const stored = localStorage.getItem('instants_current_user');
+        if (stored) {
+          setCurrentUser(JSON.parse(stored));
+        } else {
+          setCurrentUser(null);
+        }
+      }
+    } catch (e) {
+      console.warn("Could not read localStorage for auth session:", e);
+    } finally {
+      setIsInitialized(true);
+    }
+  }, []);
+
+  // Sync currentUser with localStorage
+  useEffect(() => {
+    if (!isInitialized) return;
+    try {
+      if (typeof window !== 'undefined') {
+        if (currentUser) {
+          localStorage.setItem('instants_current_user', JSON.stringify(currentUser));
+        } else {
+          localStorage.removeItem('instants_current_user');
+        }
+      }
+    } catch (e) {
+      console.warn("Could not sync auth session to localStorage:", e);
+    }
+  }, [currentUser, isInitialized]);
+
+  // Keep allUsers instants updated from feed
+  useEffect(() => {
+    setAllUsers(prevUsers =>
+      prevUsers.map(user => ({
+        ...user,
+        instants: feed.filter(f => f.authorUsername === user.username)
+      }))
+    );
   }, [feed]);
 
+  const login = (identifier: string): boolean => {
+    const clean = identifier.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+    if (!clean) return false;
 
+    // Check alias maps
+    let targetUsername = clean;
+    if (clean === 'alice') targetUsername = 'alice_adventures';
+    if (clean === 'emma') targetUsername = 'emma_in_europe';
+    if (clean === 'kento') targetUsername = 'kento_tokyo';
+    if (clean === 'bob') targetUsername = 'bob_travels';
 
-  const login = (username: string): boolean => {
-    // If logging in as existing mock users, load their profile
-    if (username === 'alice_adventures' || username === 'alice') {
-      setCurrentUser({
-        name: 'Alice Cooper',
-        username: 'alice_adventures',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-        bio: 'Travel photographer & filmmaker. Searching for the unseen corners of the world. 🌍✨',
-        instants: feed.filter(f => f.authorUsername === 'alice_adventures')
-      });
-      return true;
-    } else if (username === 'emma_in_europe' || username === 'emma') {
-      setCurrentUser({
-        name: 'Emma Watson',
-        username: 'emma_in_europe',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-        bio: 'Backpacker traveling across Europe. Currently in Florence! 🍕🗺️',
-        instants: feed.filter(f => f.authorUsername === 'emma_in_europe')
-      });
-      return true;
-    } else if (username === 'kento_tokyo' || username === 'kento') {
-      setCurrentUser({
-        name: 'Kento Sato',
-        username: 'kento_tokyo',
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-        bio: 'Solo Tokyo explorer. Looking for the best ramen and hidden alleys. 🍜🇯🇵',
-        instants: feed.filter(f => f.authorUsername === 'kento_tokyo')
-      });
+    // Find in all registered/mock users
+    const matchedUser = allUsers.find(
+      u => u.username.toLowerCase() === targetUsername || u.username.toLowerCase() === clean
+    );
+
+    if (matchedUser) {
+      const userProfileWithInstants: UserProfile = {
+        ...matchedUser,
+        instants: feed.filter(f => f.authorUsername === matchedUser.username)
+      };
+      setCurrentUser(userProfileWithInstants);
       return true;
     }
-    
-    // Create new profile for unknown user
-    setCurrentUser({
-      name: username.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-      username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
-      avatar: `https://images.unsplash.com/photo-${1500000000000 + Math.floor(Math.random() * 999999)}?auto=format&fit=crop&w=150&q=80`,
-      bio: 'Travel lover and Instants pioneer.',
-      instants: []
-    });
-    return true;
+
+    // Return false if user does not exist so UI can suggest signup
+    return false;
   };
 
-  const signup = (name: string, username: string, bio: string): boolean => {
+  const signup = (name: string, username: string, bio: string, avatarUrl?: string): boolean => {
     const formattedUsername = username.toLowerCase().replace(/[^a-z0-9_]/g, '');
-    setCurrentUser({
-      name,
+    if (!formattedUsername) return false;
+
+    const newUser: UserProfile = {
+      name: name.trim() || formattedUsername,
       username: formattedUsername,
-      avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80`, // default friendly avatar
-      bio: bio || 'Exploring the world one Instant at a time.',
+      avatar: avatarUrl || `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80`,
+      bio: bio.trim() || 'Exploring the world one Instant at a time.',
       instants: []
+    };
+
+    setAllUsers(prev => {
+      const filtered = prev.filter(u => u.username !== formattedUsername);
+      const updated = [...filtered, newUser];
+      try {
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('instants_registered_users', JSON.stringify(updated));
+        }
+      } catch (err) {
+        console.warn("Could not save registered users:", err);
+      }
+      return updated;
     });
+
+    setCurrentUser(newUser);
     return true;
   };
 
@@ -972,6 +1019,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     <AppContext.Provider
       value={{
         currentUser,
+        isInitialized,
         feed,
         groups,
         joinRequests,

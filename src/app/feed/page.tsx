@@ -37,13 +37,23 @@ export default function Feed() {
 
   const handleTabSwitch = (tab: 'explore' | 'following' | 'friends') => {
     setActiveTab(tab);
-    window.history.pushState(null, '', `?tab=${tab}`);
+    setActiveDeckIndex(0);
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', `?tab=${tab}`);
+    }
   };
 
   const mockFollowing = ['emma_in_europe', 'alice_adventures'];
   const displayFeed = activeTab === 'following' 
     ? feed.filter(p => mockFollowing.includes(p.authorUsername)) 
     : feed;
+
+  // Ensure activeDeckIndex is within bounds if displayFeed length changes
+  useEffect(() => {
+    if (displayFeed.length > 0 && activeDeckIndex >= displayFeed.length) {
+      setActiveDeckIndex(0);
+    }
+  }, [displayFeed.length, activeDeckIndex]);
 
   // Notifications and reaction states
   const [toastMessage, setToastMessage] = useState('');
@@ -76,7 +86,7 @@ export default function Feed() {
     showReactToast(emoji);
   };
 
-  const activeCard = displayFeed[activeDeckIndex];
+  const activeCard = displayFeed.length > 0 ? (displayFeed[activeDeckIndex] || displayFeed[0]) : null;
 
   // Autoplay video on deck index changes
   useEffect(() => {
@@ -85,7 +95,7 @@ export default function Feed() {
       activeVideoRef.current.load();
       activeVideoRef.current.play().then(() => setIsPlayingActiveCard(true)).catch(() => setIsPlayingActiveCard(false));
     }
-  }, [activeDeckIndex, displayFeed]);
+  }, [activeDeckIndex, displayFeed, activeCard]);
 
   const togglePlayActiveCard = () => {
     if (!activeVideoRef.current) return;
@@ -432,93 +442,97 @@ export default function Feed() {
                   )}
 
                   {/* Top Active Card */}
-                  <div className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[48px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up">
-                    {/* Media content */}
-                    {activeCard.type === 'video' ? (
-                      <div className="w-full h-full relative cursor-pointer" onClick={togglePlayActiveCard}>
-                        <video
-                          ref={activeVideoRef}
+                  {activeCard && (
+                    <div className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[48px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up">
+                      {/* Media content */}
+                      {activeCard.type === 'video' ? (
+                        <div className="w-full h-full relative cursor-pointer" onClick={togglePlayActiveCard}>
+                          <video
+                            ref={activeVideoRef}
+                            src={activeCard.url}
+                            loop
+                            muted={muted}
+                            autoPlay
+                            playsInline
+                            className="w-full h-full object-cover"
+                          />
+                          {!isPlayingActiveCard && (
+                            <div className="absolute inset-0 flex justify-center items-center bg-black/20">
+                              <div className="w-12 h-12 bg-black/45 rounded-full flex items-center justify-center backdrop-blur-xs">
+                                <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <img
                           src={activeCard.url}
-                          loop
-                          muted={muted}
-                          autoPlay
-                          playsInline
+                          alt={activeCard.caption || "Travel capture"}
                           className="w-full h-full object-cover"
                         />
-                        {!isPlayingActiveCard && (
-                          <div className="absolute inset-0 flex justify-center items-center bg-black/20">
-                            <div className="w-12 h-12 bg-black/45 rounded-full flex items-center justify-center backdrop-blur-xs">
-                              <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <img
-                        src={activeCard.url}
-                        alt={activeCard.caption || "Travel capture"}
-                        className="w-full h-full object-cover"
-                      />
-                    )}
-
-                    {/* Left Navigation Chevron Area */}
-                    <div className="absolute left-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handlePrevCard} />
-
-                    {/* Right Navigation Chevron Area */}
-                    <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
-
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                    <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
-
-                    {/* Top Info Overlay */}
-                    <div className="absolute left-4 top-4 z-20 flex items-center space-x-3 drop-shadow-md">
-                      <img
-                        src={activeCard.authorAvatar}
-                        alt={activeCard.authorUsername}
-                        className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
-                      />
-                      <div className="flex flex-col">
-                        <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
-                      </div>
-                    </div>
-
-                    {/* Bottom Info Overlay */}
-                    <div className="absolute left-5 right-5 bottom-5 z-20 text-left drop-shadow-md">
-                      {activeCard.caption && (
-                        <p className="text-xs font-medium text-white line-clamp-2 mb-1.5">
-                          {activeCard.caption}
-                        </p>
                       )}
-                      <p className="text-[10px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
+
+                      {/* Left Navigation Chevron Area */}
+                      <div className="absolute left-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handlePrevCard} />
+
+                      {/* Right Navigation Chevron Area */}
+                      <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
+
+                      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+
+                      {/* Top Info Overlay */}
+                      <div className="absolute left-4 top-4 z-20 flex items-center space-x-3 drop-shadow-md">
+                        <img
+                          src={activeCard.authorAvatar}
+                          alt={activeCard.authorUsername}
+                          className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
+                        />
+                        <div className="flex flex-col">
+                          <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                        </div>
+                      </div>
+
+                      {/* Bottom Info Overlay */}
+                      <div className="absolute left-5 right-5 bottom-5 z-20 text-left drop-shadow-md">
+                        {activeCard.caption && (
+                          <p className="text-xs font-medium text-white line-clamp-2 mb-1.5">
+                            {activeCard.caption}
+                          </p>
+                        )}
+                        <p className="text-[10px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Minimalist Action Controls */}
-                <div className="w-full max-w-[300px] flex items-center justify-between mt-5 px-1">
-                  {/* Comment Bar */}
-                  <div 
-                    onClick={() => handleOpenComments(activeCard.id)}
-                    className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
-                  >
-                    <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
-                    <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
-                      <MessageCircle className="w-3.5 h-3.5" />
-                      <span className="text-[11px] font-bold font-mono">{activeCard.comments.length}</span>
+                {activeCard && (
+                  <div className="w-full max-w-[300px] flex items-center justify-between mt-5 px-1">
+                    {/* Comment Bar */}
+                    <div 
+                      onClick={() => handleOpenComments(activeCard.id)}
+                      className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
+                    >
+                      <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
+                      <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
+                        <MessageCircle className="w-3.5 h-3.5" />
+                        <span className="text-[11px] font-bold font-mono">{activeCard.comments?.length || 0}</span>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Share Icon Button */}
-                  <button 
-                    onClick={() => handleShare(activeCard)}
-                    className="w-[54px] h-[54px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all hover:bg-zinc-900/80 shadow-sm"
-                  >
-                    <Send className="w-5 h-5" />
-                  </button>
-                </div>
+                    {/* Share Icon Button */}
+                    <button 
+                      onClick={() => handleShare(activeCard)}
+                      className="w-[54px] h-[54px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all hover:bg-zinc-900/80 shadow-sm"
+                    >
+                      <Send className="w-5 h-5" />
+                    </button>
+                  </div>
+                )}
 
               </div>
-                  </div>
+            </div>
 
                 {/* Right Side Comments Panel (Desktop) */}
                 {commentOpen && activePost && (

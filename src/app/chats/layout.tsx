@@ -1,10 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useApp, TravelGroup } from '@/context/AppContext';
 import { Search, MapPin, Compass, ArrowRight, UserPlus, CheckCircle, Clock, MessageSquare, PlusCircle, ArrowLeft, Check } from 'lucide-react';
 import Drawer from '@/components/Drawer';
+
+function SearchParamsHandler({
+  onTabChange,
+  onNewChat
+}: {
+  onTabChange: (tab: 'groups' | 'dms') => void;
+  onNewChat: () => void;
+}) {
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    if (tab === 'groups' || tab === 'dms') {
+      onTabChange(tab);
+    }
+    if (searchParams.get('new') === 'true') {
+      onNewChat();
+    }
+  }, [searchParams, onTabChange, onNewChat]);
+
+  return null;
+}
 
 export default function ChatsLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -18,18 +40,6 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
 
   // Check if we are viewing a specific chat
   const isChatDetail = pathname !== '/chats';
-
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const tab = searchParams.get('tab');
-    if (tab === 'groups' || tab === 'dms') {
-      setActiveTab(tab);
-    }
-    if (searchParams.get('new') === 'true') {
-      setNewChatDrawerOpen(true);
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     if (!currentUser) {
@@ -69,6 +79,12 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
 
   return (
     <div className="flex h-screen w-full bg-[#000000]">
+      <Suspense fallback={null}>
+        <SearchParamsHandler
+          onTabChange={setActiveTab}
+          onNewChat={() => setNewChatDrawerOpen(true)}
+        />
+      </Suspense>
       {/* LEFT PANE: Chat List */}
       {/* On mobile, hide this if we are in a chat detail view. On desktop, always show it (md:flex). */}
       <div className={`${isChatDetail ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] flex-col border-r border-[#27272A] bg-black px-4 pt-6 select-none pb-20 md:pb-0`}>
