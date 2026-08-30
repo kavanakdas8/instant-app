@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { Sun, Moon, Camera, ArrowRight, Check, AlertCircle, Sparkles, User, Image as ImageIcon } from 'lucide-react';
+import Logo from '@/components/Logo';
 
 const STORY_CIRCLES = [
   {
@@ -235,9 +236,7 @@ export default function Signup() {
       <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen bg-slate-950 bg-gradient-to-br from-indigo-950 via-slate-900 to-[#FF2E93]/20 flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
         {/* Brand Logo & Name */}
         <div className="flex items-center z-10 space-x-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-accent-pink to-accent-cyan flex items-center justify-center shadow-lg shadow-accent-pink/20">
-            <span className="text-black font-black italic text-sm">I</span>
-          </div>
+          <Logo className="w-8 h-8 text-white drop-shadow-md" />
           <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
         </div>
 

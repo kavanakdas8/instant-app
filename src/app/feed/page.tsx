@@ -8,6 +8,7 @@ import {
   Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
+import Logo from '@/components/Logo';
 
 export default function Feed() {
   const router = useRouter();
@@ -217,7 +218,10 @@ export default function Feed() {
       <div className="md:hidden h-screen w-full bg-[#000000] relative overflow-hidden flex flex-col font-sans">
         {/* Top Feed Header */}
         <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center px-4 z-30 select-none">
-          <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
+          <div className="flex items-center space-x-2">
+            <Logo className="w-6 h-6 text-white" />
+            <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
+          </div>
           <div className="flex items-center space-x-3">
             <button
               onClick={() => setMuted(!muted)}
@@ -268,7 +272,10 @@ export default function Feed() {
           <div className="flex flex-col">
             {/* Brand Header */}
             <div className="mb-8 flex items-center justify-between animate-fade-in-up">
-              <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
+              <div className="flex items-center space-x-2">
+                <Logo className="w-6 h-6 text-white" />
+                <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
+              </div>
               <button
                 onClick={() => setMuted(!muted)}
                 className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all active:scale-95"

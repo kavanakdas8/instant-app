@@ -1,127 +1,187 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { useApp } from '@/context/AppContext';
-import { Sparkles, ArrowRight } from 'lucide-react';
+import { Sparkles, ArrowRight, Camera, Compass, Users, ShieldCheck, Zap } from 'lucide-react';
+import Logo from '@/components/Logo';
+
+const LOADING_STAGES = [
+  { threshold: 25, label: "Warming up camera optics & sensors...", badge: "OPTICS" },
+  { threshold: 50, label: "Discovering live moments & vibes nearby...", badge: "DISCOVERY" },
+  { threshold: 75, label: "Syncing wanderlust circles & stories...", badge: "NETWORK" },
+  { threshold: 95, label: "Calibrating real-time feed stream...", badge: "OPTIMIZING" },
+  { threshold: 100, label: "Ready to explore! Transitioning to Login...", badge: "READY" },
+];
 
 export default function Home() {
   const router = useRouter();
-  const { currentUser, isInitialized } = useApp();
-  const [progress, setProgress] = useState(15);
-  const [isReady, setIsReady] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  // Smooth loading animation progress bar
+  const goToLogin = useCallback(() => {
+    if (isNavigating) return;
+    setIsNavigating(true);
+    // Smooth transition delay
+    setTimeout(() => {
+      router.push('/login');
+    }, 400);
+  }, [isNavigating, router]);
+
+  // Smooth loading progression
   useEffect(() => {
     const timer = setInterval(() => {
       setProgress((prev) => {
         if (prev >= 100) {
           clearInterval(timer);
-          setIsReady(true);
           return 100;
         }
-        // Accelerate smoothly
-        const increment = Math.floor(Math.random() * 25) + 15;
-        return Math.min(prev + increment, 100);
+        // Smooth random increment
+        const increment = Math.floor(Math.random() * 18) + 12;
+        const next = Math.min(prev + increment, 100);
+        return next;
       });
-    }, 180);
+    }, 190);
 
     return () => clearInterval(timer);
   }, []);
 
-  // Navigate after loading screen finishes and context is initialized
+  // When progress reaches 100%, automatically transition to /login
   useEffect(() => {
-    if (!isReady || !isInitialized) return;
+    if (progress >= 100 && !isNavigating) {
+      const autoNavTimer = setTimeout(() => {
+        goToLogin();
+      }, 500);
 
-    const navTimer = setTimeout(() => {
-      if (currentUser) {
-        router.push('/feed');
-      } else {
-        router.push('/login');
-      }
-    }, 350);
-
-    return () => clearTimeout(navTimer);
-  }, [isReady, isInitialized, currentUser, router]);
-
-  const handleSkip = () => {
-    if (currentUser) {
-      router.push('/feed');
-    } else {
-      router.push('/login');
+      return () => clearTimeout(autoNavTimer);
     }
-  };
+  }, [progress, isNavigating, goToLogin]);
+
+  // Allow keyboard shortcuts (Enter / Space / Escape) to skip immediately to login
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+        goToLogin();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [goToLogin]);
+
+  // Get current active stage
+  const currentStage =
+    LOADING_STAGES.find((stage) => progress <= stage.threshold) ||
+    LOADING_STAGES[LOADING_STAGES.length - 1];
 
   return (
-    <div className="flex-1 flex flex-col justify-between items-center min-h-screen bg-slate-950 text-white p-6 relative overflow-hidden select-none">
-      {/* Dynamic Background Glow Effects */}
-      <div className="absolute -top-32 -left-32 w-80 h-80 bg-accent-pink/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute -bottom-32 -right-32 w-80 h-80 bg-accent-cyan/20 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-purple-600/10 rounded-full blur-[140px] pointer-events-none" />
+    <div
+      className={`relative min-h-screen w-full bg-[#05060f] text-white flex flex-col justify-between items-center p-6 sm:p-10 select-none overflow-hidden transition-all duration-500 ${isNavigating ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'
+        }`}
+    >
+      {/* Background Animated Neon Glow Lights */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#FF2E93]/20 rounded-full blur-[140px] pointer-events-none animate-pulse" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#00F0FF]/20 rounded-full blur-[140px] pointer-events-none animate-pulse" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-[#9D4EDD]/15 rounded-full blur-[160px] pointer-events-none" />
 
-      {/* Top Bar / Status */}
-      <div className="w-full flex justify-between items-center z-10 pt-4">
-        <div className="flex items-center space-x-2 text-[10px] tracking-widest uppercase font-mono text-zinc-500">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span>INITIALIZING</span>
+      {/* Subtle Matrix / Dot Grid Overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        style={{
+          backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)',
+          backgroundSize: '32px 32px'
+        }}
+      />
+
+
+
+      {/* Centerpiece Hero Section */}
+      <main className="flex flex-col items-center justify-center space-y-8 z-20 my-auto w-full max-w-md text-center">
+
+        {/* Orbital Glowing Brand Emblem */}
+        <div className="relative group cursor-pointer" onClick={goToLogin}>
+          {/* Outer Slow Counter-Rotating Dashed Orbit */}
+          <div className="absolute -inset-6 rounded-full border border-dashed border-[#00F0FF]/30 animate-spin-slow-reverse pointer-events-none" />
+
+          {/* Middle Glowing Ambient Ring */}
+          <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-[#FF2E93] via-[#9D4EDD] to-[#00F0FF] opacity-60 blur-lg group-hover:opacity-100 transition-opacity duration-700 animate-pulse-glow" />
+
+          {/* Central Glossy Emblem */}
+          <div className="relative w-28 h-28 sm:w-32 sm:h-32 bg-slate-950/90 border border-white/20 rounded-3xl flex flex-col items-center justify-center shadow-2xl backdrop-blur-xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
+            {/* Shimmer overlay sweep */}
+            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF2E93]/20 via-transparent to-[#00F0FF]/20 mix-blend-screen" />
+
+            {/* Shimmer ray animation */}
+            <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/10 to-transparent rotate-45 animate-shimmer pointer-events-none" />
+
+            {/* Glowing Logo Icon */}
+            <div className="relative flex items-center justify-center">
+              <Logo className="w-16 h-16 sm:w-20 sm:h-20 text-white drop-shadow-[0_0_15px_rgba(255,46,147,0.8)]" />
+            </div>
+          </div>
         </div>
-        <button
-          onClick={handleSkip}
-          className="text-xs font-semibold text-zinc-400 hover:text-white flex items-center space-x-1 px-3 py-1 rounded-full bg-white/5 border border-white/10 backdrop-blur-sm transition-all hover:bg-white/10 active:scale-95"
-        >
-          <span>Skip</span>
-          <ArrowRight className="w-3 h-3" />
-        </button>
-      </div>
 
-      {/* Center Branding & Animated Logo */}
-      <div className="flex flex-col items-center justify-center space-y-6 z-10 my-auto">
-        {/* Glow Ring Logo Container */}
-        <div className="relative group">
-          <div className="absolute -inset-1 bg-gradient-to-r from-accent-pink via-purple-500 to-accent-cyan rounded-3xl blur-md opacity-75 group-hover:opacity-100 transition duration-1000 animate-pulse" />
-          <div className="relative w-24 h-24 bg-black border border-white/10 rounded-3xl flex items-center justify-center shadow-2xl overflow-hidden">
-            {/* Shimmer overlay */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-accent-pink/30 to-accent-cyan/30 mix-blend-overlay" />
-            <span className="text-white text-4xl font-black italic tracking-tighter drop-shadow-md">
-              I
+        {/* Brand Title & Tagline */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-center space-x-2">
+            <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
+              INSTANTS
+            </h1>
+          </div>
+
+          <p className="text-xs sm:text-sm text-zinc-400 max-w-xs sm:max-w-sm leading-relaxed mx-auto font-medium">
+            Live candid moments, vertical travel feeds & authentic vibe connections.
+          </p>
+        </div>
+
+        {/* Modern Segmented Progress Bar & Loading Status */}
+        <div className="w-full max-w-xs sm:max-w-sm space-y-3 pt-2">
+          {/* Progress Track */}
+          <div className="relative w-full bg-black/60 border border-white/10 h-2.5 rounded-full overflow-hidden p-0.5 shadow-inner backdrop-blur-md">
+            {/* Filled Bar */}
+            <div
+              className="relative bg-gradient-to-r from-[#FF2E93] via-[#9D4EDD] to-[#00F0FF] h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_12px_rgba(0,240,255,0.6)]"
+              style={{ width: `${progress}%` }}
+            >
+              {/* Gleam Head on Progress Bar */}
+              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white rounded-full shadow-[0_0_8px_#ffffff]" />
+            </div>
+          </div>
+
+          {/* Stage Status Text & Numeric Percent */}
+          <div className="flex justify-between items-center text-xs font-mono px-1">
+            <span className="text-zinc-400 text-[11px] truncate max-w-[210px] sm:max-w-[240px] text-left">
+              {currentStage.label}
+            </span>
+            <span className="text-[#00F0FF] font-bold text-[11px] tracking-wider shrink-0">
+              {progress}%
             </span>
           </div>
         </div>
 
-        {/* Title & Tagline */}
-        <div className="text-center space-y-2">
-          <div className="flex items-center justify-center space-x-2">
-            <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-white via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
-              INSTANTS
-            </h1>
-            <Sparkles className="w-4 h-4 text-accent-pink animate-spin" style={{ animationDuration: '6s' }} />
+
+        {/* Feature Highlights Pills */}
+        <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-[10px] font-medium text-zinc-400">
+          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+            <Camera className="w-3 h-3 text-[#FF2E93]" />
+            <span>Candid Instants</span>
           </div>
-          <p className="text-xs text-zinc-400 max-w-[240px] leading-relaxed mx-auto font-medium">
-            Live candid moments, adventure vibes & real connections.
-          </p>
+          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+            <Compass className="w-3 h-3 text-[#00F0FF]" />
+            <span>Global Feeds</span>
+          </div>
+          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
+            <Users className="w-3 h-3 text-[#9D4EDD]" />
+            <span>Travel Vibes</span>
+          </div>
         </div>
 
-        {/* Progress Bar & Status */}
-        <div className="w-56 space-y-2 pt-4">
-          <div className="w-full bg-zinc-900/80 border border-white/5 h-2 rounded-full overflow-hidden p-0.5 shadow-inner">
-            <div
-              className="bg-gradient-to-r from-accent-pink via-purple-500 to-accent-cyan h-full rounded-full transition-all duration-300 ease-out shadow-sm shadow-accent-pink/50"
-              style={{ width: `${progress}%` }}
-            />
-          </div>
-          <div className="flex justify-between items-center text-[10px] font-mono text-zinc-500 px-1">
-            <span>{progress === 100 ? 'Ready' : 'Loading experience...'}</span>
-            <span>{progress}%</span>
-          </div>
-        </div>
-      </div>
+      </main>
 
       {/* Footer Branding */}
-      <div className="z-10 pb-4 text-center">
-        <p className="text-[11px] text-zinc-600 font-medium tracking-wide">
-          © 2026 Instants App • Travel in the Moment
+      <footer className="w-full max-w-4xl flex flex-col sm:flex-row justify-center items-center gap-2 z-20 pt-4 border-t border-white/[0.05] text-[11px] text-zinc-600 font-medium">
+        <p className="tracking-wide">
+          © 2026 Instants App
         </p>
-      </div>
+      </footer>
     </div>
   );
 }

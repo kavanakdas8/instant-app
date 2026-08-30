@@ -5,9 +5,9 @@ import { usePathname } from 'next/navigation';
 
 export const MobileContainer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/signup';
+  const isStandalonePage = pathname === '/login' || pathname === '/signup' || pathname === '/';
 
-  if (isAuthPage) {
+  if (isStandalonePage) {
     return (
       <div className="min-h-screen w-full bg-[#050505] text-white font-sans antialiased selection:bg-accent-pink/30 flex flex-col">
         <main className="flex-1 flex flex-col relative no-scrollbar">
