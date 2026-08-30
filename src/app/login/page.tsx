@@ -97,7 +97,7 @@ export default function Login() {
   // Color mapping variables based on theme state
   const isLight = theme === 'light';
   const bgColor = isLight ? 'bg-white' : 'bg-[#000000]';
-  const cardBg = isLight ? 'bg-white border-slate-200 shadow-slate-100' : 'bg-slate-900 border-slate-800 shadow-none';
+  const cardBg = isLight ? 'bg-white border-black/20 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-none';
   const textColor = isLight ? 'text-slate-900' : 'text-zinc-100';
   const subTextColor = isLight ? 'text-slate-500' : 'text-zinc-400';
   const inputBg = isLight ? 'bg-slate-50' : 'bg-slate-950';

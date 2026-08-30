@@ -37,26 +37,16 @@ export default function Signup() {
   const router = useRouter();
   const { signup } = useApp();
 
-  // Step navigation (1: Form details, 2: Setup Camera / Avatar)
-  const [step, setStep] = useState<1 | 2>(1);
-
   // Form fields
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [bio, setBio] = useState('');
-  const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_PRESETS[4]);
 
   // States
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-
-  // Camera integration state
-  const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
-  const [cameraPermission, setCameraPermission] = useState<'prompt' | 'granted' | 'denied'>('prompt');
-  const videoRef = useRef<HTMLVideoElement>(null);
 
   // Set initial theme preference
   useEffect(() => {
@@ -65,15 +55,6 @@ export default function Signup() {
       setTheme(savedTheme);
     }
   }, []);
-
-  // Cleanup camera tracks on unmount
-  useEffect(() => {
-    return () => {
-      if (cameraStream) {
-        cameraStream.getTracks().forEach((track) => track.stop());
-      }
-    };
-  }, [cameraStream]);
 
   const toggleTheme = () => {
     const nextTheme = theme === 'light' ? 'dark' : 'light';
@@ -103,59 +84,21 @@ export default function Signup() {
     setLoading(true);
     setError('');
 
-    // Simulate account setup delay
-    setTimeout(() => {
-      setLoading(false);
-      setStep(2); // Proceed to camera/avatar setup page
-    }, 500);
-  };
-
-  const handleStartCamera = async () => {
-    setError('');
-    try {
-      if (typeof navigator === 'undefined' || !navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setCameraPermission('denied');
-        setError('Camera access not supported in this browser.');
-        return;
-      }
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { width: 320, height: 320, facingMode: 'user' }
-      });
-      setCameraStream(stream);
-      setCameraPermission('granted');
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (err) {
-      console.warn('Webcam permission denied or unavailable:', err);
-      setCameraPermission('denied');
-      setError('Camera permission unavailable. Choose an avatar or proceed with default.');
-    }
-  };
-
-  const handleCompleteRegistration = () => {
-    setLoading(true);
-
-    // Stop camera streams
-    if (cameraStream) {
-      cameraStream.getTracks().forEach((track) => track.stop());
-    }
-
     const fullName = `${firstName.trim()} ${lastName.trim()}`.trim();
     const baseUsername = email.includes('@')
       ? email.split('@')[0]
       : `${firstName}_${lastName || 'traveler'}`;
     const cleanUsername = baseUsername.toLowerCase().replace(/[^a-z0-9_]/g, '') || `user_${Date.now()}`;
-    const bioText = bio.trim() || 'New adventurer sharing real life on Instants. 🌍✨';
+    const bioText = 'New adventurer sharing real life on Instants. 🌍✨';
+    const defaultAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80';
 
     setTimeout(() => {
-      const success = signup(fullName, cleanUsername, bioText, selectedAvatar);
+      const success = signup(fullName, cleanUsername, bioText, defaultAvatar);
       setLoading(false);
       if (success) {
         router.push('/feed');
       } else {
         setError('Registration failed. Please try again.');
-        setStep(1);
       }
     }, 700);
   };
@@ -163,7 +106,7 @@ export default function Signup() {
   // Color mapping variables based on theme state
   const isLight = theme === 'light';
   const bgColor = isLight ? 'bg-white' : 'bg-[#000000]';
-  const cardBg = isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-none';
+  const cardBg = isLight ? 'bg-white border-black/20 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-none';
   const textColor = isLight ? 'text-slate-900' : 'text-zinc-100';
   const subTextColor = isLight ? 'text-slate-500' : 'text-zinc-400';
   const inputBg = isLight ? 'bg-slate-50' : 'bg-slate-950';
@@ -240,18 +183,13 @@ export default function Signup() {
       {/* RIGHT COLUMN: Interactive Registration / Camera Setup Form Area */}
       <div className="relative flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen z-10">
         <div className={`w-full max-w-[480px] p-6 sm:p-8 rounded-3xl border shadow-md ${cardBg} transition-all duration-300`}>
-          {/* STEP 1: CREATE ACCOUNT */}
-          {step === 1 && (
-            <div>
-              <div className="flex justify-between items-center mb-6">
-                <div>
-                  <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1">Create Account</h1>
-                  <p className={`text-xs ${subTextColor}`}>Fill in details to set up your candid profile.</p>
-                </div>
-                <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-accent-cyan/10 text-accent-cyan border border-accent-cyan/20">
-                  Step 1/2
-                </span>
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight mb-1">Create Account</h1>
+                <p className={`text-xs ${subTextColor}`}>Fill in details to set up your candid profile.</p>
               </div>
+            </div>
 
               <form onSubmit={handleCreateAccountSubmit} className="space-y-4">
                 {error && (
@@ -325,21 +263,6 @@ export default function Signup() {
                   />
                 </div>
 
-                {/* Bio Field (Optional) */}
-                <div>
-                  <label htmlFor="bio" className={`block text-[11px] font-bold uppercase tracking-wider mb-1.5 ${labelColor}`}>
-                    Short Bio (Optional)
-                  </label>
-                  <input
-                    id="bio"
-                    type="text"
-                    placeholder="E.g. Solo hiker, café lover & travel photographer 🎒"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    className={`block w-full px-3.5 py-2.5 ${inputBg} border ${inputBorder} rounded-xl text-sm transition-all focus:outline-none focus:ring-2`}
-                  />
-                </div>
-
                 <button
                   type="submit"
                   disabled={loading}
@@ -349,8 +272,8 @@ export default function Signup() {
                     <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
-                      <span>Continue to Profile Setup</span>
-                      <ArrowRight className="w-4 h-4" />
+                      <span>Complete Signup</span>
+                      <Check className="w-4 h-4 ml-1 stroke-[2.5]" />
                     </>
                   )}
                 </button>
@@ -364,115 +287,8 @@ export default function Signup() {
                 </Link>
               </div>
             </div>
-          )}
-
-          {/* STEP 2: SETUP CAMERA / AVATAR */}
-          {step === 2 && (
-            <div className="flex flex-col items-center">
-              <div className="flex justify-between items-center w-full mb-4">
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className={`text-xs font-semibold ${subTextColor} hover:text-slate-300 transition-colors`}
-                >
-                  ← Back to details
-                </button>
-                <span className="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full bg-accent-pink/10 text-accent-pink border border-accent-pink/20">
-                  Step 2/2
-                </span>
-              </div>
-
-              <div className="w-12 h-12 rounded-2xl bg-accent-pink/10 border border-accent-pink/20 flex items-center justify-center text-accent-pink mb-3">
-                <Camera className="w-6 h-6" />
-              </div>
-
-              <h2 className="text-xl sm:text-2xl font-black text-center mb-1">Set Your Profile Picture</h2>
-              <p className={`text-xs ${subTextColor} text-center max-w-sm mb-5 leading-relaxed`}>
-                Choose an avatar preset or allow camera access to take your profile snap.
-              </p>
-
-              {/* Avatar / Camera Preview Box */}
-              <div className="w-[150px] h-[150px] rounded-full overflow-hidden border-4 border-accent-pink/40 relative bg-slate-950 shadow-xl flex flex-col justify-center items-center mb-4">
-                {/* Active Webcam Feed */}
-                {cameraPermission === 'granted' ? (
-                  <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover scale-x-[-1]" />
-                ) : (
-                  <img src={selectedAvatar} alt="Selected Avatar" className="w-full h-full object-cover" />
-                )}
-              </div>
-
-              {/* Avatar Preset Grid */}
-              <div className="w-full mb-5">
-                <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 mb-2 text-center">
-                  Select an Avatar Preset
-                </p>
-                <div className="flex justify-center space-x-2.5">
-                  {AVATAR_PRESETS.map((url, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => {
-                        setSelectedAvatar(url);
-                        if (cameraStream) {
-                          cameraStream.getTracks().forEach((track) => track.stop());
-                          setCameraStream(null);
-                          setCameraPermission('prompt');
-                        }
-                      }}
-                      className={`w-10 h-10 rounded-full overflow-hidden border-2 transition-transform ${
-                        selectedAvatar === url && cameraPermission !== 'granted'
-                          ? 'border-accent-pink scale-110 shadow-md shadow-accent-pink/30'
-                          : 'border-transparent hover:scale-105 opacity-70 hover:opacity-100'
-                      }`}
-                    >
-                      <img src={url} alt={`Preset ${i}`} className="w-full h-full object-cover" />
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {error && (
-                <div className="w-full p-3 mb-4 bg-red-500/10 border border-red-500/20 text-red-500 text-xs rounded-xl font-medium flex items-start space-x-2">
-                  <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
-                  <span>{error}</span>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div className="w-full space-y-3">
-                {cameraPermission !== 'granted' && (
-                  <button
-                    type="button"
-                    onClick={handleStartCamera}
-                    className="w-full py-2.5 bg-slate-900 border border-slate-700 hover:bg-slate-800 text-zinc-200 text-xs font-bold rounded-xl transition-all flex items-center justify-center space-x-2"
-                  >
-                    <Camera className="w-4 h-4" />
-                    <span>Or Snap Live Webcam Photo</span>
-                  </button>
-                )}
-
-                <button
-                  type="button"
-                  onClick={handleCompleteRegistration}
-                  disabled={loading}
-                  className={`w-full py-3.5 bg-gradient-to-r from-accent-pink to-accent-cyan hover:opacity-95 text-black text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 ${
-                    loading ? 'opacity-80 cursor-wait' : ''
-                  }`}
-                >
-                  {loading ? (
-                    <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4 stroke-[2.5]" />
-                      <span>Complete Signup & Start Exploring</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-          )}
+          </div>
         </div>
       </div>
-    </div>
   );
 }
