@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useApp, Instant } from '@/context/AppContext';
 import {
   Heart, MessageCircle, Send, Volume2, VolumeX, AlertCircle,
-  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X
+  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 import Logo from '@/components/Logo';
@@ -360,6 +360,13 @@ export default function Feed() {
               >
                 <img src={currentUser.avatar} alt="Profile" className="w-6 h-6 rounded-full object-cover border border-zinc-700" />
                 <span>Profile</span>
+              </button>
+
+              <button
+                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-auto"
+              >
+                <Settings className="w-6 h-6 text-zinc-400" />
+                <span>Settings</span>
               </button>
             </nav>
           </div>
