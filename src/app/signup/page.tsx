@@ -6,39 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { Sun, Moon, Camera, ArrowRight, Check, AlertCircle, Sparkles, User, Image as ImageIcon } from 'lucide-react';
 import Logo from '@/components/Logo';
-
-const STORY_CIRCLES = [
-  {
-    id: 's1',
-    url: 'https://images.unsplash.com/photo-1539635278303-d4002c07eae3?auto=format&fit=crop&w=150&q=80',
-    className: 'absolute top-[20%] left-[15%] w-20 h-20 rounded-full border-2 border-white/40 shadow-xl animate-float-1',
-    delay: '0s'
-  },
-  {
-    id: 's2',
-    url: 'https://images.unsplash.com/photo-1501555088652-021faa106b9b?auto=format&fit=crop&w=150&q=80',
-    className: 'absolute top-[10%] right-[20%] w-24 h-24 rounded-full border-2 border-white/30 shadow-xl animate-float-2',
-    delay: '1.2s'
-  },
-  {
-    id: 's3',
-    url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    className: 'absolute bottom-[20%] left-[22%] w-28 h-28 rounded-full border-4 border-white/50 shadow-2xl animate-float-3',
-    delay: '2.5s'
-  },
-  {
-    id: 's4',
-    url: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=150&q=80',
-    className: 'absolute bottom-[15%] right-[15%] w-16 h-16 rounded-full border-2 border-white/20 shadow-xl animate-float-4',
-    delay: '3.8s'
-  },
-  {
-    id: 's5',
-    url: 'https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=150&q=80',
-    className: 'absolute top-[48%] left-[45%] -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-4 border-accent-pink/50 shadow-2xl animate-float-1',
-    delay: '0.5s'
-  }
-];
+import LiveMapCluster from '@/components/LiveMapCluster';
 
 const AVATAR_PRESETS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
@@ -194,7 +162,7 @@ export default function Signup() {
 
   // Color mapping variables based on theme state
   const isLight = theme === 'light';
-  const bgColor = isLight ? 'bg-[#F8FAFC]' : 'bg-slate-950';
+  const bgColor = isLight ? 'bg-white' : 'bg-[#000000]';
   const cardBg = isLight ? 'bg-white border-slate-200 shadow-sm' : 'bg-slate-900 border-slate-800 shadow-none';
   const textColor = isLight ? 'text-slate-900' : 'text-zinc-100';
   const subTextColor = isLight ? 'text-slate-500' : 'text-zinc-400';
@@ -206,7 +174,19 @@ export default function Signup() {
   const dividerBorder = isLight ? 'border-slate-100' : 'border-slate-800';
 
   return (
-    <div className={`flex-1 flex flex-col lg:flex-row min-h-screen ${bgColor} ${textColor} transition-colors duration-300 font-sans`}>
+    <div className={`relative flex-1 flex flex-col lg:flex-row min-h-screen ${bgColor} ${textColor} transition-colors duration-300 font-sans`}>
+      
+      {/* Full Page Grid Background */}
+      <div 
+        className={`absolute inset-0 pointer-events-none z-0 ${isLight ? 'opacity-10' : 'opacity-[0.05]'}`}
+        style={{
+          backgroundImage: `
+            linear-gradient(to right, ${isLight ? '#000000' : '#ffffff'} 1px, transparent 1px),
+            linear-gradient(to bottom, ${isLight ? '#000000' : '#ffffff'} 1px, transparent 1px)
+          `,
+          backgroundSize: '40px 40px'
+        }}
+      />
       <Suspense fallback={null}>
         <SignupParamsHandler
           onEmailFound={(emailVal) => {
@@ -232,36 +212,23 @@ export default function Signup() {
         {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
       </button>
 
-      {/* LEFT COLUMN: Reskinned Brand Image Area with Story Circle Art */}
-      <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen bg-slate-950 bg-gradient-to-br from-indigo-950 via-slate-900 to-[#FF2E93]/20 flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden">
+      {/* LEFT COLUMN: Reskinned Brand Image Area with Live Map Cluster */}
+      <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden transition-colors duration-300 z-10">
         {/* Brand Logo & Name */}
         <div className="flex items-center z-10 space-x-2">
-          <Logo className="w-8 h-8 text-white drop-shadow-md" />
-          <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
+          <Logo className={`w-8 h-8 drop-shadow-md ${isLight ? 'text-slate-900' : 'text-white'}`} />
+          <span className={`text-lg font-black tracking-wider uppercase ${isLight ? 'text-slate-900' : 'text-white'}`}>Instants</span>
         </div>
 
-        {/* Dynamic Story Circles Composition (Floating circles in the center) */}
-        <div className="relative w-full h-[260px] lg:h-[400px] flex items-center justify-center my-6 z-10">
-          {STORY_CIRCLES.map((circle) => (
-            <div
-              key={circle.id}
-              className={`${circle.className} overflow-hidden bg-cover bg-center cursor-pointer transition-all duration-500 hover:scale-[1.1] hover:border-accent-cyan/80`}
-              style={{
-                backgroundImage: `url(${circle.url})`,
-                animationDelay: circle.delay
-              }}
-            >
-              <div className="w-full h-full bg-black/5 hover:bg-transparent transition-colors" />
-            </div>
-          ))}
-        </div>
+        {/* Interactive Live Map Cluster */}
+        <LiveMapCluster theme={theme} />
 
         {/* Visual Brand Text */}
         <div className="z-10 text-left">
-          <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white mb-3">
+          <h2 className={`text-3xl sm:text-4xl font-black tracking-tight mb-3 ${isLight ? 'text-slate-900' : 'text-white'}`}>
             Start sharing real life on Instants.
           </h2>
-          <p className="text-xs sm:text-sm text-zinc-300 max-w-sm leading-relaxed">
+          <p className={`text-xs sm:text-sm max-w-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
             Create candid logs, invite your closest friends, and join travel vibes that match yours.
           </p>
         </div>
@@ -271,7 +238,7 @@ export default function Signup() {
       </div>
 
       {/* RIGHT COLUMN: Interactive Registration / Camera Setup Form Area */}
-      <div className="flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen">
+      <div className="relative flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen z-10">
         <div className={`w-full max-w-[480px] p-6 sm:p-8 rounded-3xl border shadow-md ${cardBg} transition-all duration-300`}>
           {/* STEP 1: CREATE ACCOUNT */}
           {step === 1 && (
