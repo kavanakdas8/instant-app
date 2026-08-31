@@ -150,11 +150,11 @@ export default function SettingsPage() {
                 </select>
               </div>
               <div className="md:col-span-2">
-                <label className="block text-sm text-zinc-300 mb-1.5">Direction</label>
+                <label className="block text-sm text-zinc-300 mb-1.5">Theme</label>
                 <select className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors appearance-none">
                   <option>System Default</option>
-                  <option>LTR</option>
-                  <option>RTL</option>
+                  <option>Light</option>
+                  <option>Dark</option>
                 </select>
               </div>
             </div>
@@ -173,10 +173,6 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">Skype</label>
                 <input type="text" placeholder="skype-username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
-              </div>
-              <div className="md:col-span-2 lg:col-span-3 mt-2">
-                <label className="block text-sm text-zinc-300 mb-1.5">Email Signature</label>
-                <textarea rows={3} defaultValue={`e.g. Best Regards,\n${currentUser.name}`} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-3 text-sm text-zinc-400 focus:outline-none focus:border-zinc-600 transition-colors resize-none"></textarea>
               </div>
             </div>
           </div>

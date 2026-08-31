@@ -271,18 +271,11 @@ export default function Feed() {
         <aside className="w-[260px] bg-[#000000] border-r border-[#27272A] p-6 flex flex-col justify-between fixed top-0 bottom-0 left-0 z-30">
           <div className="flex flex-col">
             {/* Brand Header */}
-            <div className="mb-8 flex items-center justify-between animate-fade-in-up">
+            <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <Logo className="w-6 h-6 text-white" />
                 <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
               </div>
-              <button
-                onClick={() => setMuted(!muted)}
-                className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-all active:scale-95"
-                title={muted ? "Unmute Feed" : "Mute Feed"}
-              >
-                {muted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-              </button>
             </div>
 
             {/* Navigation Links */}
