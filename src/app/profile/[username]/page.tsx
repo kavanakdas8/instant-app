@@ -23,7 +23,8 @@ export default function Profile() {
   if (!currentUser) return null;
 
   // Find user data. If it's the logged-in user, fetch from context, else gather from feed
-  const isMe = currentUser.username === username;
+  const decodedUsername = decodeURIComponent(String(username));
+  const isMe = currentUser.username === decodedUsername;
   
   let profileUser = {
     name: currentUser.name,
@@ -41,18 +42,18 @@ export default function Profile() {
         name: authorPost.author,
         username: authorPost.authorUsername,
         avatar: authorPost.authorAvatar,
-        bio: username === 'kento_tokyo' 
+        bio: decodedUsername === 'kento_tokyo' 
           ? 'Solo Tokyo explorer. Looking for the best ramen and hidden alleys. 🍜🇯🇵'
-          : username === 'emma_in_europe'
+          : decodedUsername === 'emma_in_europe'
           ? 'Backpacker traveling across Europe. Currently in Florence! 🍕🗺️'
           : 'Exploring the world one Instant at a time.',
-        instants: feed.filter(p => p.authorUsername === username)
+        instants: feed.filter(p => p.authorUsername === decodedUsername)
       };
     } else {
       // Fallback
       profileUser = {
-        name: String(username).split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        username: String(username),
+        name: decodedUsername.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+        username: decodedUsername,
         avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80`,
         bio: 'Travel adventurer and Instants explorer.',
         instants: []
@@ -177,16 +178,7 @@ export default function Profile() {
               {profileUser.username}
             </h1>
             <div className="flex flex-wrap items-center gap-2 md:gap-3 md:mt-1">
-              {isMe ? (
-                <>
-                  <button className="px-4 py-1.5 rounded-lg bg-[#363636] hover:bg-[#262626] text-white text-sm font-semibold transition-all shrink-0">
-                    Edit profile
-                  </button>
-                  <button className="px-4 py-1.5 rounded-lg bg-[#363636] hover:bg-[#262626] text-white text-sm font-semibold transition-all shrink-0">
-                    View Archive
-                  </button>
-                </>
-              ) : (
+              {!isMe && (
                 <>
                   <button className="px-6 py-1.5 rounded-lg bg-accent-cyan text-black font-semibold text-sm hover:bg-accent-cyan/90 transition-all shrink-0">
                     Follow

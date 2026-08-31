@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import Logo from '@/components/Logo';
@@ -19,6 +19,8 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
   
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const [settingsForm, setSettingsForm] = useState({
     username: currentUser?.username || '',
     firstName: currentUser?.name.split(' ')[0] || '',
@@ -28,7 +30,8 @@ export default function SettingsPage() {
     language: 'English',
     theme: 'System Default',
     facebook: '',
-    linkedin: ''
+    linkedin: '',
+    avatar: currentUser?.avatar || ''
   });
 
   useEffect(() => {
@@ -55,7 +58,8 @@ export default function SettingsPage() {
         setCurrentUser({
           ...currentUser,
           username: settingsForm.username,
-          name: `${settingsForm.firstName} ${settingsForm.lastName}`.trim()
+          name: `${settingsForm.firstName} ${settingsForm.lastName}`.trim(),
+          avatar: settingsForm.avatar || currentUser.avatar
         });
       }
 
@@ -63,6 +67,17 @@ export default function SettingsPage() {
       setIsSaved(true);
       setTimeout(() => setIsSaved(false), 2000);
     }, 800);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setSettingsForm(prev => ({ ...prev, avatar: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -171,10 +186,20 @@ export default function SettingsPage() {
             {/* Avatar & Upload */}
             <div className="flex items-center space-x-6 mb-8">
               <div className="w-20 h-20 rounded-full overflow-hidden border border-zinc-800 bg-zinc-900 shrink-0">
-                <img src={currentUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
+                <img src={settingsForm.avatar || currentUser.avatar} alt="Avatar" className="w-full h-full object-cover" />
               </div>
               <div>
-                <button className="flex items-center space-x-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-semibold transition-colors text-white mb-2">
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  onChange={handleFileChange} 
+                  accept="image/*" 
+                  className="hidden" 
+                />
+                <button 
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center space-x-2 px-4 py-2 bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 rounded-lg text-sm font-semibold transition-colors text-white mb-2"
+                >
                   <Upload className="w-4 h-4" />
                   <span>Upload Photo</span>
                 </button>
