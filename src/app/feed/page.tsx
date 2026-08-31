@@ -220,7 +220,7 @@ export default function Feed() {
         <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center px-4 z-30 select-none">
           <div className="flex items-center space-x-2">
             <Logo className="w-6 h-6 text-white" />
-            <span className="text-lg font-black tracking-wider uppercase text-white">Instants</span>
+            <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
           </div>
           <div className="flex items-center space-x-3">
             <button
