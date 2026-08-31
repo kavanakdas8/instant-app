@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import Logo from '@/components/Logo';
@@ -10,11 +10,65 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { currentUser } = useApp();
+  const { currentUser, setCurrentUser } = useApp();
   
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
+  const [twoFactorMethod, setTwoFactorMethod] = useState('Disabled');
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
+  
+  const [settingsForm, setSettingsForm] = useState({
+    username: currentUser?.username || '',
+    firstName: currentUser?.name.split(' ')[0] || '',
+    lastName: currentUser?.name.split(' ').slice(1).join(' ') || '',
+    email: `${currentUser?.username}@demo.com`,
+    phone: '+1(000) 000-00000',
+    language: 'English',
+    theme: 'System Default',
+    facebook: '',
+    linkedin: ''
+  });
+
+  useEffect(() => {
+    const saved2FA = localStorage.getItem('instants_2fa');
+    if (saved2FA) {
+      setTwoFactorMethod(saved2FA);
+    }
+    const savedForm = localStorage.getItem('instants_settings_form');
+    if (savedForm) {
+      try {
+        const parsed = JSON.parse(savedForm);
+        setSettingsForm(prev => ({ ...prev, ...parsed }));
+      } catch (e) {}
+    }
+  }, []);
+
+  const handleSave = () => {
+    setIsSaving(true);
+    setTimeout(() => {
+      localStorage.setItem('instants_2fa', twoFactorMethod);
+      localStorage.setItem('instants_settings_form', JSON.stringify(settingsForm));
+      
+      if (currentUser) {
+        setCurrentUser({
+          ...currentUser,
+          username: settingsForm.username,
+          name: `${settingsForm.firstName} ${settingsForm.lastName}`.trim()
+        });
+      }
+
+      setIsSaving(false);
+      setIsSaved(true);
+      setTimeout(() => setIsSaved(false), 2000);
+    }, 800);
+  };
+
+  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setSettingsForm(prev => ({ ...prev, [name]: value }));
+  };
 
   if (!currentUser) return null;
 
@@ -108,6 +162,12 @@ export default function SettingsPage() {
           <div className="flex-1 bg-zinc-950 border border-zinc-800 rounded-2xl p-6 md:p-8 shadow-xl">
             <h2 className="text-xl font-bold text-white mb-6 pb-4 border-b border-zinc-800">General Information</h2>
             
+            {/* Username Option */}
+            <div className="mb-8">
+              <label className="block text-sm text-zinc-300 mb-1.5">Username</label>
+              <input type="text" name="username" value={settingsForm.username} onChange={handleFormChange} className="w-full md:w-1/2 bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
+            </div>
+
             {/* Avatar & Upload */}
             <div className="flex items-center space-x-6 mb-8">
               <div className="w-20 h-20 rounded-full overflow-hidden border border-zinc-800 bg-zinc-900 shrink-0">
@@ -127,23 +187,23 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 mb-8">
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">First Name</label>
-                <input type="text" defaultValue={currentUser.name.split(' ')[0] || ''} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
+                <input type="text" name="firstName" value={settingsForm.firstName} onChange={handleFormChange} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">Last Name</label>
-                <input type="text" defaultValue={currentUser.name.split(' ').slice(1).join(' ') || ''} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
+                <input type="text" name="lastName" value={settingsForm.lastName} onChange={handleFormChange} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm text-zinc-300 mb-1.5">Email</label>
-                <input type="email" defaultValue={`${currentUser.username}@demo.com`} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
+                <input type="email" name="email" value={settingsForm.email} onChange={handleFormChange} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">Phone</label>
-                <input type="text" defaultValue="+1(000) 000-00000" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-400 focus:outline-none focus:border-zinc-600 transition-colors" />
+                <input type="text" name="phone" value={settingsForm.phone} onChange={handleFormChange} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-zinc-400 focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">Default Language</label>
-                <select className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors appearance-none">
+                <select name="language" value={settingsForm.language} onChange={handleFormChange} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors appearance-none">
                   <option>English</option>
                   <option>Spanish</option>
                   <option>French</option>
@@ -151,7 +211,7 @@ export default function SettingsPage() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-sm text-zinc-300 mb-1.5">Theme</label>
-                <select className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors appearance-none">
+                <select name="theme" value={settingsForm.theme} onChange={handleFormChange} className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors appearance-none">
                   <option>System Default</option>
                   <option>Light</option>
                   <option>Dark</option>
@@ -164,11 +224,11 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 mb-5">
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">Facebook</label>
-                <input type="text" placeholder="Facebook.com/username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
+                <input type="text" name="facebook" value={settingsForm.facebook} onChange={handleFormChange} placeholder="Facebook.com/username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">LinkedIn</label>
-                <input type="text" placeholder="linkedin.com/in/username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
+                <input type="text" name="linkedin" value={settingsForm.linkedin} onChange={handleFormChange} placeholder="linkedin.com/in/username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
             </div>
           </div>
@@ -215,35 +275,48 @@ export default function SettingsPage() {
               <h2 className="text-xl font-bold text-white mb-6 pb-4 border-b border-zinc-800">Two-Factor Auth</h2>
               
               <div className="space-y-3">
-                <label className="flex items-start space-x-3 p-4 rounded-xl border border-blue-500/50 bg-blue-500/10 cursor-pointer transition-colors">
+                <label 
+                  onClick={() => setTwoFactorMethod('Disabled')}
+                  className={`flex items-start space-x-3 p-4 rounded-xl border cursor-pointer transition-colors ${twoFactorMethod === 'Disabled' ? 'border-blue-500/50 bg-blue-500/10' : 'border-zinc-800 hover:border-zinc-700'}`}
+                >
                   <div className="flex-shrink-0 mt-0.5">
-                    <div className="w-5 h-5 rounded flex items-center justify-center bg-blue-500 text-white">
-                      <Check className="w-3.5 h-3.5" />
+                    <div className={`w-5 h-5 rounded flex items-center justify-center ${twoFactorMethod === 'Disabled' ? 'bg-blue-500 text-white' : 'border border-zinc-600'}`}>
+                      {twoFactorMethod === 'Disabled' && <Check className="w-3.5 h-3.5" />}
                     </div>
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-white">Disabled</div>
+                    <div className={`text-sm font-semibold ${twoFactorMethod === 'Disabled' ? 'text-white' : 'text-zinc-200'}`}>Disabled</div>
                     <div className="text-xs text-zinc-400 mt-0.5">2FA is currently off</div>
                   </div>
                 </label>
 
-                <label className="flex items-start space-x-3 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <label 
+                  onClick={() => setTwoFactorMethod('Email')}
+                  className={`flex items-start space-x-3 p-4 rounded-xl border cursor-pointer transition-colors ${twoFactorMethod === 'Email' ? 'border-blue-500/50 bg-blue-500/10' : 'border-zinc-800 hover:border-zinc-700'}`}
+                >
                   <div className="flex-shrink-0 mt-0.5">
-                    <div className="w-5 h-5 rounded border border-zinc-600 flex items-center justify-center"></div>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center ${twoFactorMethod === 'Email' ? 'bg-blue-500 text-white' : 'border border-zinc-600'}`}>
+                      {twoFactorMethod === 'Email' && <Check className="w-3.5 h-3.5" />}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-zinc-200">Email Authentication</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">Code sent to<br/>{currentUser.username}@demo.com</div>
+                    <div className={`text-sm font-semibold ${twoFactorMethod === 'Email' ? 'text-white' : 'text-zinc-200'}`}>Email Authentication</div>
+                    <div className="text-xs text-zinc-400 mt-0.5">Code sent to<br/>{currentUser.username}@demo.com</div>
                   </div>
                 </label>
 
-                <label className="flex items-start space-x-3 p-4 rounded-xl border border-zinc-800 hover:border-zinc-700 cursor-pointer transition-colors">
+                <label 
+                  onClick={() => setTwoFactorMethod('Google')}
+                  className={`flex items-start space-x-3 p-4 rounded-xl border cursor-pointer transition-colors ${twoFactorMethod === 'Google' ? 'border-blue-500/50 bg-blue-500/10' : 'border-zinc-800 hover:border-zinc-700'}`}
+                >
                   <div className="flex-shrink-0 mt-0.5">
-                    <div className="w-5 h-5 rounded border border-zinc-600 flex items-center justify-center"></div>
+                    <div className={`w-5 h-5 rounded flex items-center justify-center ${twoFactorMethod === 'Google' ? 'bg-blue-500 text-white' : 'border border-zinc-600'}`}>
+                      {twoFactorMethod === 'Google' && <Check className="w-3.5 h-3.5" />}
+                    </div>
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-zinc-200">Google Authenticator</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">Scan QR code with app</div>
+                    <div className={`text-sm font-semibold ${twoFactorMethod === 'Google' ? 'text-white' : 'text-zinc-200'}`}>Google Authenticator</div>
+                    <div className="text-xs text-zinc-400 mt-0.5">Scan QR code with app</div>
                   </div>
                 </label>
               </div>
@@ -253,8 +326,19 @@ export default function SettingsPage() {
 
         {/* Save Action */}
         <div className="max-w-6xl mx-auto mt-6 flex justify-end">
-          <button className="px-6 py-2.5 bg-[#1F2937] hover:bg-[#374151] border border-zinc-700 rounded-lg text-sm font-semibold text-white shadow-lg transition-colors">
-            Save All Changes
+          <button 
+            onClick={handleSave}
+            disabled={isSaving || isSaved}
+            className={`px-6 py-2.5 border rounded-lg text-sm font-semibold text-white shadow-lg transition-colors flex items-center space-x-2 justify-center min-w-[160px] ${
+              isSaved 
+                ? 'bg-green-600 hover:bg-green-700 border-green-500' 
+                : 'bg-[#1F2937] hover:bg-[#374151] border-zinc-700 disabled:opacity-70'
+            }`}
+          >
+            {isSaved && <Check className="w-4 h-4 mr-1" />}
+            <span>
+              {isSaving ? 'Saving...' : isSaved ? 'Saved!' : 'Save All Changes'}
+            </span>
           </button>
         </div>
       </div>
