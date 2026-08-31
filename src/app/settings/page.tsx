@@ -101,7 +101,7 @@ export default function SettingsPage() {
       </aside>
 
       {/* Main Content Space */}
-      <div className="flex-1 md:ml-[260px] p-4 md:p-8 relative min-h-screen pb-32">
+      <div className="flex-1 md:ml-[260px] p-4 md:p-8 relative min-h-screen pb-8">
         <div className="max-w-6xl mx-auto flex flex-col lg:flex-row gap-6">
           
           {/* LEFT COLUMN: General Information */}
@@ -169,10 +169,6 @@ export default function SettingsPage() {
               <div>
                 <label className="block text-sm text-zinc-300 mb-1.5">LinkedIn</label>
                 <input type="text" placeholder="linkedin.com/in/username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
-              </div>
-              <div>
-                <label className="block text-sm text-zinc-300 mb-1.5">Skype</label>
-                <input type="text" placeholder="skype-username" className="w-full bg-black border border-zinc-800 rounded-lg px-4 py-2.5 text-sm text-white focus:outline-none focus:border-zinc-600 transition-colors" />
               </div>
             </div>
           </div>
@@ -254,13 +250,13 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer Fixed Action */}
-      <div className="fixed bottom-0 right-0 left-0 md:left-[260px] p-4 md:p-6 bg-[#000000]/80 backdrop-blur-xl border-t border-zinc-800 flex justify-end z-40">
-        <button className="px-6 py-2.5 bg-[#1F2937] hover:bg-[#374151] border border-zinc-700 rounded-lg text-sm font-semibold text-white shadow-lg transition-colors">
-          Save All Changes
-        </button>
+        {/* Save Action */}
+        <div className="max-w-6xl mx-auto mt-6 flex justify-end">
+          <button className="px-6 py-2.5 bg-[#1F2937] hover:bg-[#374151] border border-zinc-700 rounded-lg text-sm font-semibold text-white shadow-lg transition-colors">
+            Save All Changes
+          </button>
+        </div>
       </div>
 
     </div>

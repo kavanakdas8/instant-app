@@ -98,7 +98,6 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
             </button>
             <h1 className="text-xl font-bold text-white flex items-center cursor-pointer hover:opacity-80 transition-opacity">
               <span>Messages</span>
-              <ChevronDown className="w-4 h-4 ml-1 text-zinc-500" />
             </h1>
             <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-xs font-bold text-zinc-300">
               {groups.length + userDMs.length}
