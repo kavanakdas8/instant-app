@@ -146,7 +146,7 @@ export default function Profile() {
               </button>
 
               <button
-                onClick={handleLogout}
+                onClick={() => router.push('/settings')}
                 className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-auto"
               >
                 <Settings className="w-6 h-6 text-zinc-400" />
