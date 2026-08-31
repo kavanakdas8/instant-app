@@ -12,10 +12,17 @@ import Logo from '@/components/Logo';
 
 export default function Feed() {
   const router = useRouter();
-  const { currentUser, feed, likePost, addComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage } = useApp();
+  const { currentUser, feed, likePost, addComment, deleteComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage } = useApp();
   const [commentOpen, setCommentOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
+  const [activeCommentMenuId, setActiveCommentMenuId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClick = () => setActiveCommentMenuId(null);
+    window.addEventListener('click', handleClick);
+    return () => window.removeEventListener('click', handleClick);
+  }, []);
   const [shareSuccess, setShareSuccess] = useState(false);
   const [shareDrawerOpen, setShareDrawerOpen] = useState(false);
   const [postToShare, setPostToShare] = useState<Instant | null>(null);
@@ -174,18 +181,56 @@ export default function Feed() {
           </div>
         ) : (
           activePost.comments.map((comment) => (
-            <div key={comment.id} className="flex space-x-3 items-start animate-fade-in-up">
+            <div 
+              key={comment.id} 
+              className="flex space-x-3 items-start animate-fade-in-up"
+              onContextMenu={(e) => {
+                if (comment.authorUsername === currentUser.username && activeTab === 'explore') {
+                  e.preventDefault();
+                  setActiveCommentMenuId(comment.id);
+                }
+              }}
+            >
               <img
                 src={comment.authorAvatar}
                 alt={comment.author}
                 className="w-8 h-8 rounded-full object-cover border border-zinc-900 shadow-sm"
               />
-              <div className="flex-1 flex flex-col items-start bg-zinc-950/60 border border-zinc-900/60 p-3 rounded-2xl rounded-tl-sm">
+              <div className={`flex-1 flex flex-col items-start border border-zinc-900/60 p-3 rounded-2xl rounded-tl-sm bg-zinc-950/60 relative ${activeTab === 'explore' ? 'explore-comment-bg' : ''}`}>
                 <div className="flex justify-between items-center w-full mb-1">
                   <span className="text-xs font-bold text-zinc-200">@{comment.authorUsername}</span>
-                  <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
+                    {comment.authorUsername === currentUser.username && activeTab === 'explore' && (
+                      <div className="relative">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveCommentMenuId(activeCommentMenuId === comment.id ? null : comment.id);
+                          }}
+                          className="p-1 rounded-full hover:bg-zinc-800 transition-colors text-zinc-500 hover:text-zinc-300"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </button>
+                        {activeCommentMenuId === comment.id && (
+                          <div className="absolute top-full right-0 mt-1 w-32 bg-zinc-900 border border-zinc-800 rounded-lg shadow-lg overflow-hidden z-50 animate-fade-in-up">
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteComment(activePost.id, comment.id);
+                                setActiveCommentMenuId(null);
+                              }}
+                              className="w-full text-left px-4 py-2.5 text-xs font-bold text-red-400 hover:bg-zinc-800 transition-colors"
+                            >
+                              Delete Comment
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-                <p className="text-sm text-zinc-300 leading-relaxed">{comment.text}</p>
+                <p className={`text-sm leading-relaxed text-[#ffffff] ${activeTab === 'explore' ? 'explore-comment-text' : ''}`}>{comment.text}</p>
               </div>
             </div>
           ))
@@ -198,12 +243,12 @@ export default function Feed() {
           placeholder="Type a comment..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          className="flex-1 bg-[#080808] border border-zinc-800 rounded-2xl px-5 py-3.5 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10 shadow-inner"
+          className={`flex-1 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10 shadow-inner border border-zinc-800 bg-[#080808] text-[#ffffff] placeholder-[#ffffff] ${activeTab === 'explore' ? 'explore-input-bg explore-input-text' : ''}`}
         />
         <button
           type="submit"
           disabled={!newComment.trim()}
-          className="p-3.5 bg-accent-cyan text-black font-black rounded-2xl disabled:opacity-40 hover:bg-white active:scale-95 transition-all text-sm shadow-md"
+          className="p-3.5 bg-transparent text-purple-400 font-black rounded-2xl disabled:opacity-40 hover:bg-zinc-900 active:scale-95 transition-all text-sm"
         >
           <Send className="w-5 h-5 ml-0.5" />
         </button>

@@ -234,3 +234,27 @@ body {
   color: #000000;
 }
 
+
+
+/* Explore Comments Light Mode Overrides */
+[data-theme='light'] .explore-comment-bg {
+  background-color: #ffffff !important;
+}
+
+[data-theme='light'] .explore-comment-text {
+  color: #000000 !important;
+}
+
+[data-theme='light'] .explore-input-bg {
+  background-color: #ffffff !important;
+  border-color: #e4e4e7 !important;
+}
+
+[data-theme='light'] .explore-input-text {
+  color: #000000 !important;
+}
+
+[data-theme='light'] .explore-input-text::placeholder {
+  color: #71717a !important;
+}
+

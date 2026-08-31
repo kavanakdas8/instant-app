@@ -108,6 +108,7 @@ interface AppContextType {
   logout: () => void;
   likePost: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
+  deleteComment: (postId: string, commentId: string) => void;
   requestToJoinGroup: (groupId: string) => void;
   approveJoinRequest: (requestId: string) => void;
   declineJoinRequest: (requestId: string) => void;
@@ -749,6 +750,20 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const deleteComment = (postId: string, commentId: string) => {
+    setFeed(prevFeed =>
+      prevFeed.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            comments: post.comments.filter(c => c.id !== commentId)
+          };
+        }
+        return post;
+      })
+    );
+  };
+
   const requestToJoinGroup = (groupId: string) => {
     if (!currentUser) return;
 
@@ -1059,6 +1074,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         logout,
         likePost,
         addComment,
+        deleteComment,
         requestToJoinGroup,
         approveJoinRequest,
         declineJoinRequest,
