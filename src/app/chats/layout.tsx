@@ -3,7 +3,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useApp, TravelGroup } from '@/context/AppContext';
-import { Search, MapPin, Compass, ArrowRight, UserPlus, CheckCircle, Clock, MessageSquare, PlusCircle, ArrowLeft, Check } from 'lucide-react';
+import { Search, MapPin, Compass, ArrowRight, UserPlus, CheckCircle, Clock, MessageSquare, PlusCircle, ArrowLeft, Check, ChevronDown, Plus, ChevronLeft } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 
 function SearchParamsHandler({
@@ -86,78 +86,84 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
         />
       </Suspense>
       {/* LEFT PANE: Chat List */}
-      {/* On mobile, hide this if we are in a chat detail view. On desktop, always show it (md:flex). */}
-      <div className={`${isChatDetail ? 'hidden md:flex' : 'flex'} w-full md:w-[360px] flex-col border-r border-[#27272A] bg-black px-4 pt-6 select-none pb-20 md:pb-0`}>
+      <div className={`${isChatDetail ? 'hidden lg:flex' : 'flex'} w-full lg:w-[320px] flex-col border-r border-[#1C1C1E] bg-black p-4 select-none pb-20 lg:pb-4`}>
         {/* Page Header */}
-        <div className="mb-6 flex items-start space-x-3">
-          <button 
-            onClick={() => router.back()}
-            className="p-1.5 mt-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white transition-colors active:scale-95 shrink-0"
-            aria-label="Go back"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          <div>
-            <h1 className="text-2xl font-black tracking-tight text-white flex items-center space-x-2">
-              <span>Inbox & Chats</span>
+        <div className="mb-6 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <button 
+              onClick={() => router.push('/feed')}
+              className="p-1.5 rounded-full hover:bg-zinc-900 text-zinc-400 hover:text-white transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            <h1 className="text-xl font-bold text-white flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+              <span>Messages</span>
+              <ChevronDown className="w-4 h-4 ml-1 text-zinc-500" />
             </h1>
-            <p className="text-xs text-zinc-500 mt-1">
-              Chat with group members or send direct messages to other travelers.
-            </p>
+            <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-xs font-bold text-zinc-300">
+              {groups.length + userDMs.length}
+            </span>
           </div>
+          
+          <button 
+            onClick={() => setNewChatDrawerOpen(true)}
+            className="w-8 h-8 rounded-full bg-accent-purple hover:bg-accent-purple/90 text-white flex items-center justify-center transition-colors shadow-lg shadow-accent-purple/20"
+          >
+            <Plus className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Search Input */}
+        <div className="relative mb-4">
+          <Search className="absolute inset-y-0 left-3 my-auto w-4 h-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Search messages"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full bg-zinc-900 border-none rounded-xl pl-9 pr-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-500 focus:outline-none focus:ring-1 focus:ring-accent-purple/50 transition-all"
+          />
         </div>
 
         {/* Tabs Segmented Control */}
-        <div className="flex border-b border-zinc-900 mb-6 bg-zinc-950 p-1 rounded-xl">
+        <div className="flex bg-zinc-900/50 p-1 rounded-xl mb-4">
           <button
             onClick={() => setActiveTab('groups')}
-            className={`flex-1 py-2.5 text-center text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-center text-[11px] font-bold rounded-lg transition-all ${
               activeTab === 'groups'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-400'
+                ? 'bg-zinc-800 text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            Travel Groups
+            Groups
           </button>
           <button
             onClick={() => setActiveTab('dms')}
-            className={`flex-1 py-2.5 text-center text-xs font-bold rounded-lg transition-all ${
+            className={`flex-1 py-1.5 text-center text-[11px] font-bold rounded-lg transition-all ${
               activeTab === 'dms'
-                ? 'bg-zinc-900 text-white shadow-sm'
-                : 'text-zinc-500 hover:text-zinc-400'
+                ? 'bg-zinc-800 text-white shadow-sm'
+                : 'text-zinc-500 hover:text-zinc-300'
             }`}
           >
-            Direct Messages
+            DMs
           </button>
         </div>
 
         {/* LIST CONTENT */}
-        <div className="flex-1 overflow-y-auto no-scrollbar pr-1">
+        <div className="flex-1 overflow-y-auto no-scrollbar pr-1 -mx-2 px-2">
           {/* GROUPS TAB CONTENT */}
           {activeTab === 'groups' && (
-            <div className="flex flex-col space-y-4">
-              {/* Search Input */}
-              <div className="relative mb-1">
-                <Search className="absolute inset-y-0 left-3.5 my-auto w-4.5 h-4.5 text-zinc-500" />
-                <input
-                  type="text"
-                  placeholder="Search destination, vibe or keyword..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-[#080808] border border-zinc-900 rounded-2xl pl-10 pr-4 py-3 text-xs text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-accent-purple focus:ring-1 focus:ring-accent-purple/20"
-                />
-              </div>
-
+            <div className="flex flex-col space-y-1">
               {/* Destination Pills filter tab */}
-              <div className="flex space-x-2 mb-2 overflow-x-auto no-scrollbar scroll-smooth">
+              <div className="flex space-x-2 mb-3 overflow-x-auto no-scrollbar scroll-smooth">
                 {destinations.map((dest) => (
                   <button
                     key={dest}
                     onClick={() => setActiveFilter(dest)}
-                    className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all border ${
+                    className={`px-3 py-1.5 rounded-full text-[10px] font-bold whitespace-nowrap transition-all border ${
                       activeFilter === dest
                         ? 'bg-white text-black border-white'
-                        : 'bg-zinc-950 text-zinc-400 border-zinc-900 hover:border-zinc-800'
+                        : 'bg-zinc-900/50 text-zinc-400 border-transparent hover:bg-zinc-900'
                     }`}
                   >
                     {dest}
@@ -165,180 +171,130 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
                 ))}
               </div>
 
-              {/* Groups List */}
-              <div className="space-y-4">
-                {filteredGroups.length === 0 ? (
-                  <div className="py-16 text-center">
-                    <Compass className="w-10 h-10 text-zinc-700 mx-auto mb-3" />
-                    <p className="text-sm text-zinc-500">No groups matching search filter.</p>
-                  </div>
-                ) : (
-                  filteredGroups.map((group) => {
-                    const groupState = getGroupState(group);
-                    
-                    return (
-                      <div 
-                        key={group.id} 
-                        className="bg-[#080808] p-5 rounded-2xl border border-zinc-900 hover:border-zinc-800/80 transition-all flex flex-col justify-between animate-fade-in-up"
-                      >
-                        {/* Header Information */}
-                        <div className="flex space-x-4 items-start mb-4">
-                          <img 
-                            src={group.avatar} 
-                            alt={group.name} 
-                            className="w-12 h-12 rounded-xl object-cover border border-zinc-900" 
-                          />
-                          <div className="flex-1 min-w-0">
-                            <h3 className="text-sm font-bold text-zinc-100 truncate">{group.name}</h3>
-                            <div className="flex items-center space-x-1.5 text-zinc-500 text-[10px] font-semibold mt-0.5 uppercase tracking-wide">
-                              <MapPin className="w-3 h-3 text-accent-cyan" />
-                              <span>{group.destination}</span>
-                              <span>•</span>
-                              <span>{group.membersCount} members</span>
-                            </div>
-                            <p className="text-[10px] text-zinc-400 font-medium mt-1 border-l-2 border-accent-purple/40 pl-2">
-                              Vibe: {group.vibe}
-                            </p>
+              {filteredGroups.length === 0 ? (
+                <div className="py-16 text-center">
+                  <Compass className="w-10 h-10 text-zinc-800 mx-auto mb-3" />
+                  <p className="text-sm text-zinc-500">No groups found.</p>
+                </div>
+              ) : (
+                filteredGroups.map((group) => {
+                  const groupState = getGroupState(group);
+                  const isActive = pathname === `/chats/${group.id}`;
+                  const lastMessage = group.messages[group.messages.length - 1];
+                  
+                  return (
+                    <div 
+                      key={group.id} 
+                      onClick={() => {
+                         if (groupState === 'joined') {
+                           router.push(`/chats/${group.id}`);
+                         }
+                      }}
+                      className={`p-3 rounded-2xl cursor-pointer transition-all flex flex-col space-y-2 animate-fade-in-up group ${
+                        isActive ? 'bg-zinc-900' : 'hover:bg-zinc-900/50'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <img 
+                          src={group.avatar} 
+                          alt={group.name} 
+                          className="w-10 h-10 rounded-full object-cover border border-zinc-800 shrink-0" 
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center mb-0.5">
+                            <h3 className="text-[13px] font-bold text-zinc-100 truncate">{group.name}</h3>
+                            <span className="text-[10px] text-zinc-500 shrink-0">{lastMessage?.timestamp || 'New'}</span>
                           </div>
-                        </div>
-
-                        {/* Description summary */}
-                        <p className="text-[11px] text-zinc-400 leading-relaxed mb-4">
-                          {group.description}
-                        </p>
-
-                        {/* Recent shared Instants thumbnails */}
-                        {group.recentInstants.length > 0 && (
-                          <div className="mb-4">
-                            <p className="text-[9px] text-zinc-600 uppercase font-bold tracking-widest mb-2">Recent Instants Shared</p>
-                            <div className="flex space-x-2">
-                              {group.recentInstants.map((url, i) => (
-                                <div key={i} className="w-16 h-20 rounded-lg overflow-hidden border border-zinc-900 bg-zinc-950">
-                                  <img src={url} alt="Recent sharing" className="w-full h-full object-cover" />
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Footer buttons / Action toggler */}
-                        <div className="flex items-center justify-between pt-3 border-t border-zinc-900/60">
-                          {groupState === 'joined' ? (
-                            <>
-                              <span className="text-[10px] text-accent-cyan font-bold tracking-wide flex items-center space-x-1">
-                                <CheckCircle className="w-3.5 h-3.5 fill-accent-cyan/15 text-accent-cyan" />
-                                <span>Joined member</span>
-                              </span>
-                              <button
-                                onClick={() => router.push(`/chats/${group.id}`)}
-                                className="py-2 px-4 bg-zinc-900 hover:bg-zinc-800 text-zinc-100 text-xs font-bold rounded-xl flex items-center space-x-1.5 active:scale-95 transition-all"
-                              >
-                                <span>Open Chat</span>
-                                <ArrowRight className="w-3.5 h-3.5 text-accent-cyan" />
-                              </button>
-                            </>
-                          ) : groupState === 'pending' ? (
-                            <>
-                              <span className="text-[10px] text-zinc-500 font-bold tracking-wide flex items-center space-x-1 animate-pulse">
-                                <Clock className="w-3.5 h-3.5 text-zinc-500" />
-                                <span>Pending approval</span>
-                              </span>
-                              <button
-                                disabled
-                                className="py-2 px-4 bg-zinc-950 border border-zinc-900 text-zinc-600 text-xs font-bold rounded-xl"
-                              >
-                                Requested
-                              </button>
-                            </>
-                          ) : (
-                            <>
-                              <span className="text-[10px] text-zinc-600 font-bold">Invite only</span>
-                              <button
-                                onClick={() => requestToJoinGroup(group.id)}
-                                className="py-2 px-4 bg-white text-black hover:bg-zinc-200 text-xs font-bold rounded-xl flex items-center space-x-1.5 active:scale-[0.98] transition-all"
-                              >
-                                <UserPlus className="w-3.5 h-3.5 text-black" />
-                                <span>Request to Join</span>
-                              </button>
-                            </>
-                          )}
+                          <p className="text-[11px] text-zinc-400 truncate">
+                            {lastMessage ? lastMessage.text : (
+                              groupState === 'joined' ? 'Start chatting!' : 'Join to chat'
+                            )}
+                          </p>
                         </div>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+
+                      {/* Tags row */}
+                      <div className="flex items-center space-x-1.5 pl-13">
+                        <span className="px-2 py-0.5 bg-orange-500/10 text-orange-400 text-[9px] font-bold rounded-full">
+                          {group.destination}
+                        </span>
+                        <span className="px-2 py-0.5 bg-green-500/10 text-green-400 text-[9px] font-bold rounded-full">
+                          {group.vibe}
+                        </span>
+                        {groupState === 'pending' && (
+                          <span className="px-2 py-0.5 bg-yellow-500/10 text-yellow-400 text-[9px] font-bold rounded-full">
+                            Pending
+                          </span>
+                        )}
+                        {groupState === 'none' && (
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              requestToJoinGroup(group.id);
+                            }}
+                            className="px-2 py-0.5 bg-white text-black text-[9px] font-bold rounded-full hover:bg-zinc-200"
+                          >
+                            Request to Join
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
             </div>
           )}
 
           {/* DIRECT MESSAGES TAB CONTENT */}
           {activeTab === 'dms' && (
-            <div className="flex flex-col space-y-4">
-              {/* New Chat Banner Header */}
-              <div className="flex justify-between items-center mb-1">
-                <h2 className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Your Conversations</h2>
-                <button
-                  onClick={() => setNewChatDrawerOpen(true)}
-                  className="py-1.5 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white rounded-xl text-[10px] font-bold flex items-center space-x-1.5 transition-all active:scale-95 border border-zinc-800"
-                >
-                  <PlusCircle className="w-3.5 h-3.5 text-accent-cyan" />
-                  <span>Start New Chat</span>
-                </button>
-              </div>
-
-              {/* DM list */}
+            <div className="flex flex-col space-y-1">
               {userDMs.length === 0 ? (
                 <div className="py-20 text-center flex-1 flex flex-col justify-center items-center">
                   <MessageSquare className="w-10 h-10 text-zinc-800 mb-3 animate-pulse" />
-                  <p className="text-xs text-zinc-400 font-bold">No active direct messages</p>
-                  <p className="text-[10px] text-zinc-650 mt-1 max-w-[220px]">
-                    Click "Start New Chat" to reach out to fellow adventurers!
-                  </p>
+                  <p className="text-xs text-zinc-400 font-bold">No active DMs</p>
                 </div>
               ) : (
-                <div className="space-y-3">
-                  {userDMs.map((chat) => {
-                    const otherUsername = chat.usernames.find(u => u !== currentUser.username) || '';
-                    const otherUser = allUsers.find(u => u.username === otherUsername);
-                    if (!otherUser) return null;
-                    const lastMessage = chat.messages[chat.messages.length - 1];
+                userDMs.map((chat) => {
+                  const otherUsername = chat.usernames.find(u => u !== currentUser.username) || '';
+                  const otherUser = allUsers.find(u => u.username === otherUsername);
+                  if (!otherUser) return null;
+                  const lastMessage = chat.messages[chat.messages.length - 1];
+                  const isActive = pathname === `/chats/${chat.id}`;
 
-                    return (
-                      <div
-                        key={chat.id}
-                        onClick={() => router.push(`/chats/${chat.id}`)}
-                        className={`bg-[#080808] p-4 rounded-2xl border ${pathname === `/chats/${chat.id}` ? 'border-zinc-700 bg-zinc-900/50' : 'border-zinc-900'} hover:border-zinc-800 cursor-pointer transition-all flex items-center justify-between group animate-fade-in-up`}
-                      >
-                        <div className="flex space-x-3.5 items-center min-w-0 flex-1">
-                          <img
-                            src={otherUser.avatar}
-                            alt={otherUser.name}
-                            className="w-11 h-11 rounded-full object-cover border border-zinc-900 group-hover:border-zinc-700 transition-colors"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <h3 className="text-xs font-bold text-zinc-100 group-hover:text-white transition-colors">
-                              {otherUser.name}
-                            </h3>
-                            <p className="text-[9px] text-zinc-500 font-bold">@{otherUser.username}</p>
-                            <p className="text-[11px] text-zinc-400 truncate mt-1.5 max-w-[200px]">
-                              {lastMessage ? lastMessage.text : 'No messages yet'}
-                            </p>
+                  return (
+                    <div
+                      key={chat.id}
+                      onClick={() => router.push(`/chats/${chat.id}`)}
+                      className={`p-3 rounded-2xl cursor-pointer transition-all flex flex-col space-y-2 animate-fade-in-up group ${
+                        isActive ? 'bg-zinc-900' : 'hover:bg-zinc-900/50'
+                      }`}
+                    >
+                      <div className="flex items-start space-x-3">
+                        <img
+                          src={otherUser.avatar}
+                          alt={otherUser.name}
+                          className="w-10 h-10 rounded-full object-cover border border-zinc-800 shrink-0"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-center mb-0.5">
+                            <h3 className="text-[13px] font-bold text-zinc-100 truncate">{otherUser.name}</h3>
+                            <span className="text-[10px] text-zinc-500 shrink-0">{lastMessage?.timestamp || 'New'}</span>
                           </div>
-                        </div>
-
-                        <div className="flex flex-col items-end space-y-2 pl-2 shrink-0">
-                          <span className="text-[9px] text-zinc-600 font-bold uppercase">
-                            {lastMessage ? lastMessage.timestamp : ''}
-                          </span>
-                          <span className="text-[10px] text-accent-cyan font-bold tracking-wide flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-all transform translate-x-1 group-hover:translate-x-0">
-                            <span>Chat</span>
-                            <ArrowRight className="w-3.5 h-3.5 text-accent-cyan" />
-                          </span>
+                          <p className="text-[11px] text-zinc-400 truncate">
+                            {lastMessage ? lastMessage.text : 'No messages yet'}
+                          </p>
                         </div>
                       </div>
-                    );
-                  })}
-                </div>
+
+                      {/* Tags row */}
+                      <div className="flex items-center space-x-1.5 pl-13">
+                        <span className="px-2 py-0.5 bg-accent-cyan/10 text-accent-cyan text-[9px] font-bold rounded-full">
+                          Direct
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })
               )}
             </div>
           )}
@@ -346,8 +302,7 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
       </div>
 
       {/* RIGHT PANE: Chat Details or Empty State */}
-      {/* On mobile, hidden if we are just viewing the list. On desktop, always show (md:flex) */}
-      <div className={`${isChatDetail ? 'flex' : 'hidden md:flex'} flex-1 flex-col bg-[#050505]`}>
+      <div className={`${isChatDetail ? 'flex' : 'hidden lg:flex'} flex-1 flex-col bg-[#050505]`}>
         {children}
       </div>
 
@@ -424,12 +379,6 @@ export default function ChatsLayout({ children }: { children: React.ReactNode })
                   </div>
                 )
               )}
-              
-            {/* Empty State */}
-            {allUsers.filter(u => u.username !== currentUser.username && (u.name.toLowerCase().includes(newChatSearch.toLowerCase()) || u.username.toLowerCase().includes(newChatSearch.toLowerCase()))).length === 0 && 
-             groups.filter(g => g.name.toLowerCase().includes(newChatSearch.toLowerCase())).length === 0 && (
-               <div className="py-8 text-center text-xs text-zinc-500">No accounts or groups found.</div>
-             )}
           </div>
         </div>
       </Drawer>

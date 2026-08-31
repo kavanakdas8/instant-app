@@ -5,7 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { useApp, ChatMessage, TravelGroup, JoinRequest, Instant, PersonalChat } from '@/context/AppContext';
 import { 
   ArrowLeft, Send, Pin, AlertCircle, Users, Settings, 
-  Check, X, Image as ImageIcon, Sparkles, MessageCircle, FileText
+  Check, X, Sparkles, MessageCircle, FileText, Phone, MoreVertical, Paperclip, Download
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 
@@ -107,213 +107,312 @@ export default function ChatDetails() {
 
   const messages = isDM ? (personalChat?.messages || []) : (group?.messages || []);
 
+  // Compute Members List for Right Pane
+  let membersList: {username: string, name: string, avatar: string, role?: string}[] = [];
+  if (group) {
+    membersList = group.members.map(u => {
+      const user = allUsers.find(x => x.username === u);
+      return {
+        username: u,
+        name: user?.name || u,
+        avatar: user?.avatar || '',
+        role: u === group.adminUsername ? 'Admin' : 'Member'
+      };
+    });
+  } else if (isDM && participant) {
+    membersList = [
+      { username: currentUser.username, name: currentUser.name, avatar: currentUser.avatar, role: 'Me' },
+      { username: participant.username, name: participant.name, avatar: participant.avatar, role: 'Participant' }
+    ];
+  }
+
+  // Mock files based on UI (or map from instants if you prefer)
+  const sharedFiles = [
+    { name: 'itinerary.pdf', type: 'PDF', size: '2mb', ext: 'pdf' },
+    { name: 'Screenshot-3817.png', type: 'PNG', size: '4mb', ext: 'png' },
+    { name: 'budget_2025.xlsx', type: 'XLSX', size: '24mb', ext: 'xlsx' }
+  ];
+
   return (
-    <div className="flex-1 flex flex-col bg-[#050505] relative select-none h-full">
-      {/* Chat Header */}
-      <div className="h-16 bg-[#080808]/90 backdrop-blur-md border-b border-zinc-900 flex justify-between items-center px-4 z-30">
-        <div className="flex items-center space-x-3">
-          <button 
-            onClick={() => router.push('/chats')}
-            className="md:hidden p-1 rounded-full bg-zinc-900 text-zinc-400 hover:text-zinc-200"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </button>
-          
-          {isDM && participant ? (
-            <div className="flex items-center space-x-2">
-              <img src={participant.avatar} alt={participant.name} className="w-9 h-9 rounded-full object-cover border border-zinc-900" />
-              <div>
-                <h2 className="text-xs font-bold text-zinc-100 truncate max-w-[150px]">{participant.name}</h2>
-                <p className="text-[9px] text-zinc-550 font-semibold uppercase tracking-wider">Direct Message</p>
-              </div>
-            </div>
-          ) : group ? (
-            <div className="flex items-center space-x-2">
-              <img src={group.avatar} alt={group.name} className="w-9 h-9 rounded-xl object-cover border border-zinc-900" />
-              <div>
-                <h2 className="text-xs font-bold text-zinc-100 truncate max-w-[120px]">{group.name}</h2>
-                <p className="text-[9px] text-zinc-500 font-semibold uppercase tracking-wider">{group.vibe}</p>
-              </div>
-            </div>
-          ) : null}
-        </div>
-
-        <div className="flex items-center space-x-2.5">
-          {/* Admin Reviews Trigger - Only for Group admins */}
-          {!isDM && isAdmin && (
-            <button
-              onClick={() => setAdminDrawerOpen(true)}
-              className="relative py-1.5 px-3 bg-accent-purple/10 hover:bg-accent-purple/20 border border-accent-purple/40 text-accent-purple rounded-xl text-[10px] font-bold flex items-center space-x-1 transition-all active:scale-95"
-            >
-              <span>Review Requests</span>
-              {groupRequests.length > 0 && (
-                <span className="w-2 h-2 bg-accent-pink rounded-full absolute -top-0.5 -right-0.5 animate-ping" />
-              )}
-            </button>
-          )}
-
-          {!isDM && group && (
-            <div className="flex items-center text-zinc-500 text-[10px] font-bold">
-              <Users className="w-3.5 h-3.5 mr-1" />
-              <span>{group.members.length}</span>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Pinned Messages Banner (Groups only) */}
-      {!isDM && group && pinnedMessages.length > 0 && (
-        <div className="bg-zinc-950/90 border-b border-zinc-900/60 py-2 px-4 flex items-center space-x-2 z-20 shadow-sm animate-fade-in-up">
-          <Pin className="w-3.5 h-3.5 text-accent-cyan fill-accent-cyan/10 rotate-45" />
-          <div className="flex-1 min-w-0">
-            <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-wider">Pinned Update</p>
-            <p className="text-[11px] text-zinc-300 truncate mt-0.5 font-medium">
-              "{pinnedMessages[0].text}"
-            </p>
-          </div>
-          {isAdmin && (
+    <div className="flex flex-1 w-full h-full overflow-hidden">
+      
+      {/* MAIN CHAT COLUMN */}
+      <div className="flex-1 flex flex-col bg-[#050505] relative select-none h-full border-r border-[#1C1C1E] min-w-0">
+        
+        {/* Chat Header */}
+        <div className="h-20 border-b border-zinc-900 flex justify-between items-center px-6 shrink-0 bg-[#050505] z-10">
+          <div className="flex items-center space-x-4">
             <button 
-              onClick={() => unpinGroupMessage(group.id, pinnedMessages[0].id)}
-              className="text-[10px] text-zinc-600 hover:text-zinc-400 font-bold underline"
+              onClick={() => router.push('/chats')}
+              className="lg:hidden p-1.5 rounded-full bg-zinc-900 text-zinc-400 hover:text-zinc-200 transition-colors"
             >
-              Unpin
+              <ArrowLeft className="w-5 h-5" />
             </button>
-          )}
-        </div>
-      )}
-
-      {/* Message Area */}
-      {!isMember ? (
-        <div className="flex-1 flex flex-col justify-center items-center px-6 text-center space-y-4">
-          <AlertCircle className="w-12 h-12 text-zinc-700 animate-bounce" />
-          <h3 className="text-sm font-bold text-zinc-300">Access Denied</h3>
-          <p className="text-xs text-zinc-500 max-w-[240px]">
-            You must be an approved member to participate in this group chat room.
-          </p>
-          <button
-            onClick={() => router.push('/chats')}
-            className="py-2 px-5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-bold"
-          >
-            Browse Other Groups
-          </button>
-        </div>
-      ) : (
-        <div className="flex-1 overflow-y-auto p-4 space-y-4 no-scrollbar">
-          {messages.length === 0 ? (
-            <div className="py-24 text-center">
-              <MessageCircle className="w-8 h-8 text-zinc-805 mx-auto mb-2 animate-pulse" />
-              <p className="text-xs text-zinc-500 font-semibold">Start the discussion! Send a message below.</p>
-            </div>
-          ) : (
-            messages.map((message) => {
-              const isMe = message.senderId === currentUser.username;
-              const isSystem = message.senderId === 'system';
-
-              if (isSystem) {
-                return (
-                  <div key={message.id} className="w-full text-center py-2 animate-fade-in-up">
-                    <span className="px-3.5 py-1.5 bg-zinc-950 border border-zinc-900 text-zinc-500 rounded-full text-[9px] font-bold tracking-wide">
-                      {message.text}
-                    </span>
-                  </div>
-                );
-              }
-
-              return (
-                <div 
-                  key={message.id} 
-                  className={`flex items-start space-x-2.5 animate-fade-in-up ${
-                    isMe ? 'flex-row-reverse space-x-reverse' : ''
-                  }`}
-                >
-                  <img 
-                    src={message.senderAvatar} 
-                    alt={message.senderName} 
-                    className="w-7 h-7 rounded-full object-cover border border-zinc-900 mt-1" 
-                  />
-                  <div className="max-w-[70%] flex flex-col">
-                    <div className={`flex items-center space-x-1.5 mb-1 ${isMe ? 'justify-end' : ''}`}>
-                      <span className="text-[10px] font-bold text-zinc-400">@{message.senderUsername}</span>
-                      <span className="text-[8px] text-zinc-600">{message.timestamp}</span>
-                    </div>
-
-                    <div 
-                      className={`p-3 rounded-2xl border text-xs leading-relaxed ${
-                        isMe 
-                          ? 'bg-zinc-100 text-black border-zinc-200 rounded-tr-none' 
-                          : 'bg-zinc-950/80 text-zinc-200 border-zinc-900 rounded-tl-none'
-                      }`}
-                    >
-                      {/* Attached Instant rendering */}
-                      {message.instant && (
-                        <div className="mb-2 rounded-xl overflow-hidden border border-zinc-900/40 relative aspect-[3/4] bg-black">
-                          <img src={message.instant.url} alt="Attached" className="w-full h-full object-cover" />
-                          <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs py-0.5 px-1.5 rounded-md text-[8px] text-accent-cyan border border-white/5 uppercase tracking-widest font-bold">
-                            Instant
-                          </div>
-                        </div>
-                      )}
-                      
-                      <p className="whitespace-pre-wrap">{message.text}</p>
-                    </div>
-
-                    {/* Admin Message Actions (Pinning - Groups only) */}
-                    {!isDM && group && isAdmin && (
-                      <div className={`flex mt-1 ${isMe ? 'justify-end' : ''}`}>
-                        <button
-                          onClick={() => {
-                            if (group.pinnedMessages.includes(message.id)) {
-                              unpinGroupMessage(group.id, message.id);
-                            } else {
-                              pinGroupMessage(group.id, message.id);
-                            }
-                          }}
-                          className="text-[9px] text-zinc-650 hover:text-zinc-450 font-bold flex items-center space-x-1.5 py-0.5 px-1.5 rounded bg-zinc-950 border border-zinc-900/65"
-                        >
-                          <Pin className="w-2.5 h-2.5 rotate-45" />
-                          <span>{group.pinnedMessages.includes(message.id) ? 'Unpin message' : 'Pin message'}</span>
-                        </button>
-                      </div>
-                    )}
+            
+            {isDM && participant ? (
+              <div className="flex items-center space-x-3">
+                <img src={participant.avatar} alt={participant.name} className="w-11 h-11 rounded-full object-cover border border-zinc-800" />
+                <div>
+                  <h2 className="text-[15px] font-bold text-zinc-100">{participant.name}</h2>
+                  <div className="flex items-center space-x-1.5 mt-0.5">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                    <p className="text-[11px] text-zinc-400 font-bold">Online</p>
                   </div>
                 </div>
-              );
-            })
-          )}
-          <div ref={messageEndRef} />
+              </div>
+            ) : group ? (
+              <div className="flex items-center space-x-3">
+                <img src={group.avatar} alt={group.name} className="w-11 h-11 rounded-full object-cover border border-zinc-800" />
+                <div>
+                  <h2 className="text-[15px] font-bold text-zinc-100">{group.name}</h2>
+                  <div className="flex items-center space-x-1.5 mt-0.5">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></div>
+                    <p className="text-[11px] text-zinc-400 font-bold">Active Group</p>
+                  </div>
+                </div>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex items-center space-x-3">
+            {!isDM && isAdmin && (
+              <button
+                onClick={() => setAdminDrawerOpen(true)}
+                className="relative py-2 px-3 bg-zinc-900 hover:bg-zinc-800 text-zinc-300 rounded-xl text-[11px] font-bold flex items-center space-x-1 transition-all"
+              >
+                <span>Requests</span>
+                {groupRequests.length > 0 && (
+                  <span className="w-2 h-2 bg-accent-pink rounded-full absolute -top-1 -right-1 animate-pulse" />
+                )}
+              </button>
+            )}
+            <button className="flex items-center space-x-2 bg-accent-purple/10 hover:bg-accent-purple/20 text-accent-purple px-4 py-2 rounded-xl transition-all font-bold text-sm">
+              <Phone className="w-4 h-4 fill-accent-purple/50" />
+              <span className="hidden sm:inline">Call</span>
+            </button>
+          </div>
         </div>
-      )}
 
-      {/* Input Tray */}
-      {isMember && (
-        <form onSubmit={handleSendMessage} className="border-t border-zinc-900/80 p-3 bg-[#080808]/95 flex items-center space-x-2 z-10 pb-6">
-          {/* Share Instant Attachment Button */}
-          <button
-            type="button"
-            onClick={() => setShareInstantPickerOpen(true)}
-            className="p-2.5 rounded-xl bg-zinc-950 border border-zinc-900 text-zinc-400 hover:text-zinc-200 active:scale-95 transition-all"
-            title="Attach Instant"
-          >
-            <ImageIcon className="w-4 h-4 text-accent-cyan" />
+        {/* Pinned Messages Banner (Groups only) */}
+        {!isDM && group && pinnedMessages.length > 0 && (
+          <div className="bg-zinc-900/50 border-b border-zinc-900 py-2.5 px-6 flex items-center space-x-3 z-0 shrink-0">
+            <Pin className="w-4 h-4 text-accent-purple fill-accent-purple/20 rotate-45 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-[11px] text-zinc-300 truncate font-medium">
+                <span className="text-zinc-500 font-bold mr-2">Pinned</span>
+                {pinnedMessages[0].text}
+              </p>
+            </div>
+            {isAdmin && (
+              <button 
+                onClick={() => unpinGroupMessage(group.id, pinnedMessages[0].id)}
+                className="text-[10px] text-zinc-500 hover:text-zinc-300 font-bold ml-4 shrink-0"
+              >
+                Unpin
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* Message Area */}
+        {!isMember ? (
+          <div className="flex-1 flex flex-col justify-center items-center px-6 text-center space-y-4">
+            <AlertCircle className="w-12 h-12 text-zinc-700 animate-bounce" />
+            <h3 className="text-sm font-bold text-zinc-300">Access Denied</h3>
+            <p className="text-xs text-zinc-500 max-w-[240px]">
+              You must be an approved member to participate in this group chat room.
+            </p>
+            <button
+              onClick={() => router.push('/chats')}
+              className="py-2 px-5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-bold"
+            >
+              Browse Other Groups
+            </button>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto px-6 py-4 no-scrollbar">
+            {messages.length === 0 ? (
+              <div className="py-24 text-center">
+                <MessageCircle className="w-10 h-10 text-zinc-800 mx-auto mb-3 animate-pulse" />
+                <p className="text-sm text-zinc-500 font-bold">Start the discussion!</p>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {messages.map((message) => {
+                  const isMe = message.senderId === currentUser.username;
+                  const isSystem = message.senderId === 'system';
+
+                  if (isSystem) {
+                    return (
+                      <div key={message.id} className="w-full flex justify-center py-2 animate-fade-in-up">
+                        <span className="px-4 py-1 bg-zinc-900 border border-zinc-800 text-zinc-400 rounded-full text-[10px] font-bold tracking-wide">
+                          {message.text}
+                        </span>
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div 
+                      key={message.id} 
+                      className={`flex items-end space-x-3 animate-fade-in-up ${
+                        isMe ? 'flex-row-reverse space-x-reverse' : ''
+                      }`}
+                    >
+                      <img 
+                        src={message.senderAvatar} 
+                        alt={message.senderName} 
+                        className="w-8 h-8 rounded-full object-cover border border-zinc-800 shrink-0 mb-1" 
+                      />
+                      <div className={`max-w-[70%] flex flex-col ${isMe ? 'items-end' : 'items-start'}`}>
+                        {/* Sender info above bubble for non-DM groups when not self */}
+                        {!isMe && !isDM && (
+                          <span className="text-[11px] font-bold text-zinc-500 mb-1 ml-1">{message.senderName}</span>
+                        )}
+                        <div 
+                          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                            isMe 
+                              ? 'bg-accent-purple text-white rounded-br-sm' 
+                              : 'bg-zinc-900 text-zinc-100 rounded-bl-sm'
+                          }`}
+                        >
+                          {/* Attached Instant rendering */}
+                          {message.instant && (
+                            <div className="mb-2 rounded-xl overflow-hidden border border-black/20 relative aspect-[3/4] bg-black">
+                              <img src={message.instant.url} alt="Attached" className="w-full h-full object-cover" />
+                              <div className="absolute top-2 left-2 bg-black/60 backdrop-blur-xs py-0.5 px-2 rounded-md text-[9px] text-white uppercase tracking-widest font-bold">
+                                Instant
+                              </div>
+                            </div>
+                          )}
+                          
+                          <p className="whitespace-pre-wrap">{message.text}</p>
+                        </div>
+                        
+                        <div className={`flex items-center space-x-2 mt-1 ${isMe ? 'mr-1' : 'ml-1'}`}>
+                          <span className="text-[9px] text-zinc-600 font-bold">{message.timestamp}</span>
+                          {!isDM && group && isAdmin && (
+                            <button
+                              onClick={() => {
+                                if (group.pinnedMessages.includes(message.id)) {
+                                  unpinGroupMessage(group.id, message.id);
+                                } else {
+                                  pinGroupMessage(group.id, message.id);
+                                }
+                              }}
+                              className="text-[9px] text-zinc-500 hover:text-zinc-300 font-bold flex items-center space-x-1"
+                            >
+                              <span>{group.pinnedMessages.includes(message.id) ? 'Unpin' : 'Pin'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            <div ref={messageEndRef} />
+          </div>
+        )}
+
+        {/* Input Tray */}
+        {isMember && (
+          <div className="p-4 bg-[#050505] shrink-0 border-t border-zinc-900/50">
+            <form onSubmit={handleSendMessage} className="flex items-center space-x-2 bg-zinc-900/80 rounded-2xl p-1.5 border border-zinc-800">
+              <button
+                type="button"
+                onClick={() => setShareInstantPickerOpen(true)}
+                className="p-2.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-xl transition-all"
+                title="Attach"
+              >
+                <Paperclip className="w-5 h-5" />
+              </button>
+              
+              <input
+                type="text"
+                placeholder={isDM && participant ? `Message @${participant.username}...` : "Type a message..."}
+                value={inputText}
+                onChange={(e) => setInputText(e.target.value)}
+                className="flex-1 bg-transparent border-none px-2 text-[15px] text-zinc-100 placeholder-zinc-500 focus:outline-none"
+              />
+
+              <button
+                type="submit"
+                disabled={!inputText.trim()}
+                className="p-2.5 text-accent-purple disabled:opacity-40 hover:text-white hover:bg-accent-purple rounded-xl transition-all disabled:hover:bg-transparent disabled:hover:text-accent-purple"
+              >
+                <Send className="w-5 h-5" />
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+
+      {/* RIGHT PANE: Directory */}
+      <div className="hidden xl:flex w-[300px] flex-col bg-[#000000] overflow-y-auto no-scrollbar p-5 pb-8 shrink-0 border-l border-zinc-900">
+        
+        {/* Header */}
+        <div className="flex items-center justify-between mb-8">
+          <h2 className="text-[17px] font-bold text-white tracking-tight">Directory</h2>
+          <button className="p-2 rounded-full hover:bg-zinc-900 text-zinc-400 transition-colors">
+            <MoreVertical className="w-5 h-5" />
           </button>
+        </div>
 
-          <input
-            type="text"
-            placeholder={isDM && participant ? `Message @${participant.username}...` : "Discuss trip itineraries..."}
-            value={inputText}
-            onChange={(e) => setInputText(e.target.value)}
-            className="flex-1 bg-black border border-zinc-900 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder-zinc-700 focus:outline-none focus:border-accent-purple focus:ring-1 focus:ring-accent-purple/10"
-          />
+        {/* Team Members */}
+        <div className="mb-8">
+          <div className="flex items-center space-x-3 mb-4">
+            <h3 className="text-[13px] font-black text-zinc-100">Team Members</h3>
+            <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-[10px] font-bold text-zinc-400">
+              {membersList.length}
+            </span>
+          </div>
+          
+          <div className="space-y-4">
+            {membersList.map((member) => (
+              <div key={member.username} className="flex items-center space-x-3 group cursor-pointer">
+                <img src={member.avatar} alt={member.name} className="w-10 h-10 rounded-full object-cover border border-zinc-800 group-hover:border-zinc-600 transition-colors" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-bold text-zinc-200 truncate group-hover:text-white transition-colors">{member.name}</p>
+                  <p className="text-[11px] text-zinc-500 truncate">{member.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
 
-          <button
-            type="submit"
-            disabled={!inputText.trim()}
-            className="p-2.5 bg-white text-black font-bold rounded-xl disabled:opacity-40 hover:bg-zinc-200 active:scale-95 transition-all text-xs"
-          >
-            <Send className="w-4 h-4 text-black" />
-          </button>
-        </form>
-      )}
+        {/* Files */}
+        <div>
+          <div className="flex items-center space-x-3 mb-4">
+            <h3 className="text-[13px] font-black text-zinc-100">Files</h3>
+            <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-[10px] font-bold text-zinc-400">
+              {sharedFiles.length}
+            </span>
+          </div>
+
+          <div className="space-y-4">
+            {sharedFiles.map((file, i) => (
+              <div key={i} className="flex items-center space-x-3 group cursor-pointer">
+                <div className="w-10 h-10 rounded-xl bg-[#080808] border border-zinc-900 flex items-center justify-center text-accent-purple shrink-0 group-hover:bg-zinc-900 transition-colors">
+                  <FileText className="w-5 h-5 stroke-[1.5]" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[13px] font-bold text-zinc-200 truncate group-hover:text-white transition-colors">{file.name}</p>
+                  <div className="flex items-center space-x-1 mt-0.5">
+                    <span className="text-[10px] text-zinc-500 uppercase font-bold">{file.type}</span>
+                    <span className="text-[10px] text-zinc-600 font-bold">{file.size}</span>
+                  </div>
+                </div>
+                <button className="text-zinc-600 group-hover:text-accent-purple transition-colors p-2 shrink-0">
+                  <Download className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      </div>
 
       {/* Share Instant Attachment Picker Drawer */}
       <Drawer
@@ -326,8 +425,8 @@ export default function ChatDetails() {
           
           {currentUser.instants.length === 0 ? (
             <div className="py-12 text-center flex flex-col items-center">
-              <ImageIcon className="w-8 h-8 text-zinc-850 mb-2" />
-              <p className="text-xs text-zinc-550">No Instants captured yet. Capture one first!</p>
+              <FileText className="w-8 h-8 text-zinc-800 mb-2" />
+              <p className="text-xs text-zinc-500">No Instants captured yet. Capture one first!</p>
               <button 
                 onClick={() => router.push('/capture')}
                 className="mt-3 py-1.5 px-4 bg-zinc-900 border border-zinc-800 text-zinc-300 rounded-xl text-xs font-semibold"
@@ -341,7 +440,7 @@ export default function ChatDetails() {
                 <div
                   key={inst.id}
                   onClick={() => handleShareInstant(inst)}
-                  className="aspect-[3/4] bg-zinc-955 border border-zinc-900 rounded-xl overflow-hidden relative cursor-pointer group hover:border-accent-cyan active:scale-95 transition-all"
+                  className="aspect-[3/4] bg-zinc-950 border border-zinc-900 rounded-xl overflow-hidden relative cursor-pointer group hover:border-accent-cyan active:scale-95 transition-all"
                 >
                   <img src={inst.url} alt="Capture" className="w-full h-full object-cover" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
