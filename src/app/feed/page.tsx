@@ -172,6 +172,8 @@ export default function Feed() {
 
   if (!currentUser) return null;
 
+  const isTargetTab = activeTab === 'explore' || activeTab === 'following';
+
   const commentsUI = activePost ? (
     <div className="flex flex-col h-full w-full">
       <div className="flex-1 space-y-4 overflow-y-auto pr-2 pb-4 no-scrollbar">
@@ -185,7 +187,7 @@ export default function Feed() {
               key={comment.id} 
               className="flex space-x-3 items-start animate-fade-in-up"
               onContextMenu={(e) => {
-                if (comment.authorUsername === currentUser.username && activeTab === 'explore') {
+                if (comment.authorUsername === currentUser.username && isTargetTab) {
                   e.preventDefault();
                   setActiveCommentMenuId(comment.id);
                 }
@@ -196,12 +198,12 @@ export default function Feed() {
                 alt={comment.author}
                 className="w-8 h-8 rounded-full object-cover border border-zinc-900 shadow-sm"
               />
-              <div className={`flex-1 flex flex-col items-start border border-zinc-900/60 p-3 rounded-2xl rounded-tl-sm bg-zinc-950/60 relative ${activeTab === 'explore' ? 'explore-comment-bg' : ''}`}>
+              <div className={`flex-1 flex flex-col items-start border border-zinc-900/60 p-3 rounded-2xl rounded-tl-sm bg-zinc-950/60 relative ${isTargetTab ? 'explore-comment-bg' : ''}`}>
                 <div className="flex justify-between items-center w-full mb-1">
                   <span className="text-xs font-bold text-zinc-200">@{comment.authorUsername}</span>
                   <div className="flex items-center space-x-2">
                     <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
-                    {comment.authorUsername === currentUser.username && activeTab === 'explore' && (
+                    {comment.authorUsername === currentUser.username && isTargetTab && (
                       <div className="relative">
                         <button 
                           onClick={(e) => {
@@ -230,7 +232,7 @@ export default function Feed() {
                     )}
                   </div>
                 </div>
-                <p className={`text-sm leading-relaxed text-[#ffffff] ${activeTab === 'explore' ? 'explore-comment-text' : ''}`}>{comment.text}</p>
+                <p className={`text-sm leading-relaxed text-[#ffffff] ${isTargetTab ? 'explore-comment-text' : ''}`}>{comment.text}</p>
               </div>
             </div>
           ))
@@ -243,7 +245,7 @@ export default function Feed() {
           placeholder="Type a comment..."
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          className={`flex-1 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10 shadow-inner border border-zinc-800 bg-[#080808] text-[#ffffff] placeholder-[#ffffff] ${activeTab === 'explore' ? 'explore-input-bg explore-input-text' : ''}`}
+          className={`flex-1 rounded-2xl px-5 py-3.5 text-sm focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10 shadow-inner border border-zinc-800 bg-[#080808] text-[#ffffff] placeholder-[#ffffff] ${isTargetTab ? 'explore-input-bg explore-input-text' : ''}`}
         />
         <button
           type="submit"
