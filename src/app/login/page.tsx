@@ -4,36 +4,28 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Sun, Moon, Eye, EyeOff, Lock, Mail, UserPlus, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
+import { Eye, EyeOff, Lock, Mail, UserPlus, AlertCircle, Sparkles, ArrowRight } from 'lucide-react';
 import Logo from '@/components/Logo';
 import LiveMapCluster from '@/components/LiveMapCluster';
 
 export default function Login() {
   const router = useRouter();
-  const { login } = useApp();
+  const { login, globalTheme } = useApp();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [error, setError] = useState('');
   const [noAccountFound, setNoAccountFound] = useState(false);
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDemos, setShowDemos] = useState(false);
 
+  const theme = globalTheme === 'light' ? 'light' : 'dark';
+
   // Set initial theme preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem('instants-auth-theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    // Only used to ensure hydration mismatch doesn't occur for any random reason
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('instants-auth-theme', nextTheme);
-  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -120,15 +112,7 @@ export default function Login() {
         }}
       />
 
-      {/* Theme Toggle Floating Button */}
-      <button
-        onClick={toggleTheme}
-        className={`absolute top-4 right-4 z-50 p-2.5 rounded-full border shadow-sm transition-all duration-300 ${isLight ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
-          }`}
-        aria-label="Toggle Theme"
-      >
-        {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-      </button>
+      {/* Background patterns */}
 
       {/* LEFT COLUMN: Reskinned Brand Image Area with Live Map Cluster */}
       <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden transition-colors duration-300 z-10">

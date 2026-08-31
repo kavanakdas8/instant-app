@@ -10,7 +10,7 @@ import {
 
 export default function SettingsPage() {
   const router = useRouter();
-  const { currentUser, setCurrentUser } = useApp();
+  const { currentUser, setCurrentUser, globalTheme, setGlobalTheme } = useApp();
   
   const [showOldPassword, setShowOldPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -28,7 +28,7 @@ export default function SettingsPage() {
     email: `${currentUser?.username}@demo.com`,
     phone: '+1(000) 000-00000',
     language: 'English',
-    theme: 'System Default',
+    theme: globalTheme === 'light' ? 'Light' : globalTheme === 'dark' ? 'Dark' : 'System Default',
     facebook: '',
     linkedin: '',
     avatar: currentUser?.avatar || ''
@@ -62,6 +62,9 @@ export default function SettingsPage() {
           avatar: settingsForm.avatar || currentUser.avatar
         });
       }
+
+      const themeValue = settingsForm.theme === 'Light' ? 'light' : settingsForm.theme === 'Dark' ? 'dark' : 'system';
+      setGlobalTheme(themeValue);
 
       setIsSaving(false);
       setIsSaved(true);

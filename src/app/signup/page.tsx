@@ -35,7 +35,7 @@ function SignupParamsHandler({
 
 export default function Signup() {
   const router = useRouter();
-  const { signup } = useApp();
+  const { signup, globalTheme } = useApp();
 
   // Form fields
   const [firstName, setFirstName] = useState('');
@@ -44,23 +44,14 @@ export default function Signup() {
   const [password, setPassword] = useState('');
 
   // States
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const theme = globalTheme === 'light' ? 'light' : 'dark';
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   // Set initial theme preference
   useEffect(() => {
-    const savedTheme = localStorage.getItem('instants-auth-theme') as 'light' | 'dark';
-    if (savedTheme) {
-      setTheme(savedTheme);
-    }
+    // Handled globally
   }, []);
-
-  const toggleTheme = () => {
-    const nextTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(nextTheme);
-    localStorage.setItem('instants-auth-theme', nextTheme);
-  };
 
   const handleCreateAccountSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,17 +134,6 @@ export default function Signup() {
           }}
         />
       </Suspense>
-
-      {/* Theme Toggle Floating Button */}
-      <button
-        onClick={toggleTheme}
-        className={`absolute top-4 right-4 z-50 p-2.5 rounded-full border shadow-sm transition-all duration-300 ${
-          isLight ? 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700' : 'bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300'
-        }`}
-        aria-label="Toggle Theme"
-      >
-        {isLight ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
-      </button>
 
       {/* LEFT COLUMN: Reskinned Brand Image Area with Live Map Cluster */}
       <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden transition-colors duration-300 z-10">

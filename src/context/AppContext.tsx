@@ -100,6 +100,8 @@ interface AppContextType {
   personalChats: PersonalChat[];
   allUsers: UserProfile[];
   notifications: AppNotification[];
+  globalTheme: 'light' | 'dark' | 'system';
+  setGlobalTheme: (theme: 'light' | 'dark' | 'system') => void;
   setCurrentUser: (user: UserProfile | null) => void;
   login: (username: string) => boolean;
   signup: (name: string, username: string, bio: string, avatarUrl?: string) => boolean;
@@ -549,6 +551,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [personalChats, setPersonalChats] = useState<PersonalChat[]>(MOCK_PERSONAL_CHATS);
   const [allUsers, setAllUsers] = useState<UserProfile[]>(MOCK_USERS);
   const [notifications, setNotifications] = useState<AppNotification[]>(MOCK_NOTIFICATIONS);
+  const [globalTheme, setGlobalTheme] = useState<'light' | 'dark' | 'system'>('system');
 
   // Restore user session on startup and load any registered users
   useEffect(() => {
@@ -565,6 +568,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           setCurrentUser(JSON.parse(stored));
         } else {
           setCurrentUser(null);
+        }
+
+        const storedTheme = localStorage.getItem('instants_theme') as 'light' | 'dark' | 'system';
+        if (storedTheme) {
+          setGlobalTheme(storedTheme);
         }
       }
     } catch (e) {
@@ -589,6 +597,23 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       console.warn("Could not sync auth session to localStorage:", e);
     }
   }, [currentUser, isInitialized]);
+
+  // Sync theme with localStorage and document
+  useEffect(() => {
+    if (!isInitialized) return;
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('instants_theme', globalTheme);
+        let activeTheme = globalTheme;
+        if (activeTheme === 'system') {
+          activeTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', activeTheme);
+      }
+    } catch (e) {
+      console.warn("Could not sync theme:", e);
+    }
+  }, [globalTheme, isInitialized]);
 
   // Keep allUsers instants updated from feed
   useEffect(() => {
@@ -1026,6 +1051,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         personalChats,
         allUsers,
         notifications,
+        globalTheme,
+        setGlobalTheme,
         setCurrentUser,
         login,
         signup,
