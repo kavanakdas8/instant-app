@@ -3,9 +3,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp, Instant } from '@/context/AppContext';
+import { DESTINATIONS, Destination, getDestinationFlag } from '@/data/destinations';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, MessageCircle, Send, Volume2, VolumeX, AlertCircle,
-  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings
+  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings, MapPin
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 import Logo from '@/components/Logo';
@@ -33,17 +35,22 @@ export default function Feed() {
   const [activeDeckIndex, setActiveDeckIndex] = useState(0);
   const activeVideoRef = useRef<HTMLVideoElement>(null);
   const [isPlayingActiveCard, setIsPlayingActiveCard] = useState(true);
-  const [activeTab, setActiveTab] = useState<'explore' | 'following' | 'friends'>('explore');
+  const [activeTab, setActiveTab] = useState<'explore' | 'friends'>('explore');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const tab = params.get('tab');
-    if (tab === 'following' || tab === 'friends' || tab === 'explore') {
+    if (tab === 'friends' || tab === 'explore') {
       setActiveTab(tab);
+    }
+    const q = params.get('q');
+    if (q) {
+      setSearchQuery(q);
     }
   }, []);
 
-  const handleTabSwitch = (tab: 'explore' | 'following' | 'friends') => {
+  const handleTabSwitch = (tab: 'explore' | 'friends') => {
     setActiveTab(tab);
     setActiveDeckIndex(0);
     if (typeof window !== 'undefined') {
@@ -51,10 +58,30 @@ export default function Feed() {
     }
   };
 
-  const mockFollowing = ['emma_in_europe', 'alice_adventures'];
-  const displayFeed = activeTab === 'following' 
-    ? feed.filter(p => mockFollowing.includes(p.authorUsername)) 
-    : feed;
+  let displayFeed = feed;
+
+  if (searchQuery.trim() !== '') {
+    const query = searchQuery.toLowerCase();
+    displayFeed = displayFeed.filter(p =>
+      (p.destination && p.destination.toLowerCase().includes(query)) ||
+      (p.caption && p.caption.toLowerCase().includes(query)) ||
+      (p.authorUsername && p.authorUsername.toLowerCase().includes(query))
+    );
+  }
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setActiveDeckIndex(0);
+    const params = new URLSearchParams(window.location.search);
+    if (val.trim() !== '') {
+      params.set('q', val);
+    } else {
+      params.delete('q');
+    }
+    if (typeof window !== 'undefined') {
+      window.history.pushState(null, '', `?${params.toString()}`);
+    }
+  };
 
   // Ensure activeDeckIndex is within bounds if displayFeed length changes
   useEffect(() => {
@@ -171,7 +198,7 @@ export default function Feed() {
 
   const executeBatchShare = () => {
     if (!postToShare || selectedShareRecipients.size === 0) return;
-    
+
     selectedShareRecipients.forEach(id => {
       if (groups.some(g => g.id === id)) {
         sendGroupMessage(id, "Check out this Instant!", postToShare);
@@ -189,7 +216,7 @@ export default function Feed() {
 
   if (!currentUser) return null;
 
-  const isTargetTab = activeTab === 'explore' || activeTab === 'following';
+  const isTargetTab = activeTab === 'explore' || activeTab === 'friends';
 
   const commentsUI = activePost ? (
     <div className="flex flex-col h-full w-full">
@@ -200,8 +227,8 @@ export default function Feed() {
           </div>
         ) : (
           activePost.comments.map((comment) => (
-            <div 
-              key={comment.id} 
+            <div
+              key={comment.id}
               className="flex space-x-3 items-start animate-fade-in-up"
               onContextMenu={(e) => {
                 if (comment.authorUsername === currentUser.username && isTargetTab) {
@@ -222,7 +249,7 @@ export default function Feed() {
                     <span className="text-[10px] text-zinc-600 font-mono">{comment.timestamp}</span>
                     {comment.authorUsername === currentUser.username && isTargetTab && (
                       <div className="relative">
-                        <button 
+                        <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setActiveCommentMenuId(activeCommentMenuId === comment.id ? null : comment.id);
@@ -300,7 +327,24 @@ export default function Feed() {
         </div>
 
         {/* Vertical Reels Container */}
-        <div className="flex-1 feed-container no-scrollbar">
+        <div className="flex-1 feed-container no-scrollbar relative pt-16">
+
+          {/* Mobile Search Bar (Sticky) */}
+          <div className="absolute top-0 left-0 right-0 pt-3 pb-3 px-4 z-40 bg-gradient-to-b from-black via-black/90 to-transparent">
+            <div className="relative w-full">
+              <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                <Search className="h-4 w-4 text-zinc-500" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by destination, city..."
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full bg-zinc-900/80 border border-zinc-800/80 backdrop-blur-md rounded-full py-3 pl-11 pr-4 text-xs text-white focus:outline-none focus:border-zinc-700"
+              />
+            </div>
+          </div>
+
           {displayFeed.length === 0 ? (
             <div className="h-full flex flex-col justify-center items-center px-6 text-center space-y-4">
               <AlertCircle className="w-12 h-12 text-zinc-650 animate-bounce" />
@@ -313,17 +357,28 @@ export default function Feed() {
               </button>
             </div>
           ) : (
-            displayFeed.map((post) => (
-              <FeedItem
-                key={post.id}
-                post={post}
-                muted={muted}
-                onLike={() => handleLikePost(post)}
-                onCommentClick={() => handleOpenComments(post.id)}
-                onShareClick={() => handleShare(post)}
-                onJoinClick={() => handleOpenJoinModal(post)}
-              />
-            ))
+            <AnimatePresence>
+              {displayFeed.map((post) => (
+                <motion.div
+                  key={post.id}
+                  layout
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <FeedItem
+                    post={post}
+                    muted={muted}
+                    onLike={() => handleLikePost(post)}
+                    onCommentClick={() => handleOpenComments(post.id)}
+                    onShareClick={() => handleShare(post)}
+                    onJoinClick={() => handleOpenJoinModal(post)}
+                    onSearchClick={handleSearchChange}
+                  />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           )}
         </div>
       </div>
@@ -347,35 +402,22 @@ export default function Feed() {
             <nav className="space-y-2 mt-2">
               <button
                 onClick={() => handleTabSwitch('explore')}
-                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${
-                  activeTab === 'explore'
+                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${activeTab === 'explore'
                     ? 'bg-[#18181B] text-white border border-[#27272A]'
                     : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
-                }`}
+                  }`}
               >
                 <Compass className={`w-6 h-6 ${activeTab === 'explore' ? 'text-white' : 'text-zinc-400'}`} />
                 <span>Explore</span>
               </button>
 
-              <button
-                onClick={() => handleTabSwitch('following')}
-                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${
-                  activeTab === 'following'
-                    ? 'bg-[#18181B] text-white border border-[#27272A]'
-                    : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
-                }`}
-              >
-                <UserCheck className={`w-6 h-6 ${activeTab === 'following' ? 'text-white' : 'text-zinc-400'}`} />
-                <span>Following</span>
-              </button>
 
               <button
                 onClick={() => handleTabSwitch('friends')}
-                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${
-                  activeTab === 'friends'
+                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${activeTab === 'friends'
                     ? 'bg-[#18181B] text-white border border-[#27272A]'
                     : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
-                }`}
+                  }`}
               >
                 <Users className={`w-6 h-6 ${activeTab === 'friends' ? 'text-white' : 'text-zinc-400'}`} />
                 <span>Friends</span>
@@ -433,22 +475,32 @@ export default function Feed() {
 
         {/* Main Content Space */}
         <div className="flex-1 ml-[260px] flex flex-col bg-[#000000] relative min-h-screen overflow-hidden">
-          
-          {/* Top Search Bar */}
+
+          {/* Destination Search Bar */}
           <div className="w-full pt-8 pb-4 flex items-center px-8 flex-shrink-0 z-20">
-            <div className="relative w-full max-w-2xl mx-auto">
-              <input 
-                type="text" 
-                placeholder="Search" 
-                className="w-full bg-[#18181B] border border-zinc-800/80 rounded-full py-3 pl-6 pr-12 text-white focus:outline-none focus:border-zinc-700 placeholder-zinc-500 font-medium text-sm transition-all"
-              />
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 p-2 bg-zinc-900 rounded-full cursor-pointer hover:bg-zinc-800 transition-all">
-                <Search className="w-4 h-4 text-zinc-300" />
+            <div className="w-full max-w-2xl mx-auto relative group">
+              <div className="absolute inset-y-0 left-5 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-zinc-500 group-focus-within:text-white transition-colors" />
               </div>
+              <input
+                type="text"
+                placeholder="Search by destination, city, or group"
+                value={searchQuery}
+                onChange={(e) => handleSearchChange(e.target.value)}
+                className="w-full bg-[#18181B] border border-[#27272A] rounded-full py-4 pl-14 pr-6 text-sm text-white focus:outline-none focus:border-zinc-700 shadow-xl transition-all"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => handleSearchChange('')}
+                  className="absolute inset-y-0 right-5 flex items-center text-zinc-500 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
             </div>
           </div>
 
-          <div className="flex-1 flex px-8 overflow-hidden pt-8 pb-12">
+          <div className="flex-1 flex px-8 overflow-hidden pt-4 pb-12">
             {activeTab === 'friends' ? (
               <div className="w-full max-w-4xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar">
                 <h2 className="text-xl font-bold text-white mb-6">Your Friends</h2>
@@ -456,7 +508,7 @@ export default function Feed() {
                   {allUsers.filter(u => u.username !== currentUser.username).map(friend => {
                     const sorted = [currentUser.username, friend.username].sort();
                     const chatId = `${sorted[0]}-${sorted[1]}`;
-                    
+
                     return (
                       <div key={friend.username} className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex flex-col items-center text-center">
                         <img src={friend.avatar} alt={friend.name} className="w-16 h-16 rounded-full object-cover mb-3 border-2 border-zinc-700" />
@@ -484,146 +536,158 @@ export default function Feed() {
               </div>
             ) : (
               <div className="flex-1 flex h-full justify-center lg:justify-start w-full">
-                
+
                 {/* Stacked Cards Column */}
                 <div className={`flex flex-col items-center justify-center transition-all duration-500 ease-in-out h-full ${commentOpen ? 'flex-1 xl:ml-24' : 'w-full max-w-3xl'}`}>
                   <div className="w-full max-w-[380px] flex flex-col items-center justify-center relative h-full">
 
 
-                {/* Stacked Cards */}
-                <div className="relative w-full aspect-[4/5] max-w-[300px] flex justify-center items-center select-none">
-                  {/* Third Card */}
-                  {displayFeed.length > 2 && (
-                    <div className="absolute -top-4 left-4 w-full h-full scale-[0.92] bg-zinc-950 border border-zinc-800 rounded-[40px] overflow-hidden z-0 pointer-events-none transform rotate-3 shadow-md">
-                      {displayFeed[(activeDeckIndex + 2) % displayFeed.length].type === 'video' ? (
-                        <video src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
-                      ) : (
-                        <img src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Second Card */}
-                  {displayFeed.length > 1 && (
-                    <div className="absolute -top-2 left-1 w-full h-full scale-[0.96] bg-zinc-950 border border-zinc-800 rounded-[48px] overflow-hidden z-10 pointer-events-none transform -rotate-2 shadow-lg">
-                      {displayFeed[(activeDeckIndex + 1) % displayFeed.length].type === 'video' ? (
-                        <video src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
-                      ) : (
-                        <img src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
-                      )}
-                    </div>
-                  )}
-
-                  {/* Top Active Card */}
-                  {activeCard && (
-                    <div className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[48px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up">
-                      {/* Media content */}
-                      {activeCard.type === 'video' ? (
-                        <div className="w-full h-full relative cursor-pointer" onClick={togglePlayActiveCard}>
-                          <video
-                            ref={activeVideoRef}
-                            src={activeCard.url}
-                            loop
-                            muted={muted}
-                            autoPlay
-                            playsInline
-                            className="w-full h-full object-cover"
-                          />
-                          {!isPlayingActiveCard && (
-                            <div className="absolute inset-0 flex justify-center items-center bg-black/20">
-                              <div className="w-12 h-12 bg-black/45 rounded-full flex items-center justify-center backdrop-blur-xs">
-                                <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
-                              </div>
-                            </div>
+                    {/* Stacked Cards */}
+                    <div className="relative w-full aspect-[4/5] max-w-[300px] flex justify-center items-center select-none">
+                      {/* Third Card */}
+                      {displayFeed.length > 2 && (
+                        <div className="absolute -top-4 left-4 w-full h-full scale-[0.92] bg-zinc-950 border border-zinc-800 rounded-[40px] overflow-hidden z-0 pointer-events-none transform rotate-3 shadow-md">
+                          {displayFeed[(activeDeckIndex + 2) % displayFeed.length].type === 'video' ? (
+                            <video src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
+                          ) : (
+                            <img src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
                           )}
                         </div>
-                      ) : (
-                        <img
-                          src={activeCard.url}
-                          alt={activeCard.caption || "Travel capture"}
-                          className="w-full h-full object-cover"
-                        />
                       )}
 
-                      {/* Left Navigation Chevron Area */}
-                      <div className="absolute left-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handlePrevCard} />
+                      {/* Second Card */}
+                      {displayFeed.length > 1 && (
+                        <div className="absolute -top-2 left-1 w-full h-full scale-[0.96] bg-zinc-950 border border-zinc-800 rounded-[48px] overflow-hidden z-10 pointer-events-none transform -rotate-2 shadow-lg">
+                          {displayFeed[(activeDeckIndex + 1) % displayFeed.length].type === 'video' ? (
+                            <video src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
+                          ) : (
+                            <img src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
+                          )}
+                        </div>
+                      )}
 
-                      {/* Right Navigation Chevron Area */}
-                      <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
+                      {/* Top Active Card */}
+                      <AnimatePresence mode="popLayout">
+                        {activeCard && (
+                          <motion.div
+                            key={activeCard.id}
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[48px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up"
+                          >
+                            {/* Media content */}
+                            {activeCard.type === 'video' ? (
+                              <div className="w-full h-full relative cursor-pointer" onClick={togglePlayActiveCard}>
+                                <video
+                                  ref={activeVideoRef}
+                                  src={activeCard.url}
+                                  loop
+                                  muted={muted}
+                                  autoPlay
+                                  playsInline
+                                  className="w-full h-full object-cover"
+                                />
+                                {!isPlayingActiveCard && (
+                                  <div className="absolute inset-0 flex justify-center items-center bg-black/20">
+                                    <div className="w-12 h-12 bg-black/45 rounded-full flex items-center justify-center backdrop-blur-xs">
+                                      <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <img
+                                src={activeCard.url}
+                                alt={activeCard.caption || "Travel capture"}
+                                className="w-full h-full object-cover"
+                              />
+                            )}
 
-                      <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                      <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+                            {/* Left Navigation Chevron Area */}
+                            <div className="absolute left-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handlePrevCard} />
 
-                      {/* Top Info Overlay */}
-                      <div className="absolute left-4 top-4 z-20 flex flex-col items-start space-y-2 drop-shadow-md">
-                        {activeCard.destination && (
-                          <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-zinc-800 flex items-center space-x-1.5 shadow-sm">
-                            <span className="text-xs text-white">📍</span>
-                            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{activeCard.destination}</span>
-                          </div>
+                            {/* Right Navigation Chevron Area */}
+                            <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
+
+                            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
+                            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
+
+                            {/* Top Info Overlay */}
+                            <div className="absolute left-5 top-5 z-20 flex flex-col items-start space-y-3 drop-shadow-md">
+                              {activeCard.destination && (
+                                <div
+                                  onClick={(e) => { e.stopPropagation(); handleSearchChange(activeCard.destination!); }}
+                                  className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center space-x-1.5 cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
+                                >
+                                  <MapPin className="w-3 h-3 text-white" />
+                                  <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">{activeCard.destination}</span>
+                                </div>
+                              )}
+                              <div className="flex items-center space-x-3">
+                                <img
+                                  src={activeCard.authorAvatar}
+                                  alt={activeCard.authorUsername}
+                                  className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
+                                />
+                                <div className="flex flex-col">
+                                  <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Bottom Info Overlay */}
+                            <div className="absolute left-5 right-5 bottom-5 z-20 text-left drop-shadow-md">
+                              {activeCard.caption && (
+                                <p className="text-xs font-medium text-white line-clamp-2 mb-1.5">
+                                  {activeCard.caption}
+                                </p>
+                              )}
+                              <p className="text-[10px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
+                            </div>
+                          </motion.div>
                         )}
-                        <div className="flex items-center space-x-3">
-                          <img
-                            src={activeCard.authorAvatar}
-                            alt={activeCard.authorUsername}
-                            className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
-                          />
-                          <div className="flex flex-col">
-                            <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                      </AnimatePresence>
+                    </div>
+
+                    {/* Minimalist Action Controls */}
+                    {activeCard && (
+                      <div className="w-full max-w-[300px] flex items-center justify-between mt-5 px-1">
+                        {/* Comment Bar */}
+                        <div
+                          onClick={() => handleOpenComments(activeCard.id)}
+                          className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
+                        >
+                          <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
+                          <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
+                            <MessageCircle className="w-3.5 h-3.5" />
+                            <span className="text-[11px] font-bold font-mono">{activeCard.comments?.length || 0}</span>
                           </div>
                         </div>
-                      </div>
 
-                      {/* Bottom Info Overlay */}
-                      <div className="absolute left-5 right-5 bottom-5 z-20 text-left drop-shadow-md">
-                        {activeCard.caption && (
-                          <p className="text-xs font-medium text-white line-clamp-2 mb-1.5">
-                            {activeCard.caption}
-                          </p>
+                        {/* Share Icon Button */}
+                        <button
+                          onClick={() => handleShare(activeCard)}
+                          className="w-[54px] h-[54px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all hover:bg-zinc-900/80 shadow-sm"
+                        >
+                          <Send className="w-5 h-5" />
+                        </button>
+
+                        {/* Request to Join Button */}
+                        {activeCard.hasOpenGroup && (
+                          <button
+                            onClick={() => handleOpenJoinModal(activeCard)}
+                            className="ml-3 h-[54px] px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-full shadow-lg hover:shadow-accent-pink/20 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
+                          >
+                            Join Trip
+                          </button>
                         )}
-                        <p className="text-[10px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
                       </div>
-                    </div>
-                  )}
-                </div>
-
-                {/* Minimalist Action Controls */}
-                {activeCard && (
-                  <div className="w-full max-w-[300px] flex items-center justify-between mt-5 px-1">
-                    {/* Comment Bar */}
-                    <div 
-                      onClick={() => handleOpenComments(activeCard.id)}
-                      className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
-                    >
-                      <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
-                      <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
-                        <MessageCircle className="w-3.5 h-3.5" />
-                        <span className="text-[11px] font-bold font-mono">{activeCard.comments?.length || 0}</span>
-                      </div>
-                    </div>
-
-                    {/* Share Icon Button */}
-                    <button 
-                      onClick={() => handleShare(activeCard)}
-                      className="w-[54px] h-[54px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all hover:bg-zinc-900/80 shadow-sm"
-                    >
-                      <Send className="w-5 h-5" />
-                    </button>
-
-                    {/* Request to Join Button */}
-                    {activeCard.hasOpenGroup && (
-                      <button
-                        onClick={() => handleOpenJoinModal(activeCard)}
-                        className="ml-3 h-[54px] px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-full shadow-lg hover:shadow-accent-pink/20 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
-                      >
-                        Join Trip
-                      </button>
                     )}
-                  </div>
-                )}
 
-              </div>
-            </div>
+                  </div>
+                </div>
 
                 {/* Right Side Comments Panel (Desktop) */}
                 {commentOpen && activePost && (
@@ -725,11 +789,11 @@ export default function Feed() {
               </div>
             )}
           </div>
-          
+
           {/* Sticky Send Button */}
           {selectedShareRecipients.size > 0 && (
             <div className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-[#18181B] via-[#18181B] to-transparent">
-              <button 
+              <button
                 onClick={executeBatchShare}
                 className="w-full bg-accent-cyan text-black font-black py-3.5 rounded-xl hover:bg-white transition-all active:scale-95 shadow-lg shadow-accent-cyan/10 flex items-center justify-center space-x-2"
               >
@@ -783,7 +847,7 @@ export default function Feed() {
                   <span className="text-sm">@{joinPost.authorUsername}</span>
                 </div>
               </div>
-              
+
               <div className="mb-5">
                 <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Your Portfolio Preview</h3>
                 <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-2">
@@ -843,9 +907,10 @@ interface FeedItemProps {
   onCommentClick: () => void;
   onShareClick: () => void;
   onJoinClick?: () => void;
+  onSearchClick?: (query: string) => void;
 }
 
-const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick, onShareClick, onJoinClick }) => {
+const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick, onShareClick, onJoinClick, onSearchClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -920,9 +985,12 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
         {/* Top Info Overlay */}
         <div className="absolute left-4 top-4 z-20 flex flex-col items-start space-y-2 drop-shadow-md">
           {post.destination && (
-            <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-zinc-800 flex items-center space-x-1.5 shadow-sm">
-              <span className="text-xs text-white">📍</span>
-              <span className="text-[10px] font-bold text-white uppercase tracking-wider">{post.destination}</span>
+            <div
+              onClick={(e) => { e.stopPropagation(); onSearchClick?.(post.destination!); }}
+              className="bg-black/40 backdrop-blur-md px-2.5 py-1.5 rounded-full border border-white/10 flex items-center space-x-1.5 cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
+            >
+              <MapPin className="w-3 h-3 text-white" />
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider font-mono">{post.destination}</span>
             </div>
           )}
           <div className="flex items-center space-x-2.5">
@@ -951,7 +1019,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
       {/* Control Section (Bottom, below the card) */}
       <div className="w-full px-1 pt-4 pb-2 flex items-center justify-between">
         {/* Comment Bar */}
-        <div 
+        <div
           onClick={onCommentClick}
           className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3.5 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm"
         >
@@ -963,7 +1031,7 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
         </div>
 
         {/* Share Icon Button */}
-        <button 
+        <button
           onClick={onShareClick}
           className="w-[52px] h-[52px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all shadow-sm hover:bg-zinc-800"
         >

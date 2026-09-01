@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
+import { DESTINATIONS, getDestinationFlag, Destination } from '@/data/destinations';
 import { 
   Camera, Zap, ZapOff, RefreshCw, Image as ImageIcon, 
   ChevronDown, Globe, Users, Lock, X, MessageSquare, Sparkles, ChevronLeft, MoreVertical, Trash
@@ -37,6 +38,20 @@ export default function Capture() {
   const [flashing, setFlashing] = useState(false);
   const [presetIndex, setPresetIndex] = useState(0);
   const [showLastInstant, setShowLastInstant] = useState(false);
+
+  const [destQuery, setDestQuery] = useState('');
+  const [destOpen, setDestOpen] = useState(false);
+  const [selectedDest, setSelectedDest] = useState<Destination | null>(null);
+
+  const [hasOpenGroup, setHasOpenGroup] = useState(false);
+  const [tripGroupId, setTripGroupId] = useState<string>('');
+
+  const filteredDestinations = destQuery.trim() === ''
+    ? DESTINATIONS.slice(0, 5)
+    : DESTINATIONS.filter(d => 
+        d.name.toLowerCase().includes(destQuery.toLowerCase()) || 
+        d.country.toLowerCase().includes(destQuery.toLowerCase())
+      );
 
   // Start WebRTC Camera stream
   const startCamera = async () => {
@@ -124,8 +139,16 @@ export default function Capture() {
     ];
     const defaultCaption = caption.trim() || captionsList[Math.floor(Math.random() * captionsList.length)];
 
-    captureInstant(capturedUrl, 'image', defaultCaption, audience);
+    let destName = selectedDest ? selectedDest.name : destQuery.trim() || undefined;
+    let region = selectedDest ? selectedDest.region : undefined;
+    let country = selectedDest ? selectedDest.country : undefined;
+
+    captureInstant(capturedUrl, 'image', defaultCaption, audience, destName, region, country, hasOpenGroup, hasOpenGroup ? tripGroupId : undefined);
     setCaption('');
+    setDestQuery('');
+    setSelectedDest(null);
+    setHasOpenGroup(false);
+    setTripGroupId('');
   };
 
   // Media upload fallback
@@ -135,8 +158,15 @@ export default function Capture() {
       const reader = new FileReader();
       reader.onloadend = () => {
         const capturedUrl = reader.result as string;
-        captureInstant(capturedUrl, 'image', caption || "Uploaded an Instant 📸", audience);
+        let destName = selectedDest ? selectedDest.name : destQuery.trim() || undefined;
+        let region = selectedDest ? selectedDest.region : undefined;
+        let country = selectedDest ? selectedDest.country : undefined;
+        captureInstant(capturedUrl, 'image', caption || "Uploaded an Instant 📸", audience, destName, region, country, hasOpenGroup, hasOpenGroup ? tripGroupId : undefined);
         setCaption('');
+        setDestQuery('');
+        setSelectedDest(null);
+        setHasOpenGroup(false);
+        setTripGroupId('');
       };
       reader.readAsDataURL(file);
     }
@@ -204,6 +234,90 @@ export default function Capture() {
       {/* BOTTOM CONTROLS */}
       <div className="px-8 pb-12 pt-4 flex flex-col items-center space-y-6">
         
+        {/* Destination Picker */}
+        <div className="w-full max-w-[320px] z-30 relative">
+          <div className="relative">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-400 font-mono text-sm">📍</span>
+            <input
+              type="text"
+              placeholder="Tag Destination..."
+              value={destQuery}
+              onChange={(e) => {
+                setDestQuery(e.target.value);
+                setSelectedDest(null);
+                setDestOpen(true);
+              }}
+              onFocus={() => setDestOpen(true)}
+              className="w-full bg-zinc-900/80 border border-zinc-800 rounded-full pl-10 pr-5 py-3 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-accent-pink transition-all font-mono"
+            />
+          </div>
+          
+          {destOpen && destQuery.length >= 0 && (
+            <div className="absolute bottom-full left-0 right-0 mb-2 bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl overflow-hidden max-h-48 overflow-y-auto no-scrollbar animate-fade-in-up">
+              {filteredDestinations.map(dest => (
+                <button
+                  key={dest.id}
+                  onClick={() => {
+                    setSelectedDest(dest);
+                    setDestQuery(`${dest.name}, ${dest.country}`);
+                    setDestOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left hover:bg-zinc-800 flex items-center space-x-3 transition-colors border-b border-zinc-800/50 last:border-0"
+                >
+                  <span className="text-xl">{getDestinationFlag(dest.country)}</span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-white font-mono">{dest.name}</span>
+                    <span className="text-[10px] text-zinc-400 font-mono">{dest.state ? `${dest.state}, ` : ''}{dest.country}</span>
+                  </div>
+                </button>
+              ))}
+              {filteredDestinations.length === 0 && destQuery.trim() !== '' && (
+                <button
+                  onClick={() => setDestOpen(false)}
+                  className="w-full px-4 py-3 text-left hover:bg-zinc-800 transition-colors"
+                >
+                  <span className="text-sm font-bold text-white">Use "{destQuery}"</span>
+                  <p className="text-[10px] text-zinc-500 mt-0.5">Custom destination</p>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Travel Buddies Toggle */}
+        <div className="w-full max-w-[320px] z-20 flex flex-col space-y-3">
+          <div className="flex items-center justify-between bg-zinc-900/60 p-3 rounded-2xl border border-zinc-800/80">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-full bg-accent-purple/20 flex items-center justify-center">
+                <Users className="w-4 h-4 text-accent-purple" />
+              </div>
+              <span className="text-sm text-white font-bold">Looking for Travel Buddies?</span>
+            </div>
+            <button
+              onClick={() => setHasOpenGroup(!hasOpenGroup)}
+              className={`w-12 h-6 rounded-full transition-colors flex items-center px-1 ${hasOpenGroup ? 'bg-accent-purple' : 'bg-zinc-700'}`}
+            >
+              <div className={`w-4 h-4 bg-white rounded-full transition-transform shadow-sm ${hasOpenGroup ? 'translate-x-6' : 'translate-x-0'}`} />
+            </button>
+          </div>
+          
+          {hasOpenGroup && (
+            <div className="bg-zinc-900/80 border border-zinc-800 rounded-2xl p-3 animate-fade-in-up">
+              <select
+                value={tripGroupId}
+                onChange={(e) => setTripGroupId(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-accent-purple"
+              >
+                <option value="">Select a Group...</option>
+                {groups.map(g => (
+                  <option key={g.id} value={g.id}>{g.name}</option>
+                ))}
+                <option value="new">+ Create New Group</option>
+              </select>
+            </div>
+          )}
+        </div>
+
         {/* Caption Input */}
         <div className="w-full max-w-[320px] z-20">
           <input

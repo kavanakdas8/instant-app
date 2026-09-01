@@ -18,6 +18,8 @@ export interface Instant {
   destination?: string;
   hasOpenGroup?: boolean;
   groupId?: string;
+  region?: string;
+  country?: string;
 }
 
 export interface Comment {
@@ -121,7 +123,7 @@ interface AppContextType {
   sendPersonalMessage: (recipientUsername: string, text: string, attachedInstant?: Instant) => void;
   addNotification: (recipientUsername: string, emoji: string, postId: string, postUrl: string) => void;
   markNotificationsAsRead: () => void;
-  captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string) => void;
+  captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string, destination?: string, region?: string, country?: string, hasOpenGroup?: boolean, groupId?: string) => void;
   deleteInstant: (instantId: string) => void;
   playShutterSound: () => void;
 }
@@ -135,14 +137,16 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600&auto=format&fit=crop', // beautiful beach sunset
     type: 'image',
     timestamp: '2 hours ago',
-    caption: 'Waking up to Italian coastlines is something else 🌊🇮🇹 #amalfi #italy',
+    caption: 'Waking up to these coastlines is something else 🌊🇮🇹',
     author: 'Emma Watson',
     authorUsername: 'emma_in_europe',
     authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
     likes: 342,
     likedByCurrentUser: false,
     audience: 'Public',
-    destination: 'Amalfi Coast, Italy',
+    destination: 'Amalfi Coast',
+    region: 'Europe',
+    country: 'Italy',
     hasOpenGroup: true,
     groupId: 'backpackers-europe',
     comments: [
@@ -169,13 +173,18 @@ const MOCK_FEED: Instant[] = [
     url: 'https://assets.mixkit.co/videos/preview/mixkit-urban-tokyo-street-with-neon-lights-at-night-42247-large.mp4', // vertical layout preview
     type: 'video',
     timestamp: '5 hours ago',
-    caption: 'Shibuya neon rain hits different 🌧️🏙️🇯🇵 #tokyonight #japan',
+    caption: 'Neon rain hits different 🌧️🏙️🇯🇵',
     author: 'Kento Sato',
     authorUsername: 'kento_tokyo',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     likes: 856,
     likedByCurrentUser: true,
     audience: 'Public',
+    destination: 'Tokyo',
+    region: 'Asia',
+    country: 'Japan',
+    hasOpenGroup: true,
+    groupId: 'wanderlust-photographers',
     comments: [
       {
         id: 'c3',
@@ -192,14 +201,16 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1527838832700-50592524df75?q=80&w=600&auto=format&fit=crop', // Cappadocia hot air balloons
     type: 'image',
     timestamp: '1 day ago',
-    caption: 'Sunrises in Cappadocia. Truly felt like another planet. 🎈✨ #turkey #wanderlust',
+    caption: 'Sunrises here are magical. Truly felt like another planet. 🎈✨',
     author: 'Alice Cooper',
     authorUsername: 'alice_adventures',
     authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     likes: 1205,
     likedByCurrentUser: false,
     audience: 'Public',
-    destination: 'Cappadocia, Turkey',
+    destination: 'Cappadocia',
+    region: 'Europe',
+    country: 'Turkey',
     hasOpenGroup: true,
     groupId: 'wanderlust-photographers',
     comments: []
@@ -209,13 +220,18 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1506973035872-a4ec16b8e8d9?q=80&w=600&auto=format&fit=crop',
     type: 'image',
     timestamp: '1 day ago',
-    caption: 'Sydney Opera House vibes! 🇦🇺',
+    caption: 'Opera House vibes! 🇦🇺',
     author: 'Bob Vance',
     authorUsername: 'bob_travels',
     authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     likes: 145,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Sydney',
+    region: 'Oceania',
+    country: 'Australia',
+    hasOpenGroup: true,
+    groupId: 'backpackers-europe', // Not Europe, but keeps it simple
     comments: []
   },
   {
@@ -223,13 +239,17 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=600&auto=format&fit=crop', // Positano Italy
     type: 'image',
     timestamp: '2 days ago',
-    caption: 'Cinque Terre is breathtaking. 🍝',
+    caption: 'Breathtaking views. 🍝',
     author: 'Emma Watson',
     authorUsername: 'emma_in_europe',
     authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
     likes: 543,
     likedByCurrentUser: true,
     audience: 'Public',
+    destination: 'Cinque Terre',
+    region: 'Europe',
+    country: 'Italy',
+    hasOpenGroup: false,
     comments: []
   },
   {
@@ -237,13 +257,18 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=600&auto=format&fit=crop', // Dubai Desert
     type: 'image',
     timestamp: '3 days ago',
-    caption: 'Desert safari in Dubai! 🐪',
+    caption: 'Desert safari! 🐪',
     author: 'Alice Cooper',
     authorUsername: 'alice_adventures',
     authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     likes: 890,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Dubai',
+    region: 'Middle East',
+    country: 'UAE',
+    hasOpenGroup: true,
+    groupId: 'wanderlust-photographers',
     comments: []
   },
   {
@@ -251,13 +276,17 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1500835595397-b0db40478b03?q=80&w=600&auto=format&fit=crop', // Swiss Alps
     type: 'image',
     timestamp: '3 days ago',
-    caption: 'The Alps are calling. 🏔️',
+    caption: 'The mountains are calling. 🏔️',
     author: 'Kento Sato',
     authorUsername: 'kento_tokyo',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     likes: 432,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Swiss Alps',
+    region: 'Europe',
+    country: 'Switzerland',
+    hasOpenGroup: false,
     comments: []
   },
   {
@@ -265,13 +294,18 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?q=80&w=600&auto=format&fit=crop', // Kyoto Fushimi Inari
     type: 'image',
     timestamp: '4 days ago',
-    caption: 'Fushimi Inari gates. Kyoto is magic. ⛩️',
+    caption: 'Inari gates. Magic. ⛩️',
     author: 'Kento Sato',
     authorUsername: 'kento_tokyo',
     authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     likes: 955,
     likedByCurrentUser: true,
     audience: 'Public',
+    destination: 'Kyoto',
+    region: 'Asia',
+    country: 'Japan',
+    hasOpenGroup: true,
+    groupId: 'wanderlust-photographers',
     comments: []
   },
   {
@@ -279,13 +313,18 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80', // Arizona road trip
     type: 'image',
     timestamp: '5 days ago',
-    caption: 'Monument Valley roadtrip! 🚐',
+    caption: 'Roadtrip vibes! 🚐',
     author: 'Bob Vance',
     authorUsername: 'bob_travels',
     authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     likes: 120,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Monument Valley',
+    region: 'North America',
+    country: 'USA',
+    hasOpenGroup: true,
+    groupId: 'bali-digital-nomads', // Uses existing mock group
     comments: []
   },
   {
@@ -293,13 +332,17 @@ const MOCK_FEED: Instant[] = [
     url: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80', // Santorini sunset
     type: 'image',
     timestamp: '1 week ago',
-    caption: 'Santorini sunset. Unreal. 🌅',
+    caption: 'Sunset over the Aegean. Unreal. 🌅',
     author: 'Bob Vance',
     authorUsername: 'bob_travels',
     authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     likes: 243,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Santorini',
+    region: 'Europe',
+    country: 'Greece',
+    hasOpenGroup: false,
     comments: []
   }
 ];
@@ -933,7 +976,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const captureInstant = (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string) => {
+  const captureInstant = (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string, destination?: string, region?: string, country?: string, hasOpenGroup?: boolean, groupId?: string) => {
     if (!currentUser) return;
 
     const newInstant: Instant = {
@@ -948,7 +991,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       likes: 0,
       likedByCurrentUser: false,
       comments: [],
-      audience
+      audience,
+      destination,
+      region,
+      country,
+      hasOpenGroup,
+      groupId
+
     };
 
     // Add to user's history
