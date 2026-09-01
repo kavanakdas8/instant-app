@@ -70,7 +70,6 @@ export default function Profile() {
   const totalInstants = profileUser.instants?.length || 0;
   const totalLikes = (profileUser.instants || []).reduce((acc, curr) => acc + (curr.likes || 0), 0);
   const totalFollowers = isMe ? 992 : 124;
-  const totalFollowing = isMe ? 63 : 15;
 
   return (
     <div className="min-h-screen w-full bg-[#000000] text-white flex flex-col overflow-x-hidden relative">
@@ -96,13 +95,6 @@ export default function Profile() {
                 <span>Explore</span>
               </button>
 
-              <button
-                onClick={() => router.push('/feed?tab=following')}
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
-              >
-                <UserCheck className="w-6 h-6 text-zinc-400" />
-                <span>Following</span>
-              </button>
 
               <button
                 onClick={() => router.push('/feed?tab=friends')}
@@ -195,7 +187,6 @@ export default function Profile() {
           <div className="hidden md:flex items-center space-x-10 mb-5">
             <span className="text-base text-zinc-100"><span className="font-semibold">{totalInstants}</span> instants</span>
             <span className="text-base text-zinc-100"><span className="font-semibold">{totalFollowers}</span> followers</span>
-            <span className="text-base text-zinc-100"><span className="font-semibold">{totalFollowing}</span> following</span>
           </div>
 
           {/* Row 3: Bio (Desktop) */}
@@ -216,7 +207,7 @@ export default function Profile() {
           {profileUser.bio}
         </div>
       </div>
-      <div className="md:hidden grid grid-cols-3 gap-3 p-4 bg-zinc-950 border-t border-b border-zinc-900/60 mb-2 text-center w-full">
+      <div className="md:hidden grid grid-cols-2 gap-3 p-4 bg-zinc-950 border-t border-b border-zinc-900/60 mb-2 text-center w-full">
         <div>
           <p className="text-sm font-semibold text-zinc-100">{totalInstants}</p>
           <p className="text-[11px] text-zinc-500 font-normal">instants</p>
@@ -224,10 +215,6 @@ export default function Profile() {
         <div>
           <p className="text-sm font-semibold text-zinc-100">{totalFollowers}</p>
           <p className="text-[11px] text-zinc-500 font-normal">followers</p>
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-zinc-100">{totalFollowing}</p>
-          <p className="text-[11px] text-zinc-500 font-normal">following</p>
         </div>
       </div>
 

@@ -184,7 +184,7 @@ export default function Feed() {
 
   const handleSendJoinRequest = () => {
     if (!joinPost || !joinPost.groupId) return;
-    requestToJoinGroup(joinPost.groupId);
+    requestToJoinGroup(joinPost.groupId, joinMessage);
     setJoinModalOpen(false);
     showReactToast('Request Sent! 🎉');
   };

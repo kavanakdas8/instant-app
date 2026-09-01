@@ -66,6 +66,7 @@ export interface JoinRequest {
   applicantAvatar: string;
   applicantBio: string;
   applicantInstants: Instant[]; // past instants history to verify vibe
+  applicantMessage?: string;
 }
 
 export interface UserProfile {
@@ -84,13 +85,14 @@ export interface PersonalChat {
 
 export interface AppNotification {
   id: string;
-  type: 'reaction';
-  senderUsername: string;
-  senderName: string;
-  senderAvatar: string;
-  emoji: string;
-  postId: string;
-  postUrl: string;
+  type: 'reaction' | 'system';
+  senderUsername?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  emoji?: string;
+  postId?: string;
+  postUrl?: string;
+  message?: string;
   timestamp: string;
   read: boolean;
   recipientUsername: string; // The user who receives this notification
@@ -114,14 +116,14 @@ interface AppContextType {
   likePost: (postId: string) => void;
   addComment: (postId: string, text: string) => void;
   deleteComment: (postId: string, commentId: string) => void;
-  requestToJoinGroup: (groupId: string) => void;
+  requestToJoinGroup: (groupId: string, message?: string) => void;
   approveJoinRequest: (requestId: string) => void;
   declineJoinRequest: (requestId: string) => void;
   sendGroupMessage: (groupId: string, text: string, attachedInstant?: Instant) => void;
   pinGroupMessage: (groupId: string, messageId: string) => void;
   unpinGroupMessage: (groupId: string, messageId: string) => void;
   sendPersonalMessage: (recipientUsername: string, text: string, attachedInstant?: Instant) => void;
-  addNotification: (recipientUsername: string, emoji: string, postId: string, postUrl: string) => void;
+  addNotification: (recipientUsername: string, emoji?: string, postId?: string, postUrl?: string, type?: 'reaction' | 'system', message?: string) => void;
   markNotificationsAsRead: () => void;
   captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string, destination?: string, region?: string, country?: string, hasOpenGroup?: boolean, groupId?: string) => void;
   deleteInstant: (instantId: string) => void;
@@ -816,7 +818,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const requestToJoinGroup = (groupId: string) => {
+  const requestToJoinGroup = (groupId: string, message?: string) => {
     if (!currentUser) return;
 
     // Check if request already exists
@@ -832,7 +834,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       applicantName: currentUser.name,
       applicantAvatar: currentUser.avatar,
       applicantBio: currentUser.bio,
-      applicantInstants: currentUser.instants
+      applicantInstants: currentUser.instants,
+      applicantMessage: message
     };
 
     setJoinRequests(prev => [...prev, newRequest]);
@@ -851,6 +854,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setGroups(prevGroups =>
       prevGroups.map(g => {
         if (g.id === request.groupId) {
+          
+          // Send notification to the applicant
+          addNotification(
+            request.username,
+            undefined,
+            undefined,
+            undefined,
+            'system',
+            `Your request to join ${g.name} was approved!`
+          );
+
           return {
             ...g,
             members: [...g.members, request.username],
@@ -863,7 +877,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
                 senderName: 'System',
                 senderUsername: 'system',
                 senderAvatar: '',
-                text: `@${request.username} has joined the group! 🎉`,
+                text: `@${request.username} has joined the trip! 🎉`,
                 timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
               }
             ]
@@ -1085,23 +1099,22 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     }
   };
 
-  const addNotification = (recipientUsername: string, emoji: string, postId: string, postUrl: string) => {
-    if (!currentUser) return;
+  const addNotification = (recipientUsername: string, emoji?: string, postId?: string, postUrl?: string, type: 'reaction' | 'system' = 'reaction', message?: string) => {
+    if (!currentUser && type !== 'system') return;
     const newNotif: AppNotification = {
       id: `notif_${Date.now()}`,
-      type: 'reaction',
-      senderUsername: currentUser.username,
-      senderName: currentUser.name,
-      senderAvatar: currentUser.avatar,
+      type,
+      senderUsername: currentUser?.username,
+      senderName: currentUser?.name,
+      senderAvatar: currentUser?.avatar,
       emoji,
       postId,
       postUrl,
+      message,
       timestamp: 'Just now',
       read: false,
       recipientUsername
     };
-    // Format sender info correctly
-    newNotif.senderUsername = currentUser.username;
     
     setNotifications(prev => [newNotif, ...prev]);
   };

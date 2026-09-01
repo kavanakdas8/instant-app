@@ -54,6 +54,7 @@ export default function ChatDetails() {
   const [inputText, setInputText] = useState('');
   const [adminDrawerOpen, setAdminDrawerOpen] = useState(false);
   const [selectedApplicant, setSelectedApplicant] = useState<JoinRequest | null>(null);
+  const [expandedInstant, setExpandedInstant] = useState<Instant | null>(null);
   const [shareInstantPickerOpen, setShareInstantPickerOpen] = useState(false);
 
   useEffect(() => {
@@ -192,6 +193,24 @@ export default function ChatDetails() {
             </button>
           </div>
         </div>
+
+        {/* Admin Review Banner */}
+        {!isDM && group && isAdmin && groupRequests.length > 0 && (
+          <div className="bg-accent-pink/10 border-b border-accent-pink/20 py-3 px-6 flex items-center justify-between z-0 shrink-0">
+            <div className="flex items-center space-x-3">
+              <span className="text-xl">🔔</span>
+              <p className="text-sm text-accent-pink font-bold">
+                {groupRequests.length} pending join request{groupRequests.length !== 1 && 's'} for this trip
+              </p>
+            </div>
+            <button 
+              onClick={() => setAdminDrawerOpen(true)}
+              className="px-4 py-1.5 bg-accent-pink text-black text-xs font-black rounded-lg hover:bg-accent-pink/90 transition-colors shadow-[0_0_15px_rgba(255,42,133,0.3)]"
+            >
+              Review Applicants
+            </button>
+          </div>
+        )}
 
         {/* Pinned Messages Banner (Groups only) */}
         {!isDM && group && pinnedMessages.length > 0 && (
@@ -483,6 +502,18 @@ export default function ChatDetails() {
                 <div className="flex-1 min-w-0">
                   <h4 className="text-sm font-bold text-zinc-100">{selectedApplicant.applicantName}</h4>
                   <p className="text-[10px] text-zinc-500 font-mono">@{selectedApplicant.username}</p>
+                  
+                  {selectedApplicant.applicantMessage && (
+                    <div className="mt-2.5 mb-2 bg-zinc-900/80 p-3 rounded-lg border border-zinc-800 relative">
+                      <div className="absolute -top-2 left-3 bg-zinc-950 px-1">
+                        <span className="text-[8px] uppercase tracking-widest text-accent-cyan font-bold">Intro Message</span>
+                      </div>
+                      <p className="text-[11px] text-zinc-200 italic leading-relaxed">
+                        "{selectedApplicant.applicantMessage}"
+                      </p>
+                    </div>
+                  )}
+
                   <p className="text-[11px] text-zinc-400 mt-2 leading-relaxed font-light">
                     {selectedApplicant.applicantBio}
                   </p>
@@ -507,7 +538,8 @@ export default function ChatDetails() {
                     {selectedApplicant.applicantInstants.map((inst) => (
                       <div 
                         key={inst.id} 
-                        className="aspect-[3/4] bg-zinc-950 border border-zinc-900 rounded-xl overflow-hidden relative"
+                        onClick={() => setExpandedInstant(inst)}
+                        className="aspect-[3/4] bg-zinc-950 border border-zinc-900 rounded-xl overflow-hidden relative cursor-pointer hover:border-accent-cyan transition-colors"
                       >
                         <img src={inst.url} alt="Applicant capture" className="w-full h-full object-cover" />
                         {inst.caption && (
@@ -515,6 +547,9 @@ export default function ChatDetails() {
                             {inst.caption}
                           </div>
                         )}
+                        <div className="absolute top-2 right-2 bg-black/60 rounded-full p-1 backdrop-blur-sm">
+                          <Sparkles className="w-3 h-3 text-white" />
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -586,6 +621,47 @@ export default function ChatDetails() {
             </div>
           )}
         </Drawer>
+      )}
+
+      {/* Expanded Instant Modal */}
+      {expandedInstant && (
+        <div className="fixed inset-0 z-[100] bg-black flex items-center justify-center animate-fade-in">
+          <button 
+            onClick={() => setExpandedInstant(null)}
+            className="absolute top-6 right-6 p-3 bg-zinc-900/50 hover:bg-zinc-800 rounded-full text-white transition-colors z-10 backdrop-blur-md"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <div className="relative w-full max-w-lg h-[85vh] rounded-3xl overflow-hidden shadow-2xl bg-zinc-950">
+            {expandedInstant.type === 'video' ? (
+              <video 
+                src={expandedInstant.url} 
+                className="w-full h-full object-cover"
+                autoPlay 
+                loop 
+                playsInline
+                muted={false}
+              />
+            ) : (
+              <img src={expandedInstant.url} alt="Instant full" className="w-full h-full object-cover" />
+            )}
+            
+            <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black via-black/80 to-transparent">
+              <div className="flex items-center space-x-3 mb-3">
+                <img src={expandedInstant.authorAvatar} alt="author" className="w-8 h-8 rounded-full border border-white" />
+                <span className="text-white font-bold text-sm">@{expandedInstant.authorUsername}</span>
+              </div>
+              {expandedInstant.caption && (
+                <p className="text-white text-sm">{expandedInstant.caption}</p>
+              )}
+              {expandedInstant.destination && (
+                <div className="mt-3">
+                  <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded text-white backdrop-blur-sm">📍 {expandedInstant.destination}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -115,14 +115,6 @@ export default function SettingsPage() {
             </button>
 
             <button
-              onClick={() => router.push('/feed?tab=following')}
-              className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
-            >
-              <UserCheck className="w-6 h-6 text-zinc-400" />
-              <span>Following</span>
-            </button>
-
-            <button
               onClick={() => router.push('/feed?tab=friends')}
               className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
             >
