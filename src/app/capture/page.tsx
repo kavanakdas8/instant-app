@@ -87,6 +87,16 @@ export default function Capture() {
       router.push('/login');
       return;
     }
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const gid = params.get('groupId');
+      if (gid && !tripGroupId) {
+        setTripGroupId(gid);
+        setAudience('Public');
+      }
+    }
+
     startCamera();
     return () => {
       if (stream) {

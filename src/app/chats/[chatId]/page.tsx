@@ -5,7 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import { useApp, ChatMessage, TravelGroup, JoinRequest, Instant, PersonalChat } from '@/context/AppContext';
 import { 
   ArrowLeft, Send, Pin, AlertCircle, Users, Settings, 
-  Check, X, Sparkles, MessageCircle, FileText, Phone, MoreVertical, Paperclip, Download
+  Check, X, Sparkles, MessageCircle, FileText, Phone, MoreVertical, Paperclip, Download,
+  MapPin, Calendar, Camera, ThumbsUp, Plus, Heart
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 
@@ -16,7 +17,8 @@ export default function ChatDetails() {
   const { 
     currentUser, groups, joinRequests, personalChats, allUsers,
     sendGroupMessage, approveJoinRequest, declineJoinRequest,
-    pinGroupMessage, unpinGroupMessage, sendPersonalMessage
+    pinGroupMessage, unpinGroupMessage, sendPersonalMessage,
+    addItineraryStop, voteItineraryStop
   } = useApp();
 
   // Find active group
@@ -56,6 +58,8 @@ export default function ChatDetails() {
   const [selectedApplicant, setSelectedApplicant] = useState<JoinRequest | null>(null);
   const [expandedInstant, setExpandedInstant] = useState<Instant | null>(null);
   const [shareInstantPickerOpen, setShareInstantPickerOpen] = useState(false);
+  const [itineraryOpen, setItineraryOpen] = useState(false);
+  const [newStopName, setNewStopName] = useState('');
 
   useEffect(() => {
     if (!currentUser) {
@@ -212,6 +216,89 @@ export default function ChatDetails() {
           </div>
         )}
 
+        {/* Trip Overview Banner (Groups only) */}
+        {!isDM && group && (
+          <div className="bg-zinc-950/50 border-b border-zinc-900/50 flex flex-col z-0 shrink-0">
+            <div 
+              className="py-3 px-6 flex items-center justify-between cursor-pointer hover:bg-zinc-900/30 transition-colors"
+              onClick={() => setItineraryOpen(!itineraryOpen)}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-1.5 bg-black/40 px-2.5 py-1 rounded-md border border-zinc-800">
+                  <MapPin className="w-3.5 h-3.5 text-accent-cyan" />
+                  <span className="text-[11px] font-bold text-zinc-200">{group.destination}</span>
+                </div>
+                {group.travelDates && (
+                  <div className="flex items-center space-x-1.5 text-zinc-400">
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span className="text-[11px] font-medium">{group.travelDates}</span>
+                  </div>
+                )}
+                <div className="hidden sm:flex items-center space-x-1.5 text-zinc-500">
+                  <span className="text-[10px] font-black tracking-widest uppercase">• {group.members.length} Travelers Active</span>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <span className="text-[10px] text-accent-cyan font-bold tracking-widest uppercase">Itinerary</span>
+                <div className={`transition-transform duration-300 ${itineraryOpen ? 'rotate-180' : ''}`}>
+                  <ArrowLeft className="w-4 h-4 -rotate-90 text-zinc-500" />
+                </div>
+              </div>
+            </div>
+
+            {/* Expandable Itinerary */}
+            {itineraryOpen && (
+              <div className="px-6 py-4 bg-black/40 border-t border-zinc-900/50 animate-fade-in-up">
+                <div className="flex flex-col space-y-3">
+                  {group.itinerary && group.itinerary.length > 0 ? (
+                    group.itinerary.map(stop => (
+                      <div key={stop.id} className="flex items-center justify-between bg-zinc-900/50 px-4 py-2.5 rounded-xl border border-zinc-800/80">
+                        <span className="text-[13px] font-semibold text-zinc-200">{stop.name}</span>
+                        <button 
+                          onClick={() => voteItineraryStop(group.id, stop.id)}
+                          className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg border transition-all ${
+                            currentUser && stop.votedBy.includes(currentUser.username)
+                              ? 'bg-accent-pink/10 border-accent-pink/30 text-accent-pink'
+                              : 'bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-300 hover:border-zinc-700'
+                          }`}
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${currentUser && stop.votedBy.includes(currentUser.username) ? 'fill-accent-pink' : ''}`} />
+                          <span className="text-[11px] font-bold">{stop.votes}</span>
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-[11px] text-zinc-500 italic">No stops planned yet. Add one below!</p>
+                  )}
+                  
+                  <div className="flex items-center space-x-2 mt-2">
+                    <input 
+                      type="text"
+                      value={newStopName}
+                      onChange={(e) => setNewStopName(e.target.value)}
+                      placeholder="Add a stop (e.g. Abbey Falls)..."
+                      className="flex-1 bg-zinc-950 border border-zinc-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-accent-cyan"
+                    />
+                    <button 
+                      onClick={() => {
+                        if(newStopName.trim()) {
+                          addItineraryStop(group.id, newStopName.trim());
+                          setNewStopName('');
+                        }
+                      }}
+                      disabled={!newStopName.trim()}
+                      className="p-2 bg-white text-black rounded-xl hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Pinned Messages Banner (Groups only) */}
         {!isDM && group && pinnedMessages.length > 0 && (
           <div className="bg-zinc-900/50 border-b border-zinc-900 py-2.5 px-6 flex items-center space-x-3 z-0 shrink-0">
@@ -347,6 +434,17 @@ export default function ChatDetails() {
               >
                 <Paperclip className="w-5 h-5" />
               </button>
+
+              {!isDM && group && (
+                <button
+                  type="button"
+                  onClick={() => router.push(`/capture?groupId=${group.id}`)}
+                  className="p-2.5 text-accent-cyan hover:text-white hover:bg-accent-cyan/20 rounded-xl transition-all"
+                  title="Capture Instant to Group"
+                >
+                  <Camera className="w-5 h-5" />
+                </button>
+              )}
               
               <input
                 type="text"
@@ -402,7 +500,7 @@ export default function ChatDetails() {
         </div>
 
         {/* Files */}
-        <div>
+        <div className="mb-8">
           <div className="flex items-center space-x-3 mb-4">
             <h3 className="text-[13px] font-black text-zinc-100">Files</h3>
             <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-[10px] font-bold text-zinc-400">
@@ -431,6 +529,47 @@ export default function ChatDetails() {
           </div>
         </div>
 
+        {/* Trip Gallery */}
+        {!isDM && group && group.recentInstants.length > 0 && (
+          <div>
+            <div className="flex items-center space-x-3 mb-4">
+              <h3 className="text-[13px] font-black text-zinc-100">Trip Gallery</h3>
+              <span className="px-2 py-0.5 rounded-full bg-zinc-900 text-[10px] font-bold text-zinc-400">
+                {group.recentInstants.length}
+              </span>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2">
+              {group.recentInstants.map((url, i) => (
+                <div 
+                  key={i} 
+                  className="aspect-[3/4] bg-zinc-950 border border-zinc-900 rounded-xl overflow-hidden relative cursor-pointer hover:border-accent-cyan transition-colors"
+                  onClick={() => setExpandedInstant({
+                    id: `mock-id-${i}`,
+                    url,
+                    type: url.includes('.mp4') ? 'video' : 'image',
+                    timestamp: 'Just now',
+                    author: 'Group Member',
+                    authorUsername: 'group_member',
+                    authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+                    audience: 'Group',
+                    likes: 0,
+                    comments: []
+                  })}
+                >
+                  {url.includes('.mp4') ? (
+                    <video src={url} className="w-full h-full object-cover" />
+                  ) : (
+                    <img src={url} alt={`Gallery ${i}`} className="w-full h-full object-cover" />
+                  )}
+                  <div className="absolute top-1.5 right-1.5 bg-black/60 rounded-full p-1 backdrop-blur-sm">
+                    <Sparkles className="w-2.5 h-2.5 text-white" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Share Instant Attachment Picker Drawer */}

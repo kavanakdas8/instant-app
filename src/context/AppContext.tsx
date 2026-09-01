@@ -42,6 +42,13 @@ export interface ChatMessage {
   instant?: Instant; // shared instant in chat
 }
 
+export interface ItineraryStop {
+  id: string;
+  name: string;
+  votes: number;
+  votedBy: string[]; // usernames
+}
+
 export interface TravelGroup {
   id: string;
   name: string;
@@ -55,6 +62,8 @@ export interface TravelGroup {
   messages: ChatMessage[];
   pinnedMessages: string[];
   adminUsername: string;
+  travelDates?: string;
+  itinerary?: ItineraryStop[];
 }
 
 export interface JoinRequest {
@@ -128,6 +137,8 @@ interface AppContextType {
   captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string, destination?: string, region?: string, country?: string, hasOpenGroup?: boolean, groupId?: string) => void;
   deleteInstant: (instantId: string) => void;
   playShutterSound: () => void;
+  addItineraryStop: (groupId: string, name: string) => void;
+  voteItineraryStop: (groupId: string, stopId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -364,6 +375,11 @@ const MOCK_GROUPS: TravelGroup[] = [
       'https://images.unsplash.com/photo-1511739001486-6bfe10ce785f?q=80&w=300&auto=format&fit=crop', // Eiffel Tower
     ],
     adminUsername: 'emma_in_europe',
+    travelDates: 'Sep 10 - Sep 25',
+    itinerary: [
+      { id: 'it1', name: 'Eiffel Tower Picnic', votes: 12, votedBy: ['emma_in_europe', 'alice_adventures'] },
+      { id: 'it2', name: 'Louvre Morning Tour', votes: 8, votedBy: ['bob_travels'] }
+    ],
     messages: [
       {
         id: 'gm1',
@@ -1126,6 +1142,51 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const addItineraryStop = (groupId: string, name: string) => {
+    setGroups(prevGroups => 
+      prevGroups.map(g => {
+        if (g.id === groupId) {
+          const newStop: ItineraryStop = {
+            id: `stop_${Date.now()}`,
+            name,
+            votes: 1,
+            votedBy: currentUser ? [currentUser.username] : []
+          };
+          return {
+            ...g,
+            itinerary: [...(g.itinerary || []), newStop]
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const voteItineraryStop = (groupId: string, stopId: string) => {
+    if (!currentUser) return;
+    setGroups(prevGroups => 
+      prevGroups.map(g => {
+        if (g.id === groupId && g.itinerary) {
+          return {
+            ...g,
+            itinerary: g.itinerary.map(stop => {
+              if (stop.id === stopId) {
+                const hasVoted = stop.votedBy.includes(currentUser.username);
+                if (hasVoted) {
+                  return { ...stop, votes: stop.votes - 1, votedBy: stop.votedBy.filter(u => u !== currentUser.username) };
+                } else {
+                  return { ...stop, votes: stop.votes + 1, votedBy: [...stop.votedBy, currentUser.username] };
+                }
+              }
+              return stop;
+            })
+          };
+        }
+        return g;
+      })
+    );
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1157,7 +1218,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         markNotificationsAsRead,
         captureInstant,
         deleteInstant,
-        playShutterSound
+        playShutterSound,
+        addItineraryStop,
+        voteItineraryStop
       }}
     >
       {children}
