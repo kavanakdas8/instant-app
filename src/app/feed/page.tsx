@@ -10,7 +10,6 @@ import {
   Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings, MapPin
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
-import Logo from '@/components/Logo';
 
 export default function Feed() {
   const router = useRouter();
@@ -310,7 +309,6 @@ export default function Feed() {
         {/* Top Feed Header */}
         <div className="absolute top-0 left-0 right-0 h-14 bg-gradient-to-b from-black/80 to-transparent flex justify-between items-center px-4 z-30 select-none">
           <div className="flex items-center space-x-2">
-            <Logo className="w-6 h-6 text-white" />
             <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
           </div>
           <div className="flex items-center space-x-3">
@@ -393,7 +391,6 @@ export default function Feed() {
             {/* Brand Header */}
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Logo className="w-6 h-6 text-white" />
                 <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
               </div>
             </div>

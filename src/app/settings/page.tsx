@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import Logo from '@/components/Logo';
 import { 
   Settings, Compass, UserCheck, Users, PlusSquare, Bell, Send, Upload, Eye, EyeOff, Check
 } from 'lucide-react';
@@ -99,7 +98,6 @@ export default function SettingsPage() {
           {/* Brand Header */}
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center space-x-2">
-              <Logo className="w-6 h-6 text-white" />
               <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
             </div>
           </div>

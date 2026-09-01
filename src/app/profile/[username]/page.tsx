@@ -6,7 +6,6 @@ import { useApp, Instant, UserProfile } from '@/context/AppContext';
 import { LogOut, Grid, MapPin, Heart, MessageCircle, AlertCircle, ShieldAlert, Settings, Bookmark, UserSquare, Link as LinkIcon, Compass, UserCheck, Users, PlusSquare, Bell, Send, MoreHorizontal, X, Edit3, Star, CheckCircle, Video } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Drawer from '@/components/Drawer';
-import Logo from '@/components/Logo';
 
 export default function Profile() {
   const router = useRouter();
@@ -63,7 +62,6 @@ export default function Profile() {
             {/* Brand Header */}
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Logo className="w-6 h-6 text-white" />
                 <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
               </div>
             </div>

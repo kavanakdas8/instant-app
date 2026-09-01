@@ -3,7 +3,6 @@
 import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import Logo from '@/components/Logo';
 import { Bell, ArrowLeft, Check, Compass, MessageSquare, Camera, UserCheck, Users, PlusSquare, Send, Settings } from 'lucide-react';
 
 export default function Notifications() {
@@ -100,7 +99,6 @@ export default function Notifications() {
             {/* Brand Header */}
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Logo className="w-6 h-6 text-white" />
                 <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
               </div>
             </div>
