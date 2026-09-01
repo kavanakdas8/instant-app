@@ -258,3 +258,17 @@ body {
   color: #71717a !important;
 }
 
+
+
+/* Capture Button Light Mode */
+[data-theme='light'] .capture-btn-bg {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+}
+
+
+
+[data-theme='light'] .bg-\[\#0c0c14\] {
+  background-color: #ffffff !important;
+}
+

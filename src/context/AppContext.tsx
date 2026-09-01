@@ -15,6 +15,9 @@ export interface Instant {
   likedByCurrentUser?: boolean;
   comments: Comment[];
   audience: 'Public' | 'Friends' | string; // public, friends, or groupId
+  destination?: string;
+  hasOpenGroup?: boolean;
+  groupId?: string;
 }
 
 export interface Comment {
@@ -139,6 +142,9 @@ const MOCK_FEED: Instant[] = [
     likes: 342,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Amalfi Coast, Italy',
+    hasOpenGroup: true,
+    groupId: 'backpackers-europe',
     comments: [
       {
         id: 'c1',
@@ -193,6 +199,9 @@ const MOCK_FEED: Instant[] = [
     likes: 1205,
     likedByCurrentUser: false,
     audience: 'Public',
+    destination: 'Cappadocia, Turkey',
+    hasOpenGroup: true,
+    groupId: 'wanderlust-photographers',
     comments: []
   },
   {

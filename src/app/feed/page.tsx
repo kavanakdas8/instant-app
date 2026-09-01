@@ -12,7 +12,7 @@ import Logo from '@/components/Logo';
 
 export default function Feed() {
   const router = useRouter();
-  const { currentUser, feed, likePost, addComment, deleteComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage } = useApp();
+  const { currentUser, feed, likePost, addComment, deleteComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage, requestToJoinGroup } = useApp();
   const [commentOpen, setCommentOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
@@ -143,6 +143,23 @@ export default function Feed() {
     setPostToShare(post);
     setSelectedShareRecipients(new Set());
     setShareDrawerOpen(true);
+  };
+
+  const [joinModalOpen, setJoinModalOpen] = useState(false);
+  const [joinPost, setJoinPost] = useState<Instant | null>(null);
+  const [joinMessage, setJoinMessage] = useState('');
+
+  const handleOpenJoinModal = (post: Instant) => {
+    setJoinPost(post);
+    setJoinMessage('');
+    setJoinModalOpen(true);
+  };
+
+  const handleSendJoinRequest = () => {
+    if (!joinPost || !joinPost.groupId) return;
+    requestToJoinGroup(joinPost.groupId);
+    setJoinModalOpen(false);
+    showReactToast('Request Sent! 🎉');
   };
 
   const toggleShareRecipient = (id: string) => {
@@ -304,6 +321,7 @@ export default function Feed() {
                 onLike={() => handleLikePost(post)}
                 onCommentClick={() => handleOpenComments(post.id)}
                 onShareClick={() => handleShare(post)}
+                onJoinClick={() => handleOpenJoinModal(post)}
               />
             ))
           )}
@@ -537,14 +555,22 @@ export default function Feed() {
                       <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
 
                       {/* Top Info Overlay */}
-                      <div className="absolute left-4 top-4 z-20 flex items-center space-x-3 drop-shadow-md">
-                        <img
-                          src={activeCard.authorAvatar}
-                          alt={activeCard.authorUsername}
-                          className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
-                        />
-                        <div className="flex flex-col">
-                          <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                      <div className="absolute left-4 top-4 z-20 flex flex-col items-start space-y-2 drop-shadow-md">
+                        {activeCard.destination && (
+                          <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-zinc-800 flex items-center space-x-1.5 shadow-sm">
+                            <span className="text-xs text-white">📍</span>
+                            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{activeCard.destination}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center space-x-3">
+                          <img
+                            src={activeCard.authorAvatar}
+                            alt={activeCard.authorUsername}
+                            className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
+                          />
+                          <div className="flex flex-col">
+                            <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
+                          </div>
                         </div>
                       </div>
 
@@ -583,6 +609,16 @@ export default function Feed() {
                     >
                       <Send className="w-5 h-5" />
                     </button>
+
+                    {/* Request to Join Button */}
+                    {activeCard.hasOpenGroup && (
+                      <button
+                        onClick={() => handleOpenJoinModal(activeCard)}
+                        className="ml-3 h-[54px] px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-full shadow-lg hover:shadow-accent-pink/20 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
+                      >
+                        Join Trip
+                      </button>
+                    )}
                   </div>
                 )}
 
@@ -720,6 +756,81 @@ export default function Feed() {
           <span>{toastMessage}</span>
         </div>
       )}
+
+      {/* Request to Join Trip Modal */}
+      {joinModalOpen && joinPost && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-fade-in">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl w-full max-w-md overflow-hidden flex flex-col shadow-2xl relative">
+            <button
+              onClick={() => setJoinModalOpen(false)}
+              className="absolute top-4 right-4 p-2 text-zinc-400 hover:text-white bg-zinc-800/50 rounded-full transition-colors z-10"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="p-6 pb-4">
+              <div className="flex items-center justify-between mb-2">
+                <h2 className="text-xl font-black text-white">Request to Join Trip</h2>
+              </div>
+              {joinPost.groupId && groups.find(g => g.id === joinPost.groupId) && (
+                <p className="text-sm font-bold text-accent-pink mb-4">
+                  {groups.find(g => g.id === joinPost.groupId)?.name}
+                </p>
+              )}
+              <div className="flex items-center space-x-3 text-zinc-400 mb-6">
+                {joinPost.destination && <span className="text-xs font-bold bg-zinc-800 px-2 py-0.5 rounded text-zinc-300">📍 {joinPost.destination}</span>}
+                <div className="flex items-center space-x-1.5">
+                  <img src={joinPost.authorAvatar} alt="Host" className="w-5 h-5 rounded-full object-cover" />
+                  <span className="text-sm">@{joinPost.authorUsername}</span>
+                </div>
+              </div>
+              
+              <div className="mb-5">
+                <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-3">Your Portfolio Preview</h3>
+                <div className="flex space-x-2 overflow-x-auto no-scrollbar pb-2">
+                  {currentUser.instants.slice(0, 3).map(inst => (
+                    <div key={inst.id} className="w-20 h-24 flex-shrink-0 rounded-xl overflow-hidden border border-zinc-800 relative">
+                      {inst.type === 'video' ? (
+                        <video src={inst.url} className="w-full h-full object-cover" />
+                      ) : (
+                        <img src={inst.url} className="w-full h-full object-cover" />
+                      )}
+                    </div>
+                  ))}
+                  {currentUser.instants.length === 0 && (
+                    <div className="w-full py-4 text-center border border-dashed border-zinc-800 rounded-xl">
+                      <p className="text-xs text-zinc-500">No Instants captured yet.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider mb-2 block">Message to Host</label>
+                <textarea
+                  value={joinMessage}
+                  onChange={(e) => setJoinMessage(e.target.value)}
+                  placeholder="Introduce yourself or share your travel dates..."
+                  className="w-full bg-[#080808] border border-zinc-800 rounded-2xl p-4 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-accent-pink focus:ring-1 focus:ring-accent-pink/10 resize-none h-24"
+                />
+              </div>
+            </div>
+            <div className="p-4 bg-zinc-950 border-t border-zinc-900 flex justify-end space-x-3">
+              <button
+                onClick={() => setJoinModalOpen(false)}
+                className="px-5 py-2.5 text-sm font-bold text-zinc-400 hover:text-white transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSendJoinRequest}
+                className="px-6 py-2.5 bg-gradient-to-r from-accent-pink to-accent-cyan text-black text-sm font-black rounded-xl hover:shadow-lg hover:shadow-accent-pink/20 transition-all active:scale-95"
+              >
+                Send Request
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -731,9 +842,10 @@ interface FeedItemProps {
   onLike: () => void;
   onCommentClick: () => void;
   onShareClick: () => void;
+  onJoinClick?: () => void;
 }
 
-const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick, onShareClick }) => {
+const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick, onShareClick, onJoinClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -806,14 +918,22 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
         <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
 
         {/* Top Info Overlay */}
-        <div className="absolute left-4 top-4 z-20 flex items-center space-x-2.5 drop-shadow-md">
-          <img
-            src={post.authorAvatar}
-            alt={post.author}
-            className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
-          />
-          <div className="flex flex-col">
-            <h3 className="text-sm font-black text-white leading-tight">@{post.authorUsername}</h3>
+        <div className="absolute left-4 top-4 z-20 flex flex-col items-start space-y-2 drop-shadow-md">
+          {post.destination && (
+            <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-full border border-zinc-800 flex items-center space-x-1.5 shadow-sm">
+              <span className="text-xs text-white">📍</span>
+              <span className="text-[10px] font-bold text-white uppercase tracking-wider">{post.destination}</span>
+            </div>
+          )}
+          <div className="flex items-center space-x-2.5">
+            <img
+              src={post.authorAvatar}
+              alt={post.authorUsername}
+              className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
+            />
+            <div className="flex flex-col">
+              <h3 className="text-sm font-black text-white leading-tight">@{post.authorUsername}</h3>
+            </div>
           </div>
         </div>
 
@@ -849,6 +969,16 @@ const FeedItem: React.FC<FeedItemProps> = ({ post, muted, onLike, onCommentClick
         >
           <Send className="w-5 h-5" />
         </button>
+
+        {/* Request to Join Button */}
+        {post.hasOpenGroup && onJoinClick && (
+          <button
+            onClick={onJoinClick}
+            className="ml-3 h-[52px] px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-full shadow-lg active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
+          >
+            Join Trip
+          </button>
+        )}
       </div>
 
 
