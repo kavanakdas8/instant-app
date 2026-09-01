@@ -9,6 +9,7 @@ import {
   MapPin, Calendar, Camera, ThumbsUp, Plus, Heart
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
+import { TripLiveMap } from '@/components/TripLiveMap';
 
 export default function ChatDetails() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function ChatDetails() {
     currentUser, groups, joinRequests, personalChats, allUsers,
     sendGroupMessage, approveJoinRequest, declineJoinRequest,
     pinGroupMessage, unpinGroupMessage, sendPersonalMessage,
-    addItineraryStop, voteItineraryStop
+    addItineraryStop, voteItineraryStop, toggleLocationSharing
   } = useApp();
 
   // Find active group
@@ -60,6 +61,7 @@ export default function ChatDetails() {
   const [shareInstantPickerOpen, setShareInstantPickerOpen] = useState(false);
   const [itineraryOpen, setItineraryOpen] = useState(false);
   const [newStopName, setNewStopName] = useState('');
+  const [mapOpen, setMapOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -81,6 +83,7 @@ export default function ChatDetails() {
   const isAdmin = group ? group.adminUsername === currentUser.username : false;
   const groupRequests = group ? joinRequests.filter(r => r.groupId === group.id && r.status === 'pending') : [];
   const pinnedMessages = group ? group.messages.filter(m => group.pinnedMessages.includes(m.id)) : [];
+  const activeMembersCount = group ? allUsers.filter(u => group.members.includes(u.username) && u.isLocationShared).length : 0;
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -180,6 +183,23 @@ export default function ChatDetails() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {!isDM && group && (
+              <button
+                onClick={() => setMapOpen(prev => !prev)}
+                className={`relative py-1.5 px-3 rounded-full text-[11px] font-bold flex items-center space-x-2 transition-all border shadow-lg backdrop-blur-md ${
+                  mapOpen 
+                    ? 'bg-emerald-500 text-slate-900 border-emerald-400' 
+                    : 'bg-zinc-900/80 text-zinc-300 hover:bg-zinc-800 border-zinc-700'
+                }`}
+              >
+                <span>📍 Live Map</span>
+                <div className="flex items-center space-x-1">
+                  <span className={`w-1.5 h-1.5 rounded-full animate-pulse ${mapOpen ? 'bg-emerald-900' : 'bg-emerald-400'}`} />
+                  <span className={mapOpen ? 'text-emerald-900' : 'text-emerald-400'}>{activeMembersCount} Active</span>
+                </div>
+              </button>
+            )}
+
             {!isDM && isAdmin && (
               <button
                 onClick={() => setAdminDrawerOpen(true)}
@@ -197,6 +217,18 @@ export default function ChatDetails() {
             </button>
           </div>
         </div>
+
+        {/* Live Map Drawer */}
+        {!isDM && group && mapOpen && (
+          <TripLiveMap 
+            group={group} 
+            users={allUsers} 
+            currentUser={currentUser}
+            toggleLocationSharing={toggleLocationSharing}
+            onDropInstant={() => router.push(`/capture?groupId=${group.id}&location=current`)}
+            onClose={() => setMapOpen(false)}
+          />
+        )}
 
         {/* Admin Review Banner */}
         {!isDM && group && isAdmin && groupRequests.length > 0 && (

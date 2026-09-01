@@ -78,12 +78,22 @@ export interface JoinRequest {
   applicantMessage?: string;
 }
 
+export interface LocationData {
+  lat: number;
+  lng: number;
+  timestamp: string;
+  speed?: string;
+  status?: string;
+}
+
 export interface UserProfile {
   name: string;
   username: string;
   avatar: string;
   bio: string;
   instants: Instant[];
+  isLocationShared?: boolean;
+  currentLocation?: LocationData;
 }
 
 export interface PersonalChat {
@@ -139,6 +149,7 @@ interface AppContextType {
   playShutterSound: () => void;
   addItineraryStop: (groupId: string, name: string) => void;
   voteItineraryStop: (groupId: string, stopId: string) => void;
+  toggleLocationSharing: () => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -501,15 +512,19 @@ export const MOCK_USERS: UserProfile[] = [
     name: 'Alice Cooper',
     username: 'alice_adventures',
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
-    bio: 'Travel photographer & filmmaker. Searching for the unseen corners of the world. 🌍✨',
-    instants: []
+    bio: 'Finding the best coffee shops around the world. ☕🌍',
+    instants: [],
+    isLocationShared: true,
+    currentLocation: { lat: 30, lng: 45, timestamp: '1m ago', speed: 'Stopped' }
   },
   {
     name: 'Emma Watson',
     username: 'emma_in_europe',
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-    bio: 'Backpacker traveling across Europe. Currently in Florence! 🍕🗺️',
-    instants: []
+    bio: 'Backpacker. Usually found near a train station. 🚆',
+    instants: [],
+    isLocationShared: true,
+    currentLocation: { lat: 60, lng: 60, timestamp: 'Just now', speed: 'Moving • 15 km/h' }
   },
   {
     name: 'Kento Sato',
@@ -1187,6 +1202,26 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const toggleLocationSharing = () => {
+    if (!currentUser) return;
+    const isShared = !currentUser.isLocationShared;
+    const mockLocation = { lat: 50, lng: 50, timestamp: 'Just now', speed: 'Stopped' };
+    
+    setCurrentUser({
+      ...currentUser,
+      isLocationShared: isShared,
+      currentLocation: isShared ? mockLocation : undefined
+    });
+
+    setAllUsers(prev => prev.map(u => 
+      u.username === currentUser.username ? {
+        ...u,
+        isLocationShared: isShared,
+        currentLocation: isShared ? mockLocation : undefined
+      } : u
+    ));
+  };
+
   return (
     <AppContext.Provider
       value={{
@@ -1220,7 +1255,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         deleteInstant,
         playShutterSound,
         addItineraryStop,
-        voteItineraryStop
+        voteItineraryStop,
+        toggleLocationSharing
       }}
     >
       {children}
