@@ -2,17 +2,19 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { useApp, Instant } from '@/context/AppContext';
-import { LogOut, Grid, MapPin, Heart, MessageCircle, AlertCircle, ShieldAlert, Settings, Bookmark, UserSquare, Link as LinkIcon, Compass, UserCheck, Users, PlusSquare, Bell, Send, MoreHorizontal, X } from 'lucide-react';
+import { useApp, Instant, UserProfile } from '@/context/AppContext';
+import { LogOut, Grid, MapPin, Heart, MessageCircle, AlertCircle, ShieldAlert, Settings, Bookmark, UserSquare, Link as LinkIcon, Compass, UserCheck, Users, PlusSquare, Bell, Send, MoreHorizontal, X, Edit3, Star, CheckCircle, Video } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Drawer from '@/components/Drawer';
 import Logo from '@/components/Logo';
 
 export default function Profile() {
   const router = useRouter();
   const { username } = useParams();
-  const { currentUser, feed, groups, logout } = useApp();
+  const { currentUser, feed, groups, logout, allUsers } = useApp();
   
   const [selectedInstant, setSelectedInstant] = useState<Instant | null>(null);
+  const [activeTab, setActiveTab] = useState<'instants' | 'trips' | 'reviews'>('instants');
 
   useEffect(() => {
     if (!currentUser) {
@@ -22,44 +24,25 @@ export default function Profile() {
 
   if (!currentUser) return null;
 
-  // Find user data. If it's the logged-in user, fetch from context, else gather from feed
+  // Find user data from allUsers context
   const decodedUsername = decodeURIComponent(String(username));
   const isMe = currentUser.username === decodedUsername;
   
-  let profileUser = {
-    name: currentUser.name,
-    username: currentUser.username,
-    avatar: currentUser.avatar,
-    bio: currentUser.bio,
-    instants: currentUser.instants
+  const contextUser = allUsers.find(u => u.username === decodedUsername);
+  
+  let profileUser: UserProfile = contextUser || {
+    name: decodedUsername.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
+    username: decodedUsername,
+    avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80`,
+    bio: 'Travel adventurer and Instants explorer.',
+    instants: feed.filter(p => p.authorUsername === decodedUsername),
+    stats: { tripsCompleted: 0, destinationsVisited: 0, reputationScore: 'New' },
+    stamps: [],
+    reviews: []
   };
 
-  if (!isMe) {
-    // Gather from feed authors
-    const authorPost = feed.find(p => p.authorUsername === username);
-    if (authorPost) {
-      profileUser = {
-        name: authorPost.author,
-        username: authorPost.authorUsername,
-        avatar: authorPost.authorAvatar,
-        bio: decodedUsername === 'kento_tokyo' 
-          ? 'Solo Tokyo explorer. Looking for the best ramen and hidden alleys. 🍜🇯🇵'
-          : decodedUsername === 'emma_in_europe'
-          ? 'Backpacker traveling across Europe. Currently in Florence! 🍕🗺️'
-          : 'Exploring the world one Instant at a time.',
-        instants: feed.filter(p => p.authorUsername === decodedUsername)
-      };
-    } else {
-      // Fallback
-      profileUser = {
-        name: decodedUsername.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        username: decodedUsername,
-        avatar: `https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=150&q=80`,
-        bio: 'Travel adventurer and Instants explorer.',
-        instants: []
-      };
-    }
-  }
+  // Get Trips/Groups user is part of
+  const userTrips = groups.filter(g => g.members.includes(profileUser.username) || g.adminUsername === profileUser.username);
 
   const handleLogout = () => {
     logout();
@@ -153,110 +136,250 @@ export default function Profile() {
       {/* Main Content */}
       <div className="flex-1 md:ml-[260px] flex flex-col bg-black relative min-h-screen">
         <div className="flex-1 flex flex-col bg-black md:px-12 md:pt-10 px-4 pt-6 pb-20 select-none max-w-4xl mx-auto w-full">
-      {/* Desktop & Mobile Responsive Profile Header */}
-      <div className="flex flex-col md:flex-row md:items-start items-center mb-10 md:mb-12">
-        {/* Avatar */}
-        <div className="md:w-[280px] w-full flex justify-center md:justify-center md:mr-8 mb-6 md:mb-0">
-          <div className="w-20 h-20 md:w-[150px] md:h-[150px] rounded-full overflow-hidden border border-zinc-800 bg-zinc-950 flex-shrink-0 cursor-pointer">
-            <img src={profileUser.avatar} alt={profileUser.name} className="w-full h-full object-cover" />
-          </div>
-        </div>
-
-        {/* Info */}
-        <div className="flex-1 min-w-0 md:pt-2 w-full">
-          {/* Row 1: Username & Actions */}
-          <div className="flex flex-col md:flex-row md:items-center items-start mb-4 md:mb-5 w-full">
-            <h1 className="text-xl md:text-[20px] font-normal text-zinc-100 mr-5 md:mr-8 mb-3 md:mb-0 md:min-w-fit flex-shrink-0">
-              {profileUser.username}
-            </h1>
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 md:mt-1">
-              {!isMe && (
-                <>
-                  <button className="px-6 py-1.5 rounded-lg bg-accent-cyan text-black font-semibold text-sm hover:bg-accent-cyan/90 transition-all shrink-0">
-                    Follow
-                  </button>
-                  <button className="px-4 py-1.5 rounded-lg bg-[#363636] hover:bg-[#262626] text-white text-sm font-semibold transition-all shrink-0">
-                    Message
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-
-          {/* Row 2: Stats (Desktop) */}
-          <div className="hidden md:flex items-center space-x-10 mb-5">
-            <span className="text-base text-zinc-100"><span className="font-semibold">{totalInstants}</span> instants</span>
-            <span className="text-base text-zinc-100"><span className="font-semibold">{totalFollowers}</span> followers</span>
-          </div>
-
-          {/* Row 3: Bio (Desktop) */}
-          <div className="hidden md:block">
-            <h2 className="text-[14px] font-semibold text-zinc-100">{profileUser.name}</h2>
-            <div className="text-[14px] text-zinc-400 mt-1 whitespace-pre-wrap leading-[18px]">
-              🎥 Filmmaker | 📸 Photographer<br/>
-              Pictures With Questionable Captions
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile Stats & Bio */}
-      <div className="md:hidden w-full mb-6 px-2">
-        <h2 className="text-sm font-semibold text-zinc-100">{profileUser.name}</h2>
-        <div className="text-sm text-zinc-400 mt-1 whitespace-pre-wrap leading-relaxed">
-          {profileUser.bio}
-        </div>
-      </div>
-      <div className="md:hidden grid grid-cols-2 gap-3 p-4 bg-zinc-950 border-t border-b border-zinc-900/60 mb-2 text-center w-full">
-        <div>
-          <p className="text-sm font-semibold text-zinc-100">{totalInstants}</p>
-          <p className="text-[11px] text-zinc-500 font-normal">instants</p>
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-zinc-100">{totalFollowers}</p>
-          <p className="text-[11px] text-zinc-500 font-normal">followers</p>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex justify-center border-t border-zinc-800 md:mb-4 mb-2 w-full">
-        <div className="flex items-center md:space-x-12 space-x-8">
-          <button className="flex items-center space-x-1.5 py-4 border-t-2 border-white text-zinc-100 text-[11px] font-bold tracking-widest -mt-[1px]">
-            <Grid className="w-3.5 h-3.5" />
-            <span className="hidden md:block">INSTANTS</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Captured Instants Grid */}
-      {totalInstants === 0 ? (
-        <div className="flex-1 flex flex-col justify-center items-center py-20 text-center space-y-3">
-          <AlertCircle className="w-10 h-10 text-zinc-700" />
-          <p className="text-sm text-zinc-600">No Instants shared yet by this user.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-3 gap-1 md:gap-2">
-          {profileUser.instants.map((inst) => (
-            <div
-              key={inst.id}
-              onClick={() => setSelectedInstant(inst)}
-              className="aspect-square bg-zinc-950 overflow-hidden relative cursor-pointer group transition-all"
-            >
-              <img src={inst.url} alt="Grid post" className="w-full h-full object-cover" />
-              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center space-x-4 transition-opacity">
-                <div className="flex items-center space-x-1.5 text-white font-bold">
-                  <Heart className="w-5 h-5 fill-white stroke-none" />
-                  <span>{inst.likes}</span>
+          
+          {/* 1. Travel Passport Header & Hero */}
+          <div className="bg-slate-900/60 border border-white/10 rounded-3xl p-6 md:p-8 mb-8 backdrop-blur-md shadow-2xl relative overflow-hidden">
+            {/* Background Map Graphic (Subtle) */}
+            <div className="absolute right-0 top-0 opacity-[0.03] w-64 h-64 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '16px 16px' }} />
+            
+            <div className="flex flex-col md:flex-row items-center md:items-start relative z-10">
+              {/* Avatar with Status Ring */}
+              <div className="relative mb-6 md:mb-0 md:mr-8 flex-shrink-0">
+                <div className={`absolute -inset-1 rounded-full border-2 ${profileUser.currentLocation ? 'border-emerald-400 animate-pulse' : 'border-zinc-700'}`}></div>
+                <div className="w-24 h-24 md:w-32 md:h-32 rounded-full overflow-hidden border-4 border-slate-950 bg-slate-900 z-10 relative cursor-pointer">
+                  <img src={profileUser.avatar} alt={profileUser.name} className="w-full h-full object-cover" />
                 </div>
-                <div className="flex items-center space-x-1.5 text-white font-bold">
-                  <MessageCircle className="w-5 h-5 fill-white stroke-none" />
-                  <span>{inst.comments.length}</span>
+                {profileUser.currentLocation && (
+                  <div className="absolute bottom-0 right-2 w-4 h-4 bg-emerald-500 rounded-full border-2 border-slate-900 z-20 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
+                )}
+              </div>
+
+              {/* Info & Stats */}
+              <div className="flex-1 w-full text-center md:text-left">
+                <div className="flex flex-col md:flex-row md:items-start justify-between mb-4 w-full">
+                  <div>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">{profileUser.name}</h1>
+                    <p className="text-sm font-medium text-slate-400 mb-3">@{profileUser.username}</p>
+                    <p className="text-sm text-slate-300 max-w-md mx-auto md:mx-0 leading-relaxed">{profileUser.bio}</p>
+                  </div>
+                  <div className="mt-4 md:mt-0 flex items-center justify-center space-x-3 shrink-0">
+                    {isMe ? (
+                      <button className="px-5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-sm transition-colors border border-white/10 flex items-center space-x-2">
+                        <Edit3 className="w-4 h-4" />
+                        <span>Edit Passport</span>
+                      </button>
+                    ) : (
+                      <>
+                        <button className="px-5 py-2 rounded-xl bg-accent-cyan text-slate-900 font-bold text-sm hover:bg-accent-cyan/90 transition-all shadow-[0_0_15px_rgba(0,240,255,0.2)]">
+                          Follow
+                        </button>
+                        <button className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-sm font-bold transition-all border border-white/10">
+                          Message
+                        </button>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Traveler Stats Strip */}
+                <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 md:gap-8 font-mono mt-6 pt-4 border-t border-white/10">
+                  <div className="flex flex-col">
+                    <span className="text-white text-lg font-bold">{profileUser.stats?.tripsCompleted || 0}</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest">Trips</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-white text-lg font-bold">{profileUser.stats?.destinationsVisited || 0}</span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest">Destinations</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-emerald-400 text-lg font-bold flex items-center space-x-1">
+                      <span>{profileUser.stats?.reputationScore || 'New'}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-500 uppercase tracking-widest">Reputation</span>
+                  </div>
                 </div>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          </div>
+
+          {/* 2. Destination Badges & Passport Stamps */}
+          {profileUser.stamps && profileUser.stamps.length > 0 && (
+            <div className="mb-10 w-full overflow-x-auto no-scrollbar pb-2">
+              <h3 className="text-[11px] text-zinc-500 font-bold uppercase tracking-widest mb-3 ml-1">Passport Stamps</h3>
+              <div className="flex items-center space-x-3">
+                {profileUser.stamps.map((stamp) => (
+                  <div key={stamp.id} className="flex items-center space-x-2 bg-zinc-900/50 hover:bg-zinc-800 border border-zinc-800 rounded-xl px-3 py-2 cursor-pointer transition-colors shrink-0">
+                    <span className="text-lg">{stamp.icon}</span>
+                    <span className="text-xs font-bold text-zinc-300">{stamp.name}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* 3. Profile Content Navigation Tabs */}
+          <div className="flex items-center space-x-6 border-b border-zinc-800 mb-6">
+            <button 
+              onClick={() => setActiveTab('instants')}
+              className={`pb-3 text-[12px] font-bold tracking-widest uppercase transition-colors relative ${activeTab === 'instants' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <div className="flex items-center space-x-2">
+                <Grid className="w-4 h-4" />
+                <span>Instants</span>
+              </div>
+              {activeTab === 'instants' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
+            </button>
+            <button 
+              onClick={() => setActiveTab('trips')}
+              className={`pb-3 text-[12px] font-bold tracking-widest uppercase transition-colors relative ${activeTab === 'trips' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <div className="flex items-center space-x-2">
+                <Compass className="w-4 h-4" />
+                <span>Trips & Groups</span>
+              </div>
+              {activeTab === 'trips' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
+            </button>
+            <button 
+              onClick={() => setActiveTab('reviews')}
+              className={`pb-3 text-[12px] font-bold tracking-widest uppercase transition-colors relative ${activeTab === 'reviews' ? 'text-white' : 'text-zinc-500 hover:text-zinc-300'}`}
+            >
+              <div className="flex items-center space-x-2">
+                <Star className="w-4 h-4" />
+                <span>Reviews</span>
+              </div>
+              {activeTab === 'reviews' && <motion.div layoutId="tab-indicator" className="absolute bottom-0 left-0 right-0 h-0.5 bg-white" />}
+            </button>
+          </div>
+
+          {/* Tab Content Area */}
+          <AnimatePresence mode="wait">
+            {activeTab === 'instants' && (
+              <motion.div 
+                key="instants"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+              >
+                {totalInstants === 0 ? (
+                  <div className="flex-1 flex flex-col justify-center items-center py-20 text-center space-y-3">
+                    <AlertCircle className="w-10 h-10 text-zinc-700" />
+                    <p className="text-sm text-zinc-600">No Instants shared yet.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-3 gap-1 md:gap-2">
+                    {profileUser.instants.map((inst) => (
+                      <div
+                        key={inst.id}
+                        onClick={() => setSelectedInstant(inst)}
+                        className="aspect-square bg-zinc-950 overflow-hidden relative cursor-pointer group transition-all"
+                      >
+                        {inst.type === 'video' ? (
+                          <video src={inst.url} className="w-full h-full object-cover" />
+                        ) : (
+                          <img src={inst.url} alt="Grid post" className="w-full h-full object-cover" />
+                        )}
+                        
+                        {/* Media Type Icon */}
+                        {inst.type === 'video' && (
+                          <div className="absolute top-2 right-2 drop-shadow-md">
+                            <Video className="w-5 h-5 text-white/90" />
+                          </div>
+                        )}
+                        
+                        {/* Location Overlay Tag */}
+                        {inst.destination && (
+                          <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded-md flex items-center space-x-1 border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <MapPin className="w-3 h-3 text-accent-cyan" />
+                            <span className="text-[9px] font-bold text-white uppercase tracking-wider">{inst.destination}</span>
+                          </div>
+                        )}
+
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center space-x-4 transition-opacity z-20">
+                          <div className="flex items-center space-x-1.5 text-white font-bold">
+                            <Heart className="w-5 h-5 fill-white stroke-none" />
+                            <span>{inst.likes}</span>
+                          </div>
+                          <div className="flex items-center space-x-1.5 text-white font-bold">
+                            <MessageCircle className="w-5 h-5 fill-white stroke-none" />
+                            <span>{inst.comments.length}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'trips' && (
+              <motion.div 
+                key="trips"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                className="grid grid-cols-1 md:grid-cols-2 gap-4"
+              >
+                {userTrips.length === 0 ? (
+                  <div className="col-span-full py-10 text-center">
+                    <p className="text-zinc-500 text-sm">Hasn't joined any trips yet.</p>
+                  </div>
+                ) : (
+                  userTrips.map(trip => (
+                    <div key={trip.id} onClick={() => router.push(`/chats/${trip.id}`)} className="bg-zinc-900/40 border border-zinc-800 rounded-2xl p-4 hover:bg-zinc-900 hover:border-zinc-700 transition-all cursor-pointer flex flex-col">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-black border border-zinc-800">
+                            <img src={trip.avatar} className="w-full h-full object-cover" />
+                          </div>
+                          <span className="text-sm font-bold text-white">{trip.name}</span>
+                        </div>
+                        <span className="px-2 py-1 bg-emerald-500/10 text-emerald-400 text-[9px] font-black uppercase tracking-widest rounded-md border border-emerald-500/20">
+                          Active
+                        </span>
+                      </div>
+                      <div className="mt-auto space-y-1">
+                        <div className="flex items-center space-x-1.5 text-zinc-400">
+                          <MapPin className="w-3.5 h-3.5" />
+                          <span className="text-xs">{trip.destination}</span>
+                        </div>
+                        <div className="flex items-center space-x-1.5 text-zinc-400">
+                          <Users className="w-3.5 h-3.5" />
+                          <span className="text-xs">{trip.members.length} Members</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </motion.div>
+            )}
+
+            {activeTab === 'reviews' && (
+              <motion.div 
+                key="reviews"
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                className="space-y-4"
+              >
+                {!profileUser.reviews || profileUser.reviews.length === 0 ? (
+                  <div className="py-10 text-center">
+                    <p className="text-zinc-500 text-sm">No traveler reviews yet.</p>
+                  </div>
+                ) : (
+                  profileUser.reviews.map(review => (
+                    <div key={review.id} className="bg-zinc-900/30 border border-zinc-800 rounded-2xl p-5 hover:bg-zinc-900/50 transition-colors">
+                      <div className="flex items-start space-x-4">
+                        <img src={review.authorAvatar} className="w-10 h-10 rounded-full border border-zinc-700 object-cover shrink-0" />
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <span className="font-bold text-sm text-white">{review.author}</span>
+                            <span className="text-xs text-zinc-500">@{review.authorUsername}</span>
+                            <CheckCircle className="w-3 h-3 text-accent-cyan" />
+                          </div>
+                          <p className="text-sm text-zinc-300 italic mb-3">"{review.text}"</p>
+                          <span className="text-[10px] text-zinc-600 font-bold uppercase tracking-wider">{review.timestamp}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
       {/* Instant Details Modal (Instagram Web Style) */}
       {selectedInstant && (

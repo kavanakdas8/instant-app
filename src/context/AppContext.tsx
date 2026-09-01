@@ -86,6 +86,21 @@ export interface LocationData {
   status?: string;
 }
 
+export interface PassportStamp {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+export interface TravelerReview {
+  id: string;
+  text: string;
+  author: string;
+  authorUsername: string;
+  authorAvatar: string;
+  timestamp: string;
+}
+
 export interface UserProfile {
   name: string;
   username: string;
@@ -94,6 +109,13 @@ export interface UserProfile {
   instants: Instant[];
   isLocationShared?: boolean;
   currentLocation?: LocationData;
+  stats?: {
+    tripsCompleted: number;
+    destinationsVisited: number;
+    reputationScore: string;
+  };
+  stamps?: PassportStamp[];
+  reviews?: TravelerReview[];
 }
 
 export interface PersonalChat {
@@ -515,7 +537,23 @@ export const MOCK_USERS: UserProfile[] = [
     bio: 'Finding the best coffee shops around the world. ☕🌍',
     instants: [],
     isLocationShared: true,
-    currentLocation: { lat: 30, lng: 45, timestamp: '1m ago', speed: 'Stopped' }
+    currentLocation: { lat: 30, lng: 45, timestamp: '1m ago', speed: 'Stopped' },
+    stats: { tripsCompleted: 14, destinationsVisited: 8, reputationScore: '4.9 (24 Reviews)' },
+    stamps: [
+      { id: 's1', name: 'Mysore Explorer', icon: '🏛️' },
+      { id: 's2', name: 'Coorg Trailblazer', icon: '☕' },
+      { id: 's3', name: 'Gokarna Nomad', icon: '🏖️' }
+    ],
+    reviews: [
+      {
+        id: 'r1',
+        text: 'Great trail partner in Coorg! Very organized.',
+        author: 'Emma Watson',
+        authorUsername: 'emma_in_europe',
+        authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
+        timestamp: '2 weeks ago'
+      }
+    ]
   },
   {
     name: 'Emma Watson',
@@ -524,7 +562,22 @@ export const MOCK_USERS: UserProfile[] = [
     bio: 'Backpacker. Usually found near a train station. 🚆',
     instants: [],
     isLocationShared: true,
-    currentLocation: { lat: 60, lng: 60, timestamp: 'Just now', speed: 'Moving • 15 km/h' }
+    currentLocation: { lat: 60, lng: 60, timestamp: 'Just now', speed: 'Moving • 15 km/h' },
+    stats: { tripsCompleted: 4, destinationsVisited: 12, reputationScore: '4.8 (10 Reviews)' },
+    stamps: [
+      { id: 's4', name: 'Western Ghats Trekker', icon: '⛰️' },
+      { id: 's5', name: 'Eurotrip Veteran', icon: '🌍' }
+    ],
+    reviews: [
+      {
+        id: 'r2',
+        text: 'Super fun to travel with, knew all the best spots in Florence.',
+        author: 'Alice Cooper',
+        authorUsername: 'alice_adventures',
+        authorAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
+        timestamp: '1 month ago'
+      }
+    ]
   },
   {
     name: 'Kento Sato',
