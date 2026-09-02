@@ -68,6 +68,7 @@ export default function ChatDetails() {
   const [reportModalOpen, setReportModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+  const [replyingToMessage, setReplyingToMessage] = useState<ChatMessage | null>(null);
 
   useEffect(() => {
     if (!currentUser) {
@@ -96,12 +97,13 @@ export default function ChatDetails() {
     if (!inputText.trim()) return;
 
     if (isDM && participant) {
-      sendPersonalMessage(participant.username, inputText.trim());
+      sendPersonalMessage(participant.username, inputText.trim(), undefined, replyingToMessage?.id);
     } else if (group) {
-      sendGroupMessage(group.id, inputText.trim());
+      sendGroupMessage(group.id, inputText.trim(), undefined, replyingToMessage?.id);
     }
 
     setInputText('');
+    setReplyingToMessage(null);
     setTimeout(() => {
       messageEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, 100);
@@ -396,6 +398,8 @@ export default function ChatDetails() {
                     );
                   }
 
+                  const repliedMessage = message.replyToId ? messages.find(m => m.id === message.replyToId) : null;
+
                   return (
                     <div 
                       key={message.id} 
@@ -419,6 +423,26 @@ export default function ChatDetails() {
                         {!isMe && !isDM && (
                           <span className="text-[11px] font-bold text-zinc-500 mb-1 ml-1">{message.senderName}</span>
                         )}
+
+                        {/* Replied to indicator */}
+                        {repliedMessage && (
+                          <div className={`px-3 py-1.5 rounded-2xl text-[11px] mb-1 opacity-75 flex flex-col ${
+                            isMe 
+                              ? 'bg-zinc-800 text-zinc-300 self-end mr-1 rounded-br-sm' 
+                              : 'bg-zinc-800 text-zinc-300 self-start ml-1 rounded-bl-sm'
+                          } max-w-[85%]`}>
+                            <div className="flex items-center space-x-1 mb-0.5 text-accent-cyan">
+                              <Reply className="w-2.5 h-2.5" />
+                              <span className="font-bold text-[9px]">
+                                {repliedMessage.senderId === currentUser.username ? 'You' : repliedMessage.senderName}
+                              </span>
+                            </div>
+                            <span className="line-clamp-2 leading-relaxed">
+                              {repliedMessage.text}
+                            </span>
+                          </div>
+                        )}
+
                         <div className="relative flex items-center">
                           {/* action buttons for sender (left of bubble) */}
                           {isMe && (
@@ -435,7 +459,10 @@ export default function ChatDetails() {
                                   </div>
                                 )}
                               </div>
-                              <button className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                              <button 
+                                onClick={() => { setReplyingToMessage(message); setHoveredMessageId(null); }}
+                                className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors"
+                              >
                                 <Reply className="w-4 h-4" />
                               </button>
                               <div className="relative">
@@ -489,7 +516,10 @@ export default function ChatDetails() {
                                 </div>
                               )}
                             </div>
-                            <button className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                            <button 
+                              onClick={() => { setReplyingToMessage(message); setHoveredMessageId(null); }}
+                              className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors"
+                            >
                               <Reply className="w-4 h-4" />
                             </button>
                             <div className="relative">
@@ -542,8 +572,27 @@ export default function ChatDetails() {
 
         {/* Input Tray */}
         {isMember && (
-          <div className="p-4 bg-[#050505] shrink-0 border-t border-zinc-900/50">
-            <form onSubmit={handleSendMessage} className="flex items-center space-x-2 bg-zinc-900/80 rounded-2xl p-1.5 border border-zinc-800">
+          <div className="p-4 bg-[#050505] shrink-0 border-t border-zinc-900/50 flex flex-col">
+            {replyingToMessage && (
+              <div className="flex items-center justify-between bg-zinc-900 border-x border-t border-zinc-800 rounded-t-2xl px-4 py-3 shadow-lg border-b-0 animate-fade-in">
+                <div className="flex flex-col min-w-0 flex-1 mr-4 border-l-2 border-accent-cyan pl-3">
+                  <span className="text-[11px] text-accent-cyan font-bold mb-0.5">
+                    Replying to {replyingToMessage.senderId === currentUser.username ? 'yourself' : replyingToMessage.senderName}
+                  </span>
+                  <span className="text-xs text-zinc-400 truncate">
+                    {replyingToMessage.text}
+                  </span>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setReplyingToMessage(null)}
+                  className="p-1.5 bg-black/40 hover:bg-black/60 rounded-full text-zinc-400 transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+            <form onSubmit={handleSendMessage} className={`flex items-center space-x-2 bg-zinc-900/80 p-1.5 border border-zinc-800 z-10 ${replyingToMessage ? 'rounded-b-2xl rounded-t-none' : 'rounded-2xl'}`}>
               <button
                 type="button"
                 onClick={() => setShareInstantPickerOpen(true)}

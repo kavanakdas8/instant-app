@@ -40,6 +40,7 @@ export interface ChatMessage {
   text: string;
   timestamp: string;
   instant?: Instant; // shared instant in chat
+  replyToId?: string;
 }
 
 export interface ItineraryStop {
@@ -160,10 +161,10 @@ interface AppContextType {
   requestToJoinGroup: (groupId: string, message?: string) => void;
   approveJoinRequest: (requestId: string) => void;
   declineJoinRequest: (requestId: string) => void;
-  sendGroupMessage: (groupId: string, text: string, attachedInstant?: Instant) => void;
+  sendGroupMessage: (groupId: string, text: string, attachedInstant?: Instant, replyToId?: string) => void;
   pinGroupMessage: (groupId: string, messageId: string) => void;
   unpinGroupMessage: (groupId: string, messageId: string) => void;
-  sendPersonalMessage: (recipientUsername: string, text: string, attachedInstant?: Instant) => void;
+  sendPersonalMessage: (recipientUsername: string, text: string, attachedInstant?: Instant, replyToId?: string) => void;
   addNotification: (recipientUsername: string, emoji?: string, postId?: string, postUrl?: string, type?: 'reaction' | 'system', message?: string) => void;
   markNotificationsAsRead: () => void;
   captureInstant: (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string, destination?: string, region?: string, country?: string, hasOpenGroup?: boolean, groupId?: string) => void;
@@ -978,7 +979,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
-  const sendPersonalMessage = (recipientUsername: string, text: string, attachedInstant?: Instant) => {
+  const sendPersonalMessage = (recipientUsername: string, text: string, attachedInstant?: Instant, replyToId?: string) => {
     if (!currentUser) return;
 
     const sorted = [currentUser.username, recipientUsername].sort();
@@ -992,7 +993,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       senderAvatar: currentUser.avatar,
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      instant: attachedInstant
+      instant: attachedInstant,
+      replyToId
     };
 
     setPersonalChats(prev => {
@@ -1017,7 +1019,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     });
   };
 
-  const sendGroupMessage = (groupId: string, text: string, attachedInstant?: Instant) => {
+  const sendGroupMessage = (groupId: string, text: string, attachedInstant?: Instant, replyToId?: string) => {
     if (!currentUser) return;
 
     const newMessage: ChatMessage = {
@@ -1028,7 +1030,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       senderAvatar: currentUser.avatar,
       text,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      instant: attachedInstant
+      instant: attachedInstant,
+      replyToId
     };
 
     setGroups(prevGroups =>
