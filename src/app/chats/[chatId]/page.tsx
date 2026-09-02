@@ -6,7 +6,7 @@ import { useApp, ChatMessage, TravelGroup, JoinRequest, Instant, PersonalChat } 
 import { 
   ArrowLeft, Send, Pin, AlertCircle, Users, Settings, 
   Check, X, Sparkles, MessageCircle, FileText, Phone, MoreVertical, Paperclip, Download,
-  MapPin, Calendar, Camera, ThumbsUp, Plus, Heart
+  MapPin, Calendar, Camera, ThumbsUp, Plus, Heart, Smile, Reply, MoreHorizontal, Trash2, AlertTriangle
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 import { TripLiveMap } from '@/components/TripLiveMap';
@@ -62,6 +62,12 @@ export default function ChatDetails() {
   const [itineraryOpen, setItineraryOpen] = useState(false);
   const [newStopName, setNewStopName] = useState('');
   const [mapOpen, setMapOpen] = useState(false);
+  const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+  const [emojiMenuOpenId, setEmojiMenuOpenId] = useState<string | null>(null);
+  const [moreMenuOpenId, setMoreMenuOpenId] = useState<string | null>(null);
+  const [reportModalOpen, setReportModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
 
   useEffect(() => {
     if (!currentUser) {
@@ -393,9 +399,15 @@ export default function ChatDetails() {
                   return (
                     <div 
                       key={message.id} 
-                      className={`flex items-end space-x-3 animate-fade-in-up ${
+                      className={`flex items-end space-x-3 animate-fade-in-up group ${
                         isMe ? 'flex-row-reverse space-x-reverse' : ''
                       }`}
+                      onMouseEnter={() => setHoveredMessageId(message.id)}
+                      onMouseLeave={() => {
+                        setHoveredMessageId(null);
+                        setEmojiMenuOpenId(null);
+                        setMoreMenuOpenId(null);
+                      }}
                     >
                       <img 
                         src={message.senderAvatar} 
@@ -407,13 +419,48 @@ export default function ChatDetails() {
                         {!isMe && !isDM && (
                           <span className="text-[11px] font-bold text-zinc-500 mb-1 ml-1">{message.senderName}</span>
                         )}
-                        <div 
-                          className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                            isMe 
-                              ? 'bg-accent-purple text-white rounded-br-sm' 
-                              : 'bg-zinc-900 text-zinc-100 rounded-bl-sm'
-                          }`}
-                        >
+                        <div className="relative flex items-center">
+                          {/* action buttons for sender (left of bubble) */}
+                          {isMe && (
+                            <div className={`absolute right-full mr-2 flex items-center space-x-1 transition-opacity ${hoveredMessageId === message.id ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'}`}>
+                              <div className="relative">
+                                <button onClick={() => { setEmojiMenuOpenId(emojiMenuOpenId === message.id ? null : message.id); setMoreMenuOpenId(null); }} className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                                  <Smile className="w-4 h-4" />
+                                </button>
+                                {emojiMenuOpenId === message.id && (
+                                  <div className="absolute bottom-full mb-1 right-0 bg-zinc-900 border border-zinc-800 p-2 rounded-xl shadow-xl flex items-center space-x-2 z-[100] w-max">
+                                    {['😂','😲','😍','😢','👏','🔥','🎉','💯','❤️'].map(emoji => (
+                                      <button key={emoji} className="hover:scale-125 transition-transform text-lg">{emoji}</button>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                              <button className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                                <Reply className="w-4 h-4" />
+                              </button>
+                              <div className="relative">
+                                <button onClick={() => { setMoreMenuOpenId(moreMenuOpenId === message.id ? null : message.id); setEmojiMenuOpenId(null); }} className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </button>
+                                {moreMenuOpenId === message.id && (
+                                  <div className="absolute bottom-full mb-1 right-0 w-40 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl py-1 z-[100] flex flex-col">
+                                    <button onClick={() => { setMessageToDelete(message.id); setDeleteModalOpen(true); setMoreMenuOpenId(null); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-800 transition-colors font-semibold flex items-center space-x-2">
+                                      <Trash2 className="w-4 h-4" />
+                                      <span>Delete</span>
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+
+                          <div 
+                            className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                              isMe 
+                                ? 'bg-accent-purple text-white rounded-br-sm' 
+                                : 'bg-zinc-900 text-zinc-100 rounded-bl-sm'
+                            }`}
+                          >
                           {/* Attached Instant rendering */}
                           {message.instant && (
                             <div className="mb-2 rounded-xl overflow-hidden border border-black/20 relative aspect-[3/4] bg-black">
@@ -426,6 +473,45 @@ export default function ChatDetails() {
                           
                           <p className="whitespace-pre-wrap">{message.text}</p>
                         </div>
+
+                        {/* action buttons for receiver (right of bubble) */}
+                        {!isMe && (
+                          <div className={`absolute left-full ml-2 flex items-center space-x-1 transition-opacity ${hoveredMessageId === message.id ? 'opacity-100 z-10' : 'opacity-0 pointer-events-none z-0'}`}>
+                            <div className="relative">
+                              <button onClick={() => { setEmojiMenuOpenId(emojiMenuOpenId === message.id ? null : message.id); setMoreMenuOpenId(null); }} className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                                <Smile className="w-4 h-4" />
+                              </button>
+                              {emojiMenuOpenId === message.id && (
+                                <div className="absolute bottom-full mb-1 left-0 bg-zinc-900 border border-zinc-800 p-2 rounded-xl shadow-xl flex items-center space-x-2 z-[100] w-max">
+                                  {['😂','😲','😍','😢','👏','🔥','🎉','💯','❤️'].map(emoji => (
+                                    <button key={emoji} className="hover:scale-125 transition-transform text-lg">{emoji}</button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            <button className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                              <Reply className="w-4 h-4" />
+                            </button>
+                            <div className="relative">
+                              <button onClick={() => { setMoreMenuOpenId(moreMenuOpenId === message.id ? null : message.id); setEmojiMenuOpenId(null); }} className="p-1.5 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-800 rounded-md transition-colors">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </button>
+                              {moreMenuOpenId === message.id && (
+                                <div className="absolute bottom-full mb-1 left-0 w-40 bg-zinc-900 border border-zinc-800 rounded-xl shadow-xl py-1 z-[100] flex flex-col">
+                                  <button onClick={() => { setReportModalOpen(true); setMoreMenuOpenId(null); }} className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors font-semibold flex items-center space-x-2">
+                                    <AlertTriangle className="w-4 h-4" />
+                                    <span>Report</span>
+                                  </button>
+                                  <button onClick={() => { setMessageToDelete(message.id); setDeleteModalOpen(true); setMoreMenuOpenId(null); }} className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-zinc-800 transition-colors font-semibold flex items-center space-x-2">
+                                    <Trash2 className="w-4 h-4" />
+                                    <span>Delete</span>
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                         
                         <div className={`flex items-center space-x-2 mt-1 ${isMe ? 'mr-1' : 'ml-1'}`}>
                           <span className="text-[9px] text-zinc-600 font-bold">{message.timestamp}</span>
@@ -830,6 +916,54 @@ export default function ChatDetails() {
                   <span className="text-[10px] font-bold bg-white/20 px-2 py-1 rounded text-white backdrop-blur-sm">📍 {expandedInstant.destination}</span>
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Report Modal */}
+      {reportModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+            <AlertTriangle className="w-12 h-12 text-accent-pink mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Report Message</h3>
+            <p className="text-sm text-zinc-400 mb-8">
+              This message has been reported to the moderation team. Thank you for keeping our community safe.
+            </p>
+            <button
+              onClick={() => setReportModalOpen(false)}
+              className="w-full py-3 bg-white text-black font-bold rounded-xl hover:bg-zinc-200 transition-colors"
+            >
+              Okay
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteModalOpen && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl">
+            <Trash2 className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Delete Message</h3>
+            <p className="text-sm text-zinc-400 mb-8">
+              Are you sure you want to delete this message? This action cannot be undone.
+            </p>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => setDeleteModalOpen(false)}
+                className="flex-1 py-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setDeleteModalOpen(false);
+                }}
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>
