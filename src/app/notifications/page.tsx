@@ -3,12 +3,12 @@
 import React, { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
-import { Bell, ArrowLeft, Check, Compass, MessageSquare, Camera, UserCheck, Users, PlusSquare, Send, Settings } from 'lucide-react';
+import { Bell, ArrowLeft, Check, Compass, MessageSquare, Camera, UserCheck, Users, PlusSquare, Send, Settings, LogOut } from 'lucide-react';
 
 export default function Notifications() {
   const router = useRouter();
   const pathname = usePathname();
-  const { currentUser, notifications, markNotificationsAsRead } = useApp();
+  const { currentUser, setCurrentUser, notifications, markNotificationsAsRead } = useApp();
 
   useEffect(() => {
     if (!currentUser) {
@@ -166,6 +166,17 @@ export default function Notifications() {
               >
                 <Settings className="w-6 h-6 text-zinc-400" />
                 <span>Settings</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentUser(null);
+                  router.push('/login');
+                }}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-red-500 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-2"
+              >
+                <LogOut className="w-6 h-6 text-red-500" />
+                <span>Log Out</span>
               </button>
             </nav>
           </div>

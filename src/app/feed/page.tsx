@@ -7,13 +7,13 @@ import { DESTINATIONS, Destination, getDestinationFlag } from '@/data/destinatio
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   Heart, MessageCircle, Send, Volume2, VolumeX, AlertCircle,
-  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings, MapPin
+  Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings, MapPin, LogOut
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
 
 export default function Feed() {
   const router = useRouter();
-  const { currentUser, feed, likePost, addComment, deleteComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage, requestToJoinGroup } = useApp();
+  const { currentUser, setCurrentUser, feed, likePost, addComment, deleteComment, notifications, addNotification, groups, allUsers, sendGroupMessage, sendPersonalMessage, requestToJoinGroup } = useApp();
   const [commentOpen, setCommentOpen] = useState(false);
   const [selectedPostId, setSelectedPostId] = useState<string | null>(null);
   const [newComment, setNewComment] = useState('');
@@ -465,6 +465,17 @@ export default function Feed() {
               >
                 <Settings className="w-6 h-6 text-zinc-400" />
                 <span>Settings</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  setCurrentUser(null);
+                  router.push('/login');
+                }}
+                className="w-full flex items-center space-x-4 px-3 py-3 text-red-500 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-2"
+              >
+                <LogOut className="w-6 h-6 text-red-500" />
+                <span>Log Out</span>
               </button>
             </nav>
           </div>

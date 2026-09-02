@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { 
-  Settings, Compass, UserCheck, Users, PlusSquare, Bell, Send, Upload, Eye, EyeOff, Check
+  Settings, Compass, UserCheck, Users, PlusSquare, Bell, Send, Upload, Eye, EyeOff, Check, LogOut
 } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -157,6 +157,17 @@ export default function SettingsPage() {
             >
               <Settings className="w-6 h-6 text-white" />
               <span>Settings</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setCurrentUser(null);
+                router.push('/login');
+              }}
+              className="w-full flex items-center space-x-4 px-3 py-3 text-red-500 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-2"
+            >
+              <LogOut className="w-6 h-6 text-red-500" />
+              <span>Log Out</span>
             </button>
           </nav>
         </div>
