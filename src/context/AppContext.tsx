@@ -14,12 +14,13 @@ export interface Instant {
   likes: number;
   likedByCurrentUser?: boolean;
   comments: Comment[];
-  audience: 'Public' | 'Friends' | string; // public, friends, or groupId
+  audience: 'Public' | 'Friends' | string;
   destination?: string;
   hasOpenGroup?: boolean;
   groupId?: string;
   region?: string;
   country?: string;
+  isArchived?: boolean;
 }
 
 export interface Comment {
@@ -175,6 +176,7 @@ interface AppContextType {
   toggleLocationSharing: () => void;
   deleteGroupMessage: (groupId: string, messageId: string) => void;
   deletePersonalMessage: (chatId: string, messageId: string) => void;
+  archiveInstant: (instantId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -1168,15 +1170,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const deleteInstant = (instantId: string) => {
     if (!currentUser) return;
     
-    // Remove from global feed if it exists there
     setFeed(prevFeed => prevFeed.filter(inst => inst.id !== instantId));
     
-    // Remove from current user's profile
     setCurrentUser(prevUser => {
       if (!prevUser) return null;
       return {
         ...prevUser,
         instants: prevUser.instants.filter(inst => inst.id !== instantId)
+      };
+    });
+  };
+
+  const archiveInstant = (instantId: string) => {
+    if (!currentUser) return;
+
+    // Remove from public feed
+    setFeed(prevFeed => prevFeed.filter(inst => inst.id !== instantId));
+
+    // Mark as archived in user's instants
+    setCurrentUser(prevUser => {
+      if (!prevUser) return null;
+      return {
+        ...prevUser,
+        instants: prevUser.instants.map(inst =>
+          inst.id === instantId ? { ...inst, isArchived: true } : inst
+        )
       };
     });
   };
@@ -1345,7 +1363,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         voteItineraryStop,
         toggleLocationSharing,
         deleteGroupMessage,
-        deletePersonalMessage
+        deletePersonalMessage,
+        archiveInstant
       }}
     >
       {children}

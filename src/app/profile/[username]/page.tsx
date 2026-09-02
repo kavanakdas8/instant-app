@@ -3,17 +3,20 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useApp, Instant, UserProfile } from '@/context/AppContext';
-import { LogOut, Grid, MapPin, Heart, MessageCircle, AlertCircle, ShieldAlert, Settings, Bookmark, UserSquare, Link as LinkIcon, Compass, UserCheck, Users, PlusSquare, Bell, Send, MoreHorizontal, X, Edit3, Star, CheckCircle, Video } from 'lucide-react';
+import { LogOut, Grid, MapPin, Heart, MessageCircle, AlertCircle, ShieldAlert, Settings, Bookmark, UserSquare, Link as LinkIcon, Compass, UserCheck, Users, PlusSquare, Bell, Send, MoreHorizontal, X, Edit3, Star, CheckCircle, Video, Trash2, Archive } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Drawer from '@/components/Drawer';
 
 export default function Profile() {
   const router = useRouter();
   const { username } = useParams();
-  const { currentUser, setCurrentUser, feed, groups, allUsers } = useApp();
+  const { currentUser, setCurrentUser, feed, groups, allUsers, deleteInstant, archiveInstant } = useApp();
   
   const [selectedInstant, setSelectedInstant] = useState<Instant | null>(null);
   const [activeTab, setActiveTab] = useState<'instants' | 'trips' | 'reviews'>('instants');
+  const [instantMenuOpen, setInstantMenuOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [archiveConfirmOpen, setArchiveConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (!currentUser) {
@@ -44,7 +47,7 @@ export default function Profile() {
   const userTrips = groups.filter(g => g.members.includes(profileUser.username) || g.adminUsername === profileUser.username);
 
   const handleLogout = () => {
-    logout();
+    setCurrentUser(null);
     router.push('/login');
   };
 
@@ -274,7 +277,7 @@ export default function Profile() {
                   </div>
                 ) : (
                   <div className="grid grid-cols-3 gap-1 md:gap-2">
-                    {profileUser.instants.map((inst) => (
+                    {profileUser.instants.filter(inst => !inst.isArchived).map((inst) => (
                       <div
                         key={inst.id}
                         onClick={() => setSelectedInstant(inst)}
@@ -416,9 +419,46 @@ export default function Profile() {
                     <span className="cursor-pointer hover:text-zinc-300">{selectedInstant.authorUsername}</span>
                   </div>
                 </div>
-                <button className="text-zinc-100 hover:text-zinc-400 transition-colors">
-                  <MoreHorizontal className="w-5 h-5" />
-                </button>
+                {/* More options — only for own instants */}
+                <div className="relative">
+                  <button
+                    onClick={() => setInstantMenuOpen(prev => !prev)}
+                    className="text-zinc-100 hover:text-zinc-400 transition-colors p-1 rounded-lg"
+                  >
+                    <MoreHorizontal className="w-5 h-5" />
+                  </button>
+                  {instantMenuOpen && (
+                    <div className="absolute right-0 top-full mt-1 w-44 bg-zinc-950 border border-zinc-800 rounded-xl shadow-2xl py-1 z-[200] flex flex-col animate-fade-in">
+                      {isMe && (
+                        <>
+                          <button
+                            onClick={() => { setInstantMenuOpen(false); setArchiveConfirmOpen(true); }}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-sm text-zinc-300 hover:bg-zinc-900 hover:text-white transition-colors font-medium"
+                          >
+                            <Archive className="w-4 h-4 text-zinc-400" />
+                            <span>Archive</span>
+                          </button>
+                          <div className="border-t border-zinc-800 my-1" />
+                          <button
+                            onClick={() => { setInstantMenuOpen(false); setDeleteConfirmOpen(true); }}
+                            className="flex items-center space-x-3 px-4 py-2.5 text-sm text-red-500 hover:bg-zinc-900 transition-colors font-medium"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                            <span>Delete</span>
+                          </button>
+                        </>
+                      )}
+                      {!isMe && (
+                        <button
+                          onClick={() => setInstantMenuOpen(false)}
+                          className="flex items-center space-x-3 px-4 py-2.5 text-sm text-zinc-400 hover:bg-zinc-900 transition-colors font-medium"
+                        >
+                          <span>Report</span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Comments Section (Scrollable) */}
@@ -493,6 +533,73 @@ export default function Profile() {
       )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmOpen && selectedInstant && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <Trash2 className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Delete Instant?</h3>
+            <p className="text-sm text-zinc-400 mb-8">
+              This will permanently remove this Instant from your profile and the feed. This action cannot be undone.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setDeleteConfirmOpen(false)}
+                className="flex-1 py-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  deleteInstant(selectedInstant.id);
+                  setDeleteConfirmOpen(false);
+                  setSelectedInstant(null);
+                }}
+                className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Archive Confirmation Modal */}
+      {archiveConfirmOpen && selectedInstant && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[300] flex items-center justify-center p-4">
+          <div className="bg-zinc-950 border border-zinc-800 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl">
+            <Archive className="w-12 h-12 text-accent-cyan mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">Archive Instant?</h3>
+            <p className="text-sm text-zinc-400 mb-8">
+              This Instant will be removed from your profile and the public feed, but saved in your archive.
+            </p>
+            <div className="flex space-x-3">
+              <button
+                onClick={() => setArchiveConfirmOpen(false)}
+                className="flex-1 py-3 bg-zinc-900 text-white font-bold rounded-xl hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  archiveInstant(selectedInstant.id);
+                  setArchiveConfirmOpen(false);
+                  setSelectedInstant(null);
+                }}
+                className="flex-1 py-3 bg-accent-cyan text-black font-bold rounded-xl hover:bg-accent-cyan/90 transition-colors"
+              >
+                Archive
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Backdrop to close instant menu */}
+      {instantMenuOpen && (
+        <div className="fixed inset-0 z-[150]" onClick={() => setInstantMenuOpen(false)} />
+      )}
     </div>
   );
 }
