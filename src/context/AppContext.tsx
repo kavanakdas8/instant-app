@@ -173,6 +173,8 @@ interface AppContextType {
   addItineraryStop: (groupId: string, name: string) => void;
   voteItineraryStop: (groupId: string, stopId: string) => void;
   toggleLocationSharing: () => void;
+  deleteGroupMessage: (groupId: string, messageId: string) => void;
+  deletePersonalMessage: (chatId: string, messageId: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -1077,6 +1079,35 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     );
   };
 
+  const deleteGroupMessage = (groupId: string, messageId: string) => {
+    setGroups(prevGroups =>
+      prevGroups.map(g => {
+        if (g.id === groupId) {
+          return {
+            ...g,
+            messages: g.messages.filter(m => m.id !== messageId),
+            pinnedMessages: g.pinnedMessages.filter(id => id !== messageId)
+          };
+        }
+        return g;
+      })
+    );
+  };
+
+  const deletePersonalMessage = (chatId: string, messageId: string) => {
+    setPersonalChats(prev =>
+      prev.map(c => {
+        if (c.id === chatId) {
+          return {
+            ...c,
+            messages: c.messages.filter(m => m.id !== messageId)
+          };
+        }
+        return c;
+      })
+    );
+  };
+
   const captureInstant = (mediaUrl: string, type: 'image' | 'video', caption: string, audience: string, destination?: string, region?: string, country?: string, hasOpenGroup?: boolean, groupId?: string) => {
     if (!currentUser) return;
 
@@ -1312,7 +1343,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         playShutterSound,
         addItineraryStop,
         voteItineraryStop,
-        toggleLocationSharing
+        toggleLocationSharing,
+        deleteGroupMessage,
+        deletePersonalMessage
       }}
     >
       {children}

@@ -19,7 +19,8 @@ export default function ChatDetails() {
     currentUser, groups, joinRequests, personalChats, allUsers,
     sendGroupMessage, approveJoinRequest, declineJoinRequest,
     pinGroupMessage, unpinGroupMessage, sendPersonalMessage,
-    addItineraryStop, voteItineraryStop, toggleLocationSharing
+    addItineraryStop, voteItineraryStop, toggleLocationSharing,
+    deleteGroupMessage, deletePersonalMessage
   } = useApp();
 
   // Find active group
@@ -1007,6 +1008,14 @@ export default function ChatDetails() {
               </button>
               <button
                 onClick={() => {
+                  if (messageToDelete) {
+                    if (isDM && personalChat) {
+                      deletePersonalMessage(personalChat.id, messageToDelete);
+                    } else if (group) {
+                      deleteGroupMessage(group.id, messageToDelete);
+                    }
+                  }
+                  setMessageToDelete(null);
                   setDeleteModalOpen(false);
                 }}
                 className="flex-1 py-3 bg-red-500 text-white font-bold rounded-xl hover:bg-red-600 transition-colors"
