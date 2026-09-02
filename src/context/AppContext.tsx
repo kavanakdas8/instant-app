@@ -111,6 +111,7 @@ export interface UserProfile {
   instants: Instant[];
   isLocationShared?: boolean;
   currentLocation?: LocationData;
+  isFriend?: boolean; // true only for the 4 original mock users
   stats?: {
     tripsCompleted: number;
     destinationsVisited: number;
@@ -541,6 +542,7 @@ export const MOCK_USERS: UserProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
     bio: 'Finding the best coffee shops around the world. ☕🌍',
     instants: [],
+    isFriend: true,
     isLocationShared: true,
     currentLocation: { lat: 30, lng: 45, timestamp: '1m ago', speed: 'Stopped' },
     stats: { tripsCompleted: 14, destinationsVisited: 8, reputationScore: '4.9 (24 Reviews)' },
@@ -566,6 +568,7 @@ export const MOCK_USERS: UserProfile[] = [
     avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
     bio: 'Backpacker. Usually found near a train station. 🚆',
     instants: [],
+    isFriend: true,
     isLocationShared: true,
     currentLocation: { lat: 60, lng: 60, timestamp: 'Just now', speed: 'Moving • 15 km/h' },
     stats: { tripsCompleted: 4, destinationsVisited: 12, reputationScore: '4.8 (10 Reviews)' },
@@ -589,14 +592,16 @@ export const MOCK_USERS: UserProfile[] = [
     username: 'kento_tokyo',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
     bio: 'Solo Tokyo explorer. Looking for the best ramen and hidden alleys. 🍜🇯🇵',
-    instants: []
+    instants: [],
+    isFriend: true
   },
   {
     name: 'Bob Vance',
     username: 'bob_travels',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
     bio: 'Roadtripper and landscape seeker. Camping across national parks with my trusty old campervan.',
-    instants: []
+    instants: [],
+    isFriend: true
   }
 ];
 
@@ -704,7 +709,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         const storedUsers = localStorage.getItem('instants_registered_users');
         if (storedUsers) {
           const parsed = JSON.parse(storedUsers) as UserProfile[];
-          setAllUsers(parsed);
+          // Merge: keep mock users (with isFriend flag) plus any newly registered users.
+          // Mock usernames take priority so their isFriend flag is preserved.
+          const mockUsernames = new Set(MOCK_USERS.map(u => u.username));
+          const newlyRegistered = parsed.filter(u => !mockUsernames.has(u.username));
+          const merged = [...MOCK_USERS, ...newlyRegistered];
+          // Persist the corrected list back so future loads are clean
+          localStorage.setItem('instants_registered_users', JSON.stringify(merged));
+          setAllUsers(merged);
         }
 
         const stored = localStorage.getItem('instants_current_user');

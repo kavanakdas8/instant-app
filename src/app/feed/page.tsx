@@ -513,7 +513,7 @@ export default function Feed() {
               <div className="w-full max-w-4xl mx-auto flex flex-col h-full overflow-y-auto no-scrollbar">
                 <h2 className="text-xl font-bold text-white mb-6">Your Friends</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {allUsers.filter(u => u.username !== currentUser.username).map(friend => {
+                  {allUsers.filter(u => u.username !== currentUser.username && u.isFriend).map(friend => {
                     const sorted = [currentUser.username, friend.username].sort();
                     const chatId = `${sorted[0]}-${sorted[1]}`;
 
