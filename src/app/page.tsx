@@ -84,27 +84,9 @@ export default function HomePage() {
         >
           {/* Logo */}
           <div className="flex items-center gap-2.5 text-white">
-            <Camera className="size-7 text-emerald-400"/>
             <span className="text-xl font-bold tracking-tight font-sans">
               Instants
             </span>
-          </div>
-
-          {/* Links */}
-          <div className="hidden items-center gap-8 md:flex">
-            {[
-              { name: 'Destinations', dropdown: true, href: '/feed' },
-              { name: 'Travel Groups', dropdown: false, href: '/chats' },
-              { name: 'Live Map', dropdown: false, href: '/chats' },
-              { name: 'Explore', dropdown: false, href: '/feed' },
-            ].map((link) => (
-              <Link className="group flex min-h-[40px] items-center gap-1.5 text-[14px] font-medium text-white/80 transition-colors duration-200 hover:text-white" href={link.href} key={link.name}>
-                {link.name}
-                {link.dropdown && (
-                  <ChevronDown className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-hover:rotate-180"/>
-                )}
-              </Link>
-            ))}
           </div>
 
           {/* CTA */}
@@ -127,9 +109,9 @@ export default function HomePage() {
               variants={itemVariants}
               className="will-change-transform"
             >
-              <div className="flex items-center gap-2 rounded-full bg-white px-4 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+              <div className="flex items-center gap-2 rounded-full bg-transparent border border-white/20 px-4 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-medium text-black">
+                <span className="text-xs font-medium text-white">
                   Live Moments • Unfiltered Travel
                 </span>
               </div>
@@ -151,14 +133,7 @@ export default function HomePage() {
               </motion.span>
             </motion.h1>
 
-            {/* Subtitle */}
-            <motion.p
-              variants={itemVariants}
-              className="mt-2 max-w-[580px] text-sm leading-[1.6] font-normal text-pretty text-zinc-200 will-change-transform sm:text-[18px]"
-            >
-              Share raw, unedited live moments from destinations like Mysore and Coorg. 
-              Find companions, pass vibe checks, and travel together.
-            </motion.p>
+
 
             {/* Buttons */}
             <motion.div
