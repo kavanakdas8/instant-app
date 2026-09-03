@@ -1,9 +1,48 @@
 "use client";
 
+import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
 import { ArrowRight, ChevronDown, Camera } from "lucide-react";
 
+function GlareButton({ href, children }: { href: string; children: React.ReactNode }) {
+  const buttonRef = useRef<HTMLAnchorElement>(null);
+  const [glarePos, setGlarePos] = useState<{ x: number; y: number } | null>(null);
+  const [isHovered, setIsHovered] = useState(false);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (!buttonRef.current) return;
+    const rect = buttonRef.current.getBoundingClientRect();
+    setGlarePos({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+    });
+  };
+
+  return (
+    <Link
+      href={href}
+      ref={buttonRef}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onMouseMove={handleMouseMove}
+      className="relative inline-flex min-h-[48px] w-full items-center justify-center overflow-hidden rounded-xl bg-transparent border border-white/50 px-8 py-3 text-base font-semibold text-white backdrop-blur-md transition-all duration-150 hover:bg-white/10 active:scale-95 sm:w-auto shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+    >
+      <span className="relative z-10 select-none">{children}</span>
+
+      {/* Dynamic Glare Overlay */}
+      {isHovered && glarePos && (
+        <span
+          className="pointer-events-none absolute inset-0 z-20 transition-opacity duration-300"
+          style={{
+            background: `radial-gradient(circle 120px at ${glarePos.x}px ${glarePos.y}px, rgba(255, 255, 255, 0.4), transparent 75%)`,
+            mixBlendMode: "overlay",
+          }}
+        />
+      )}
+    </Link>
+  );
+}
 export default function HomePage() {
   // Nav: drops from top with blur
   const navVariants: Variants = {
@@ -89,11 +128,6 @@ export default function HomePage() {
             </span>
           </div>
 
-          {/* CTA */}
-          <Link className="group flex min-h-10 items-center gap-2 rounded-lg bg-zinc-200 px-5 py-2 text-base font-medium text-black shadow-[inset_0_2px_0_1px_rgba(255,255,255,0.5),inset_0px_-2px_0px_1px_rgba(0,0,0,0.3)] transition-[transform,background-color] duration-150 ease-out hover:bg-white/90 active:scale-[0.96]" href="/login">
-            Get Started
-            <ArrowRight className="h-4 w-4 text-black/80 transition-transform duration-150 ease-out group-hover:translate-x-0.5"/>
-          </Link>
         </motion.nav>
 
         {/* ── Main Content ────────────────────────────────────────────────── */}
@@ -109,7 +143,7 @@ export default function HomePage() {
               variants={itemVariants}
               className="will-change-transform"
             >
-              <div className="flex items-center gap-2 rounded-full bg-transparent border border-white/20 px-4 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+              <div className="flex items-center gap-2 rounded-full bg-transparent border border-white/20 px-4 py-1">
                 <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 <span className="text-xs font-medium text-white">
                   Live Moments • Unfiltered Travel
@@ -134,18 +168,13 @@ export default function HomePage() {
             </motion.h1>
 
 
-
             {/* Buttons */}
             <motion.div
               variants={itemVariants}
               className="mt-10 flex w-full flex-col gap-4 will-change-transform sm:w-auto sm:flex-row"
             >
-              <Link className="text-md flex min-h-[48px] items-center justify-center rounded-lg bg-white px-8 py-3 font-medium text-black shadow-[inset_0_2px_2px_1px_rgba(255,255,255,0.3),inset_0px_-2px_2px_1px_rgba(0,0,0,0.1)] transition-[transform,background-color] duration-150 ease-out hover:bg-white/90 active:scale-[0.96] sm:w-auto" href="/feed">
-                Explore Live Feed
-              </Link>
-              <Link className="text-md flex min-h-[48px] items-center justify-center rounded-lg border-2 border-white/50 bg-white/5 px-8 py-3 font-medium text-white backdrop-blur-md transition-[transform,background-color,border-color] duration-150 ease-out hover:border-white/40 hover:bg-white/5 active:scale-[0.96] sm:w-auto" href="/login">
-                Sign In
-              </Link>
+              <GlareButton href="/feed">Get Started</GlareButton>
+              <GlareButton href="/login">Sign In</GlareButton>
             </motion.div>
           </motion.div>
         </main>
