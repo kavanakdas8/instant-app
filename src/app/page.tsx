@@ -1,187 +1,180 @@
 "use client";
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { Sparkles, ArrowRight, Camera, Compass, Users, ShieldCheck, Zap } from 'lucide-react';
-import Logo from '@/components/Logo';
+import Link from "next/link";
+import { motion, type Variants } from "framer-motion";
+import { ArrowRight, ChevronDown, Camera } from "lucide-react";
 
-const LOADING_STAGES = [
-  { threshold: 25, label: "Warming up camera optics & sensors...", badge: "OPTICS" },
-  { threshold: 50, label: "Discovering live moments & vibes nearby...", badge: "DISCOVERY" },
-  { threshold: 75, label: "Syncing wanderlust circles & stories...", badge: "NETWORK" },
-  { threshold: 95, label: "Calibrating real-time feed stream...", badge: "OPTIMIZING" },
-  { threshold: 100, label: "Ready to explore! Transitioning to Login...", badge: "READY" },
-];
+export default function HomePage() {
+  // Nav: drops from top with blur
+  const navVariants: Variants = {
+    hidden: { opacity: 0, y: -20, filter: 'blur(8px)' },
+    show: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: { type: 'spring', damping: 22, stiffness: 180, delay: 0.05 },
+    },
+  };
 
-export default function Home() {
-  const router = useRouter();
-  const [progress, setProgress] = useState(0);
-  const [isNavigating, setIsNavigating] = useState(false);
+  // Background: slow fade in with scale down
+  const bgVariants: Variants = {
+    hidden: { opacity: 0, scale: 1.05 },
+    show: {
+      opacity: 1,
+      scale: 1,
+      transition: { duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0 },
+    },
+  };
 
-  const goToLogin = useCallback(() => {
-    if (isNavigating) return;
-    setIsNavigating(true);
-    // Smooth transition delay
-    setTimeout(() => {
-      router.push('/login');
-    }, 400);
-  }, [isNavigating, router]);
+  // Container for stagger
+  const contentContainerVariants: Variants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: { staggerChildren: 0.15, delayChildren: 0.3 },
+    },
+  };
 
-  // Smooth loading progression
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          return 100;
-        }
-        // Smooth random increment
-        const increment = Math.floor(Math.random() * 18) + 12;
-        const next = Math.min(prev + increment, 100);
-        return next;
-      });
-    }, 190);
+  // General item rise up
+  const itemVariants: Variants = {
+    hidden: { opacity: 0, y: 20, filter: 'blur(8px)' },
+    show: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: { type: 'spring', damping: 24, stiffness: 100 },
+    },
+  };
 
-    return () => clearInterval(timer);
-  }, []);
-
-  // When progress reaches 100%, automatically transition to /login
-  useEffect(() => {
-    if (progress >= 100 && !isNavigating) {
-      const autoNavTimer = setTimeout(() => {
-        goToLogin();
-      }, 500);
-
-      return () => clearTimeout(autoNavTimer);
-    }
-  }, [progress, isNavigating, goToLogin]);
-
-  // Allow keyboard shortcuts (Enter / Space / Escape) to skip immediately to login
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
-        goToLogin();
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [goToLogin]);
-
-  // Get current active stage
-  const currentStage =
-    LOADING_STAGES.find((stage) => progress <= stage.threshold) ||
-    LOADING_STAGES[LOADING_STAGES.length - 1];
+  // Title lines: dramatic rise up
+  const titleLineVariants: Variants = {
+    hidden: { opacity: 0, y: 40, filter: 'blur(12px)' },
+    show: {
+      opacity: 1,
+      y: 0,
+      filter: 'blur(0px)',
+      transition: { type: 'spring', damping: 28, stiffness: 80, mass: 1.2 },
+    },
+  };
 
   return (
-    <div
-      className={`relative min-h-screen w-full bg-[#05060f] text-white flex flex-col justify-between items-center p-6 sm:p-10 select-none overflow-hidden transition-all duration-500 ${isNavigating ? 'opacity-0 scale-[0.98]' : 'opacity-100 scale-100'
-        }`}
-    >
-      {/* Background Animated Neon Glow Lights */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-[#FF2E93]/20 rounded-full blur-[140px] pointer-events-none animate-pulse" />
-      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-[#00F0FF]/20 rounded-full blur-[140px] pointer-events-none animate-pulse" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[520px] h-[520px] bg-[#9D4EDD]/15 rounded-full blur-[160px] pointer-events-none" />
+    <div className="relative min-h-screen w-full overflow-hidden font-sans antialiased selection:bg-white/20 selection:text-white bg-black">
+      {/* ── Background Image ──────────────────────────────────────────────── */}
+      <motion.div
+        variants={bgVariants}
+        initial="hidden"
+        animate="show"
+        className="pointer-events-none absolute inset-0 z-0 will-change-transform select-none"
+      >
+        <img
+          src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2400&auto=format&fit=crop"
+          alt="Moody midnight alpine vista with starfield"
+          className="h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/75" />
+      </motion.div>
 
-      {/* Subtle Matrix / Dot Grid Overlay */}
-      <div
-        className="absolute inset-0 opacity-[0.04] pointer-events-none"
-        style={{
-          backgroundImage: 'radial-gradient(circle at 1px 1px, #ffffff 1px, transparent 0)',
-          backgroundSize: '32px 32px'
-        }}
-      />
-
-
-
-      {/* Centerpiece Hero Section */}
-      <main className="flex flex-col items-center justify-center space-y-8 z-20 my-auto w-full max-w-md text-center">
-
-        {/* Orbital Glowing Brand Emblem */}
-        <div className="relative group cursor-pointer" onClick={goToLogin}>
-          {/* Outer Slow Counter-Rotating Dashed Orbit */}
-          <div className="absolute -inset-6 rounded-full border border-dashed border-[#00F0FF]/30 animate-spin-slow-reverse pointer-events-none" />
-
-          {/* Middle Glowing Ambient Ring */}
-          <div className="absolute -inset-3 rounded-3xl bg-gradient-to-r from-[#FF2E93] via-[#9D4EDD] to-[#00F0FF] opacity-60 blur-lg group-hover:opacity-100 transition-opacity duration-700 animate-pulse-glow" />
-
-          {/* Central Glossy Emblem */}
-          <div className="relative w-28 h-28 sm:w-32 sm:h-32 bg-slate-950/90 border border-white/20 rounded-3xl flex flex-col items-center justify-center shadow-2xl backdrop-blur-xl overflow-hidden group-hover:scale-105 transition-transform duration-500">
-            {/* Shimmer overlay sweep */}
-            <div className="absolute inset-0 bg-gradient-to-tr from-[#FF2E93]/20 via-transparent to-[#00F0FF]/20 mix-blend-screen" />
-
-            {/* Shimmer ray animation */}
-            <div className="absolute -inset-full bg-gradient-to-r from-transparent via-white/10 to-transparent rotate-45 animate-shimmer pointer-events-none" />
-
-            {/* Glowing Logo Icon */}
-            <div className="relative flex items-center justify-center">
-              <Logo className="w-16 h-16 sm:w-20 sm:h-20 text-white drop-shadow-[0_0_15px_rgba(255,46,147,0.8)]" />
-            </div>
-          </div>
-        </div>
-
-        {/* Brand Title & Tagline */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-center space-x-2">
-            <h1 className="text-3xl sm:text-4xl font-black tracking-tight bg-gradient-to-r from-white via-zinc-100 to-zinc-400 bg-clip-text text-transparent">
-              INSTANTS
-            </h1>
+      <div className="relative z-10 flex min-h-screen flex-col">
+        {/* ── Navigation ──────────────────────────────────────────────────── */}
+        <motion.nav
+          variants={navVariants}
+          initial="hidden"
+          animate="show"
+          className="flex w-full items-center justify-between px-6 py-5 sm:px-8 md:px-12 lg:px-16"
+        >
+          {/* Logo */}
+          <div className="flex items-center gap-2.5 text-white">
+            <Camera className="size-7 text-emerald-400"/>
+            <span className="text-xl font-bold tracking-tight font-sans">
+              Instants
+            </span>
           </div>
 
-          <p className="text-xs sm:text-sm text-zinc-400 max-w-xs sm:max-w-sm leading-relaxed mx-auto font-medium">
-            Live candid moments, vertical travel feeds & authentic vibe connections.
-          </p>
-        </div>
+          {/* Links */}
+          <div className="hidden items-center gap-8 md:flex">
+            {[
+              { name: 'Destinations', dropdown: true, href: '/feed' },
+              { name: 'Travel Groups', dropdown: false, href: '/chats' },
+              { name: 'Live Map', dropdown: false, href: '/chats' },
+              { name: 'Explore', dropdown: false, href: '/feed' },
+            ].map((link) => (
+              <Link className="group flex min-h-[40px] items-center gap-1.5 text-[14px] font-medium text-white/80 transition-colors duration-200 hover:text-white" href={link.href} key={link.name}>
+                {link.name}
+                {link.dropdown && (
+                  <ChevronDown className="h-3.5 w-3.5 opacity-70 transition-transform duration-200 group-hover:rotate-180"/>
+                )}
+              </Link>
+            ))}
+          </div>
 
-        {/* Modern Segmented Progress Bar & Loading Status */}
-        <div className="w-full max-w-xs sm:max-w-sm space-y-3 pt-2">
-          {/* Progress Track */}
-          <div className="relative w-full bg-black/60 border border-white/10 h-2.5 rounded-full overflow-hidden p-0.5 shadow-inner backdrop-blur-md">
-            {/* Filled Bar */}
-            <div
-              className="relative bg-gradient-to-r from-[#FF2E93] via-[#9D4EDD] to-[#00F0FF] h-full rounded-full transition-all duration-300 ease-out shadow-[0_0_12px_rgba(0,240,255,0.6)]"
-              style={{ width: `${progress}%` }}
+          {/* CTA */}
+          <Link className="group flex min-h-10 items-center gap-2 rounded-lg bg-zinc-200 px-5 py-2 text-base font-medium text-black shadow-[inset_0_2px_0_1px_rgba(255,255,255,0.5),inset_0px_-2px_0px_1px_rgba(0,0,0,0.3)] transition-[transform,background-color] duration-150 ease-out hover:bg-white/90 active:scale-[0.96]" href="/login">
+            Get Started
+            <ArrowRight className="h-4 w-4 text-black/80 transition-transform duration-150 ease-out group-hover:translate-x-0.5"/>
+          </Link>
+        </motion.nav>
+
+        {/* ── Main Content ────────────────────────────────────────────────── */}
+        <main className="flex flex-1 flex-col items-center justify-start px-6 text-center">
+          <motion.div
+            variants={contentContainerVariants}
+            initial="hidden"
+            animate="show"
+            className="flex max-w-[800px] flex-col items-center pt-12 xl:pt-20"
+          >
+            {/* Trusted / Live Badge */}
+            <motion.div
+              variants={itemVariants}
+              className="will-change-transform"
             >
-              {/* Gleam Head on Progress Bar */}
-              <div className="absolute right-0 top-0 bottom-0 w-2 bg-white rounded-full shadow-[0_0_8px_#ffffff]" />
-            </div>
-          </div>
+              <div className="flex items-center gap-2 rounded-full bg-white px-4 py-1 shadow-[0_2px_8px_rgba(0,0,0,0.15)]">
+                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="text-xs font-medium text-black">
+                  Live Moments • Unfiltered Travel
+                </span>
+              </div>
+            </motion.div>
 
-          {/* Stage Status Text & Numeric Percent */}
-          <div className="flex justify-between items-center text-xs font-mono px-1">
-            <span className="text-zinc-400 text-[11px] truncate max-w-[210px] sm:max-w-[240px] text-left">
-              {currentStage.label}
-            </span>
-            <span className="text-[#00F0FF] font-bold text-[11px] tracking-wider shrink-0">
-              {progress}%
-            </span>
-          </div>
-        </div>
+            {/* Headline */}
+            <motion.h1 className="mt-2 text-[2.75rem] leading-[1.1] font-normal tracking-[-0.02em] text-balance text-white sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5rem]">
+              <motion.span
+                variants={titleLineVariants}
+                className="block will-change-transform"
+              >
+                Turn Your Travels Into
+              </motion.span>
+              <motion.span
+                variants={titleLineVariants}
+                className="block will-change-transform bg-gradient-to-r from-emerald-400 via-teal-200 to-sky-400 bg-clip-text text-transparent"
+              >
+                Unfiltered Instants
+              </motion.span>
+            </motion.h1>
 
+            {/* Subtitle */}
+            <motion.p
+              variants={itemVariants}
+              className="mt-2 max-w-[580px] text-sm leading-[1.6] font-normal text-pretty text-zinc-200 will-change-transform sm:text-[18px]"
+            >
+              Share raw, unedited live moments from destinations like Mysore and Coorg. 
+              Find companions, pass vibe checks, and travel together.
+            </motion.p>
 
-        {/* Feature Highlights Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 pt-2 text-[10px] font-medium text-zinc-400">
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-            <Camera className="w-3 h-3 text-[#FF2E93]" />
-            <span>Candid Instants</span>
-          </div>
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-            <Compass className="w-3 h-3 text-[#00F0FF]" />
-            <span>Global Feeds</span>
-          </div>
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-lg bg-white/[0.03] border border-white/[0.06]">
-            <Users className="w-3 h-3 text-[#9D4EDD]" />
-            <span>Travel Vibes</span>
-          </div>
-        </div>
-
-      </main>
-
-      {/* Footer Branding */}
-      <footer className="w-full max-w-4xl flex flex-col sm:flex-row justify-center items-center gap-2 z-20 pt-4 border-t border-white/[0.05] text-[11px] text-zinc-600 font-medium">
-        <p className="tracking-wide">
-          © 2026 Instants App
-        </p>
-      </footer>
+            {/* Buttons */}
+            <motion.div
+              variants={itemVariants}
+              className="mt-10 flex w-full flex-col gap-4 will-change-transform sm:w-auto sm:flex-row"
+            >
+              <Link className="text-md flex min-h-[48px] items-center justify-center rounded-lg bg-white px-8 py-3 font-medium text-black shadow-[inset_0_2px_2px_1px_rgba(255,255,255,0.3),inset_0px_-2px_2px_1px_rgba(0,0,0,0.1)] transition-[transform,background-color] duration-150 ease-out hover:bg-white/90 active:scale-[0.96] sm:w-auto" href="/feed">
+                Explore Live Feed
+              </Link>
+              <Link className="text-md flex min-h-[48px] items-center justify-center rounded-lg border-2 border-white/50 bg-white/5 px-8 py-3 font-medium text-white backdrop-blur-md transition-[transform,background-color,border-color] duration-150 ease-out hover:border-white/40 hover:bg-white/5 active:scale-[0.96] sm:w-auto" href="/login">
+                Sign In
+              </Link>
+            </motion.div>
+          </motion.div>
+        </main>
+      </div>
     </div>
   );
 }
