@@ -100,13 +100,14 @@ export default function Login() {
     <div className={`relative flex items-center justify-center min-h-screen p-6 sm:p-10 lg:p-16 ${bgColor} ${textColor} transition-colors duration-300 font-sans`}>
       
       {/* Coastal Background Image & Overlay */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      <div className="absolute inset-0 z-0 overflow-hidden">
         <img
-          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop"
-          alt="Moody coastal cliffs at twilight"
-          className="absolute inset-0 h-full w-full object-cover object-center opacity-35 select-none pointer-events-none"
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e"
+          alt="Moody coastal cliffs"
+          className="h-full w-full object-cover object-center opacity-40 select-none pointer-events-none"
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-[#0B0F19]/80 to-black/90 pointer-events-none" />
+        {/* High-contrast gradient overlay to keep live map nodes and text legible */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-slate-950/70 to-black/80 pointer-events-none" />
       </div>
 
       {/* Background patterns */}
