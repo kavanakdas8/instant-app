@@ -79,51 +79,7 @@ export const LiveMapCluster = ({ theme = 'dark' }: { theme?: 'light' | 'dark' })
             <div className="absolute w-6 h-6 bg-accent-cyan/30 rounded-full animate-ping" />
             <div className="absolute w-2 h-2 bg-accent-cyan rounded-full shadow-[0_0_8px_rgba(0,240,255,0.8)]" />
 
-            {/* Floating Card */}
-            <motion.div
-              initial={{ y: 0 }}
-              animate={{ y: [-4, 4, -4] }}
-              transition={{
-                duration: 4,
-                repeat: Infinity,
-                ease: "easeInOut",
-                delay: node.delay
-              }}
-              className={`absolute ${node.cardPos} w-[140px] sm:w-44 ${isLight ? 'bg-white/90 border-slate-200 shadow-xl' : 'bg-slate-900/80 border-white/10 shadow-2xl'} backdrop-blur-md border rounded-2xl p-2 flex flex-col z-10`}
-            >
-              {/* Top Badge */}
-              <div className="flex items-center space-x-1.5 mb-1.5 px-0.5">
-                <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
-                <span className="text-[8px] sm:text-[9px] font-black tracking-wider text-red-500 uppercase">Live</span>
-                <span className={`text-[9px] sm:text-[10px] font-medium ${isLight ? 'text-slate-700' : 'text-zinc-300'} truncate`}>
-                  📍 {node.location}
-                </span>
-              </div>
 
-              {/* Media Thumbnail */}
-              <img 
-                src={node.media} 
-                alt={node.location} 
-                className={`w-full aspect-[4/3] object-cover rounded-xl mb-2 border ${isLight ? 'border-slate-200' : 'border-white/5'}`}
-              />
-
-              {/* Bottom Row */}
-              <div className="flex items-center justify-between px-0.5">
-                <div className="flex items-center space-x-1.5">
-                  <img 
-                    src={node.avatar} 
-                    alt={node.user} 
-                    className={`w-4 h-4 rounded-full object-cover border ${isLight ? 'border-slate-200' : 'border-zinc-700'}`}
-                  />
-                  <span className={`font-poppins text-[8.5px] sm:text-[9.5px] font-bold ${isLight ? 'text-slate-800' : 'text-zinc-200'} truncate max-w-[60px] sm:max-w-[75px]`}>
-                    {node.user}
-                  </span>
-                </div>
-                <span className={`font-mono text-[8px] sm:text-[9px] ${isLight ? 'text-slate-500' : 'text-slate-400'}`}>
-                  {node.time}
-                </span>
-              </div>
-            </motion.div>
           </div>
         </div>
       ))}

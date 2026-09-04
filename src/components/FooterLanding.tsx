@@ -122,7 +122,7 @@ const socialIcons = {
 
 export default function FooterLanding({
   brandName = "INSTANTS",
-  tagline = "Designing the future of web applications,\none component at a time.",
+  tagline = "Turn Your Travels Into\nUnfiltered Instants.",
   columns = defaultColumns,
   legalLinks = defaultLegalLinks,
   socials = defaultSocials,
@@ -193,7 +193,7 @@ export default function FooterLanding({
                         aria-label={social.label}
                         className="flex size-8 items-center justify-center rounded-lg border border-white/5 bg-white/5 text-zinc-400 transition-all hover:border-white/20 hover:text-white"
                       >
-                        <Icon className="size-3.5"/>
+                        <Icon className="size-3.5" />
                       </a>
                     </motion.li>
                   );

@@ -6,7 +6,6 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useApp } from '@/context/AppContext';
 import { Sun, Moon, Camera, ArrowRight, Check, AlertCircle, Sparkles, User, Image as ImageIcon } from 'lucide-react';
 import Logo from '@/components/Logo';
-import LiveMapCluster from '@/components/LiveMapCluster';
 
 const AVATAR_PRESETS = [
   'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=150&q=80',
@@ -108,19 +107,17 @@ export default function Signup() {
   const dividerBorder = isLight ? 'border-slate-100' : 'border-slate-800';
 
   return (
-    <div className={`relative flex-1 flex flex-col lg:flex-row min-h-screen ${bgColor} ${textColor} transition-colors duration-300 font-sans`}>
+    <div className={`relative flex items-center justify-center min-h-screen p-6 sm:p-10 lg:p-16 ${bgColor} ${textColor} transition-colors duration-300 font-sans`}>
       
-      {/* Full Page Grid Background */}
-      <div 
-        className={`absolute inset-0 pointer-events-none z-0 ${isLight ? 'opacity-10' : 'opacity-[0.05]'}`}
-        style={{
-          backgroundImage: `
-            linear-gradient(to right, ${isLight ? '#000000' : '#ffffff'} 1px, transparent 1px),
-            linear-gradient(to bottom, ${isLight ? '#000000' : '#ffffff'} 1px, transparent 1px)
-          `,
-          backgroundSize: '40px 40px'
-        }}
-      />
+      {/* Coastal Background Image & Overlay */}
+      <div className="absolute inset-0 z-0 pointer-events-none">
+        <img
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=2000&auto=format&fit=crop"
+          alt="Moody coastal cliffs at twilight"
+          className="absolute inset-0 h-full w-full object-cover object-center opacity-35 select-none pointer-events-none"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-[#0B0F19]/80 to-black/90 pointer-events-none" />
+      </div>
       <Suspense fallback={null}>
         <SignupParamsHandler
           onEmailFound={(emailVal) => {
@@ -135,34 +132,9 @@ export default function Signup() {
         />
       </Suspense>
 
-      {/* LEFT COLUMN: Reskinned Brand Image Area with Live Map Cluster */}
-      <div className="w-full lg:w-[45%] xl:w-[45%] min-h-[320px] lg:min-h-screen flex flex-col justify-between p-8 sm:p-12 relative overflow-hidden transition-colors duration-300 z-10">
-        {/* Brand Logo & Name */}
-        <div className="flex items-center z-10 space-x-2">
-          <Logo className={`w-8 h-8 drop-shadow-md ${isLight ? 'text-slate-900' : 'text-white'}`} />
-          <span className={`text-lg font-black tracking-wider uppercase ${isLight ? 'text-slate-900' : 'text-white'}`}>Instants</span>
-        </div>
-
-        {/* Interactive Live Map Cluster */}
-        <LiveMapCluster theme={theme} />
-
-        {/* Visual Brand Text */}
-        <div className="z-10 text-left">
-          <h2 className={`text-3xl sm:text-4xl font-black tracking-tight mb-3 ${isLight ? 'text-slate-900' : 'text-white'}`}>
-            Start sharing real life on Instants.
-          </h2>
-          <p className={`text-xs sm:text-sm max-w-sm leading-relaxed ${isLight ? 'text-slate-600' : 'text-zinc-300'}`}>
-            Create candid logs, invite your closest friends, and join travel vibes that match yours.
-          </p>
-        </div>
-
-        {/* Ambient background decoration */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] bg-accent-purple/10 rounded-full blur-[100px] pointer-events-none" />
-      </div>
-
-      {/* RIGHT COLUMN: Interactive Registration / Camera Setup Form Area */}
-      <div className="relative flex-1 flex items-center justify-center p-6 sm:p-10 lg:p-16 min-h-screen z-10">
-        <div className={`w-full max-w-[480px] p-6 sm:p-8 rounded-3xl border shadow-md ${cardBg} transition-all duration-300`}>
+      {/* Form Area */}
+      <div className="relative z-10 w-full flex justify-center">
+        <div className={`w-full max-w-[480px] p-6 sm:p-8 rounded-3xl shadow-md bg-[#050508] border border-white/10 transition-all duration-300`}>
           <div>
             <div className="flex justify-between items-center mb-6">
               <div>
