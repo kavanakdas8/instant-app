@@ -28,30 +28,30 @@ export interface FooterSocial {
 
 const defaultColumns: FooterColumn[] = [
   {
-    title: "Destinations",
+    title: "Product",
     links: [
-      { label: "Coorg Trails", href: "/feed" },
-      { label: "Mysore Heritage", href: "/feed" },
-      { label: "Gokarna Coast", href: "/feed" },
-      { label: "Western Ghats", href: "/feed" },
+      { label: "Features", href: "#" },
+      { label: "Integrations", href: "#" },
+      { label: "Pricing", href: "#" },
+      { label: "Changelog", href: "#" },
     ],
   },
   {
-    title: "Community",
+    title: "Company",
     links: [
-      { label: "Find Travel Buddies", href: "/chats" },
-      { label: "Group Vibe Checks", href: "/chats" },
-      { label: "Live Route Maps", href: "/chats" },
-      { label: "Travel Passports", href: "/profile" },
+      { label: "About Us", href: "#" },
+      { label: "Careers", href: "#" },
+      { label: "Contact", href: "#" },
+      { label: "Partners", href: "#" },
     ],
   },
   {
-    title: "App",
+    title: "Resources",
     links: [
-      { label: "Live Capture", href: "/capture" },
-      { label: "Explore Feed", href: "/feed" },
-      { label: "Activity Stream", href: "/notifications" },
-      { label: "Safety Guidelines", href: "#" },
+      { label: "Blog", href: "#" },
+      { label: "Documentation", href: "#" },
+      { label: "Help Center", href: "#" },
+      { label: "Community", href: "#" },
     ],
   },
 ];
@@ -122,7 +122,7 @@ const socialIcons = {
 
 export default function FooterLanding({
   brandName = "INSTANTS",
-  tagline = "Share unfiltered moments, find travel companions,\nand explore destinations together.",
+  tagline = "Designing the future of web applications,\none component at a time.",
   columns = defaultColumns,
   legalLinks = defaultLegalLinks,
   socials = defaultSocials,
@@ -130,16 +130,7 @@ export default function FooterLanding({
   backgroundImage = "https://assets.watermelon.sh/footer-16-bg.avif",
 }) {
   return (
-    <footer className="relative w-full overflow-hidden bg-black font-sans text-zinc-100 antialiased border-t border-white/5">
-      <div
-        className="absolute inset-0 z-0 bg-cover bg-center opacity-40 sm:-translate-y-16"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
-        aria-hidden="true"
-      />
-      <div
-        className="absolute inset-0 bg-gradient-to-b from-black via-black/80 to-black z-0"
-        aria-hidden="true"
-      />
+    <footer className="relative w-full overflow-hidden font-sans text-zinc-100 antialiased border-t border-white/5">
 
       <motion.div
         variants={sectionVariants}
@@ -148,46 +139,14 @@ export default function FooterLanding({
         viewport={{ once: true, amount: 0.2 }}
         className="relative z-10 mx-auto flex min-h-[580px] flex-col justify-end pt-16 sm:min-h-[640px] lg:min-h-[740px]"
       >
-        {/* Giant Watermark Background */}
-        <motion.div
-          variants={wordmarkVariants}
-          className="pointer-events-none absolute top-[30%] left-1/2 flex w-[118vw] -translate-x-1/2 justify-center overflow-hidden sm:top-[16%] lg:top-[8%]"
-          aria-hidden="true"
-        >
-          <svg
-            className="h-auto w-full select-none opacity-25"
-            viewBox={`0 0 ${Math.max(brandName.length * 90, 400)} 160`}
-            preserveAspectRatio="xMidYMid meet"
-          >
-            <defs>
-              <linearGradient id="brandGrad" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#71717a" />
-                <stop offset="100%" stopColor="#18181b" />
-              </linearGradient>
-            </defs>
-            <text
-              x="50%"
-              y="50%"
-              dominantBaseline="alphabetic"
-              textAnchor="middle"
-              textLength="85%"
-              lengthAdjust="spacing"
-              className="font-sans font-black tracking-tighter uppercase"
-              fill="url(#brandGrad)"
-              fontSize="110"
-            >
-              {brandName}
-            </text>
-          </svg>
-        </motion.div>
+
 
         {/* Content Container */}
-        <div className="relative z-10 border-t border-white/10 bg-black/60 px-6 pt-10 pb-8 backdrop-blur-md sm:px-12 sm:pt-12 sm:pb-10 lg:pt-14">
+        <div className="relative z-10 px-6 pt-10 pb-8 sm:px-12 sm:pt-12 sm:pb-10 lg:pt-14">
           <div className="mx-auto max-w-7xl grid gap-10 lg:grid-cols-[minmax(220px,1.2fr)_minmax(500px,1fr)] lg:gap-x-20">
             <motion.div variants={riseVariants} className="max-w-xl">
               <Link className="group inline-flex items-center gap-2.5 text-white transition-opacity hover:opacity-80" href="/feed">
-                <Camera className="size-6 text-emerald-400"/>
-                <span className="text-xl font-bold tracking-tight">Instants</span>
+                <span className="text-xl font-bold tracking-tight font-sans">Instants</span>
               </Link>
               <p className="mt-4 text-sm leading-relaxed text-zinc-400 whitespace-pre-line">
                 {tagline}

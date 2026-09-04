@@ -54,17 +54,6 @@ export default function HeroLanding() {
       transition: { type: 'spring', damping: 22, stiffness: 180, delay: 0.05 },
     },
   };
-
-  // Background: slow fade in with scale down
-  const bgVariants: Variants = {
-    hidden: { opacity: 0, scale: 1.05 },
-    show: {
-      opacity: 1,
-      scale: 1,
-      transition: { duration: 1.8, ease: [0.22, 1, 0.36, 1], delay: 0 },
-    },
-  };
-
   // Container for stagger
   const contentContainerVariants: Variants = {
     hidden: { opacity: 0 },
@@ -97,22 +86,7 @@ export default function HeroLanding() {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden font-sans antialiased selection:bg-white/20 selection:text-white bg-black">
-      {/* ── Background Image ──────────────────────────────────────────────── */}
-      <motion.div
-        variants={bgVariants}
-        initial="hidden"
-        animate="show"
-        className="pointer-events-none absolute inset-0 z-0 will-change-transform select-none"
-      >
-        <img
-          src="https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=2400&auto=format&fit=crop"
-          alt="Moody midnight alpine vista with starfield"
-          className="h-full w-full object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/75" />
-      </motion.div>
-
+    <div className="relative min-h-screen w-full overflow-hidden font-sans antialiased selection:bg-white/20 selection:text-white">
       <div className="relative z-10 flex min-h-screen flex-col">
         {/* ── Navigation ──────────────────────────────────────────────────── */}
         <motion.nav
