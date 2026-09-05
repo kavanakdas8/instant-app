@@ -32,6 +32,7 @@ export default function Feed() {
 
   // Desktop states
   const [activeDeckIndex, setActiveDeckIndex] = useState(0);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const activeVideoRef = useRef<HTMLVideoElement>(null);
   const [isPlayingActiveCard, setIsPlayingActiveCard] = useState(true);
   const [activeTab, setActiveTab] = useState<'explore' | 'friends'>('explore');
@@ -386,13 +387,20 @@ export default function Feed() {
       {/* ============================================================== */}
       <div className="hidden md:flex min-h-screen w-full bg-[#000000] text-white">
         {/* Left Column (Sidebar Navigation — Fixed, 260px width) */}
-        <aside className="w-[260px] bg-[#000000] border-r border-[#27272A] p-6 flex flex-col justify-between fixed top-0 bottom-0 left-0 z-30">
+        <aside className={`w-[260px] bg-[#000000] border-r border-[#27272A] p-6 flex flex-col justify-between fixed top-0 bottom-0 left-0 z-40 transition-transform duration-300 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
           <div className="flex flex-col">
             {/* Brand Header */}
             <div className="mb-8 flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
               </div>
+              <button 
+                onClick={() => setIsSidebarCollapsed(true)}
+                className="text-zinc-500 hover:text-white p-2 rounded-lg hover:bg-zinc-900 transition-colors font-bold text-lg leading-none"
+                title="Collapse Sidebar"
+              >
+                &lt;&lt;
+              </button>
             </div>
 
             {/* Navigation Links */}
@@ -482,7 +490,17 @@ export default function Feed() {
         </aside>
 
         {/* Main Content Space */}
-        <div className="flex-1 ml-[260px] flex flex-col bg-[#000000] relative min-h-screen overflow-hidden">
+        <div className={`flex-1 flex flex-col bg-[#000000] relative min-h-screen overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-0' : 'ml-[260px]'}`}>
+
+          {isSidebarCollapsed && (
+            <button
+              onClick={() => setIsSidebarCollapsed(false)}
+              className="absolute left-6 top-10 z-50 text-zinc-400 hover:text-white font-bold p-3 bg-zinc-900/80 backdrop-blur-md border border-zinc-800 rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105"
+              title="Expand Sidebar"
+            >
+              &gt;&gt;
+            </button>
+          )}
 
           {/* Destination Search Bar */}
           <div className="w-full pt-8 pb-4 flex items-center px-8 flex-shrink-0 z-20">
@@ -551,7 +569,7 @@ export default function Feed() {
 
 
                     {/* Stacked Cards */}
-                    <div className="relative w-full aspect-[4/5] max-w-[300px] flex justify-center items-center select-none">
+                    <div className={`relative w-full aspect-[4/5] ${isSidebarCollapsed ? 'max-w-[420px]' : 'max-w-[300px]'} flex justify-center items-center select-none transition-all duration-300`}>
                       {/* Third Card */}
                       {displayFeed.length > 2 && (
                         <div className="absolute -top-4 left-4 w-full h-full scale-[0.92] bg-zinc-950 border border-zinc-800 rounded-[40px] overflow-hidden z-0 pointer-events-none transform rotate-3 shadow-md">
@@ -661,7 +679,7 @@ export default function Feed() {
 
                     {/* Minimalist Action Controls */}
                     {activeCard && (
-                      <div className="w-full max-w-[300px] flex items-center justify-between mt-5 px-1">
+                      <div className={`w-full ${isSidebarCollapsed ? 'max-w-[420px]' : 'max-w-[300px]'} flex items-center justify-between mt-5 px-1 transition-all duration-300`}>
                         {/* Comment Bar */}
                         <div
                           onClick={() => handleOpenComments(activeCard.id)}
