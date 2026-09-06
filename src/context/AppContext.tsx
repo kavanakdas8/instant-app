@@ -182,75 +182,10 @@ interface AppContextType {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-// High-quality vertical media from Unsplash & Mixkit (free standard URLs)
-const MOCK_FEED: Instant[] = [
-  {
-    id: 'f1',
-    url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?q=80&w=600&auto=format&fit=crop', // beautiful beach sunset
-    type: 'image',
-    timestamp: '2 hours ago',
-    caption: 'Waking up to these coastlines is something else 🌊🇮🇹',
-    author: 'Emma Watson',
-    authorUsername: 'emma_in_europe',
-    authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-    likes: 342,
-    likedByCurrentUser: false,
-    audience: 'Public',
-    destination: 'Amalfi Coast',
-    region: 'Europe',
-    country: 'Italy',
-    hasOpenGroup: true,
-    groupId: 'backpackers-europe',
-    comments: [
-      {
-        id: 'c1',
-        author: 'Kento Sato',
-        authorUsername: 'kento_tokyo',
-        authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-        text: 'This is absolute paradise! Added to my checklist.',
-        timestamp: '1 hour ago'
-      },
-      {
-        id: 'c2',
-        author: 'Bob Vance',
-        authorUsername: 'bob_travels',
-        authorAvatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=150&q=80',
-        text: 'Are you staying in Positano or Amalfi town?',
-        timestamp: '45 mins ago'
-      }
-    ]
-  },
-  {
-    id: 'f2',
-    url: 'https://assets.mixkit.co/videos/preview/mixkit-urban-tokyo-street-with-neon-lights-at-night-42247-large.mp4', // vertical layout preview
-    type: 'video',
-    timestamp: '5 hours ago',
-    caption: 'Neon rain hits different 🌧️🏙️🇯🇵',
-    author: 'Kento Sato',
-    authorUsername: 'kento_tokyo',
-    authorAvatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80',
-    likes: 856,
-    likedByCurrentUser: true,
-    audience: 'Public',
-    destination: 'Tokyo',
-    region: 'Asia',
-    country: 'Japan',
-    hasOpenGroup: true,
-    groupId: 'wanderlust-photographers',
-    comments: [
-      {
-        id: 'c3',
-        author: 'Emma Watson',
-        authorUsername: 'emma_in_europe',
-        authorAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=150&q=80',
-        text: 'Wow, the colors in this video are incredible!',
-        timestamp: '3 hours ago'
-      }
-    ]
-  },
+export const MOCK_FEED: Instant[] = [
   {
     id: 'f3',
-    url: 'https://images.unsplash.com/photo-1527838832700-50592524df75?q=80&w=600&auto=format&fit=crop', // Cappadocia hot air balloons
+    url: 'https://images.unsplash.com/photo-1527838832700-50592524df75?q=80&w=600&auto=format&fit=crop',
     type: 'image',
     timestamp: '1 day ago',
     caption: 'Sunrises here are magical. Truly felt like another planet. 🎈✨',
@@ -283,12 +218,12 @@ const MOCK_FEED: Instant[] = [
     region: 'Oceania',
     country: 'Australia',
     hasOpenGroup: true,
-    groupId: 'backpackers-europe', // Not Europe, but keeps it simple
+    groupId: 'backpackers-europe',
     comments: []
   },
   {
     id: 'f5',
-    url: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=600&auto=format&fit=crop', // Positano Italy
+    url: 'https://images.unsplash.com/photo-1516483638261-f4dbaf036963?q=80&w=600&auto=format&fit=crop',
     type: 'image',
     timestamp: '2 days ago',
     caption: 'Breathtaking views. 🍝',
@@ -306,7 +241,7 @@ const MOCK_FEED: Instant[] = [
   },
   {
     id: 'f6',
-    url: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=600&auto=format&fit=crop', // Dubai Desert
+    url: 'https://images.unsplash.com/photo-1518684079-3c830dcef090?q=80&w=600&auto=format&fit=crop',
     type: 'image',
     timestamp: '3 days ago',
     caption: 'Desert safari! 🐪',
@@ -325,7 +260,7 @@ const MOCK_FEED: Instant[] = [
   },
   {
     id: 'f7',
-    url: 'https://images.unsplash.com/photo-1500835595397-b0db40478b03?q=80&w=600&auto=format&fit=crop', // Swiss Alps
+    url: 'https://images.unsplash.com/photo-1500835595397-b0db40478b03?q=80&w=600&auto=format&fit=crop',
     type: 'image',
     timestamp: '3 days ago',
     caption: 'The mountains are calling. 🏔️',
@@ -343,7 +278,7 @@ const MOCK_FEED: Instant[] = [
   },
   {
     id: 'f8',
-    url: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?q=80&w=600&auto=format&fit=crop', // Kyoto Fushimi Inari
+    url: 'https://images.unsplash.com/photo-1524413840807-0c3cb6fa808d?q=80&w=600&auto=format&fit=crop',
     type: 'image',
     timestamp: '4 days ago',
     caption: 'Inari gates. Magic. ⛩️',
@@ -362,7 +297,7 @@ const MOCK_FEED: Instant[] = [
   },
   {
     id: 'f9',
-    url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80', // Arizona road trip
+    url: 'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?auto=format&fit=crop&w=600&q=80',
     type: 'image',
     timestamp: '5 days ago',
     caption: 'Roadtrip vibes! 🚐',
@@ -376,12 +311,12 @@ const MOCK_FEED: Instant[] = [
     region: 'North America',
     country: 'USA',
     hasOpenGroup: true,
-    groupId: 'bali-digital-nomads', // Uses existing mock group
+    groupId: 'bali-digital-nomads',
     comments: []
   },
   {
     id: 'f10',
-    url: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80', // Santorini sunset
+    url: 'https://images.unsplash.com/photo-1533105079780-92b9be482077?auto=format&fit=crop&w=600&q=80',
     type: 'image',
     timestamp: '1 week ago',
     caption: 'Sunset over the Aegean. Unreal. 🌅',

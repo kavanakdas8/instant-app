@@ -113,7 +113,7 @@ export default function ExploreDeckCarousel({
         aria-label="Previous destination card"
         className="absolute left-4 md:left-8 z-40 p-3 rounded-full bg-black/60 border border-white/10 text-white/80 hover:text-white hover:bg-black/90 hover:scale-105 active:scale-95 transition-all backdrop-blur-md"
       >
-        <ChevronLeft className="w-5 h-5"/>
+        <ChevronLeft className="w-5 h-5" />
       </button>
 
       <button
@@ -122,7 +122,7 @@ export default function ExploreDeckCarousel({
         aria-label="Next destination card"
         className="absolute right-4 md:right-8 z-40 p-3 rounded-full bg-black/60 border border-white/10 text-white/80 hover:text-white hover:bg-black/90 hover:scale-105 active:scale-95 transition-all backdrop-blur-md"
       >
-        <ChevronRight className="w-5 h-5"/>
+        <ChevronRight className="w-5 h-5" />
       </button>
 
       {/* Cards Canvas */}
@@ -169,7 +169,7 @@ export default function ExploreDeckCarousel({
               {/* Top Location Pill */}
               {slide.location && (
                 <div className="absolute top-4 left-4 z-20 flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-black/70 backdrop-blur-md border border-emerald-500/30 text-emerald-400 text-xs font-mono">
-                  <MapPin className="w-3.5 h-3.5"/>
+                  <MapPin className="w-3.5 h-3.5" />
                   <span>{slide.location}</span>
                 </div>
               )}
@@ -181,12 +181,7 @@ export default function ExploreDeckCarousel({
                     {slide.title}
                   </h3>
                 )}
-                {isActive && (
-                  <div className="flex items-center gap-1.5 mt-1.5 text-xs text-zinc-400 font-mono">
-                    <Sparkles className="w-3.5 h-3.5 text-emerald-400"/>
-                    <span>Tap to view destination deck</span>
-                  </div>
-                )}
+
               </div>
             </motion.div>
           );
@@ -200,11 +195,10 @@ export default function ExploreDeckCarousel({
             key={i}
             onClick={() => setCurrentIndex(i)}
             aria-label={`Jump to slide ${i + 1}`}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === currentIndex
-                ? "w-6 bg-emerald-400"
-                : "w-1.5 bg-white/20 hover:bg-white/40"
-            }`}
+            className={`h-1.5 rounded-full transition-all duration-300 ${i === currentIndex
+              ? "w-6 bg-emerald-400"
+              : "w-1.5 bg-white/20 hover:bg-white/40"
+              }`}
           />
         ))}
       </div>
