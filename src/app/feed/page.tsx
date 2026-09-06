@@ -10,6 +10,7 @@ import {
   Compass, MessageSquare, Camera, ChevronLeft, ChevronRight, MoreHorizontal, Bell, Sparkles, UserCheck, Users, PlusSquare, Search, X, Settings, MapPin, LogOut
 } from 'lucide-react';
 import Drawer from '@/components/Drawer';
+import ExploreDeckCarousel from '@/components/ExploreDeckCarousel';
 
 export default function Feed() {
   const router = useRouter();
@@ -564,155 +565,8 @@ export default function Feed() {
               <div className="flex-1 flex h-full justify-center lg:justify-start w-full">
 
                 {/* Stacked Cards Column */}
-                <div className={`flex flex-col items-center justify-center transition-all duration-500 ease-in-out h-full ${commentOpen ? 'flex-1 xl:ml-24' : 'w-full max-w-3xl'}`}>
-                  <div className="w-full max-w-[380px] flex flex-col items-center justify-center relative h-full">
-
-
-                    {/* Stacked Cards */}
-                    <div className={`relative w-full aspect-[4/5] ${isSidebarCollapsed ? 'max-w-[420px]' : 'max-w-[300px]'} flex justify-center items-center select-none transition-all duration-300`}>
-                      {/* Third Card */}
-                      {displayFeed.length > 2 && (
-                        <div className="absolute -top-4 left-4 w-full h-full scale-[0.92] bg-zinc-950 border border-zinc-800 rounded-[40px] overflow-hidden z-0 pointer-events-none transform rotate-3 shadow-md">
-                          {displayFeed[(activeDeckIndex + 2) % displayFeed.length].type === 'video' ? (
-                            <video src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
-                          ) : (
-                            <img src={displayFeed[(activeDeckIndex + 2) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.4]" />
-                          )}
-                        </div>
-                      )}
-
-                      {/* Second Card */}
-                      {displayFeed.length > 1 && (
-                        <div className="absolute -top-2 left-1 w-full h-full scale-[0.96] bg-zinc-950 border border-zinc-800 rounded-[48px] overflow-hidden z-10 pointer-events-none transform -rotate-2 shadow-lg">
-                          {displayFeed[(activeDeckIndex + 1) % displayFeed.length].type === 'video' ? (
-                            <video src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
-                          ) : (
-                            <img src={displayFeed[(activeDeckIndex + 1) % displayFeed.length].url} className="w-full h-full object-cover brightness-[0.6]" />
-                          )}
-                        </div>
-                      )}
-
-                      {/* Top Active Card */}
-                      <AnimatePresence mode="popLayout">
-                        {activeCard && (
-                          <motion.div
-                            key={activeCard.id}
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                            transition={{ duration: 0.3 }}
-                            className="w-full h-full bg-zinc-950 border border-zinc-900 rounded-[48px] relative overflow-hidden z-20 shadow-2xl flex flex-col justify-center animate-fade-in-up"
-                          >
-                            {/* Media content */}
-                            {activeCard.type === 'video' ? (
-                              <div className="w-full h-full relative cursor-pointer" onClick={togglePlayActiveCard}>
-                                <video
-                                  ref={activeVideoRef}
-                                  src={activeCard.url}
-                                  loop
-                                  muted={muted}
-                                  autoPlay
-                                  playsInline
-                                  className="w-full h-full object-cover"
-                                />
-                                {!isPlayingActiveCard && (
-                                  <div className="absolute inset-0 flex justify-center items-center bg-black/20">
-                                    <div className="w-12 h-12 bg-black/45 rounded-full flex items-center justify-center backdrop-blur-xs">
-                                      <div className="w-0 h-0 border-t-8 border-t-transparent border-l-[14px] border-l-white border-b-8 border-b-transparent ml-1" />
-                                    </div>
-                                  </div>
-                                )}
-                              </div>
-                            ) : (
-                              <img
-                                src={activeCard.url}
-                                alt={activeCard.caption || "Travel capture"}
-                                className="w-full h-full object-cover"
-                              />
-                            )}
-
-                            {/* Left Navigation Chevron Area */}
-                            <div className="absolute left-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handlePrevCard} />
-
-                            {/* Right Navigation Chevron Area */}
-                            <div className="absolute right-0 top-0 bottom-0 w-1/4 z-30 cursor-pointer" onClick={handleNextCard} />
-
-                            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
-                            <div className="absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent pointer-events-none" />
-
-                            {/* Top Info Overlay */}
-                            <div className="absolute left-5 top-5 z-20 flex flex-col items-start space-y-3 drop-shadow-md">
-                              {activeCard.destination && (
-                                <div
-                                  onClick={(e) => { e.stopPropagation(); handleSearchChange(activeCard.destination!); }}
-                                  className="bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 flex items-center space-x-1.5 cursor-pointer hover:bg-black/60 transition-colors shadow-lg"
-                                >
-                                  <MapPin className="w-3 h-3 text-white" />
-                                  <span className="text-[11px] font-bold text-white uppercase tracking-wider font-mono">{activeCard.destination}</span>
-                                </div>
-                              )}
-                              <div className="flex items-center space-x-3">
-                                <img
-                                  src={activeCard.authorAvatar}
-                                  alt={activeCard.authorUsername}
-                                  className="w-8 h-8 rounded-full object-cover border border-zinc-800 shadow-sm"
-                                />
-                                <div className="flex flex-col">
-                                  <h3 className="text-xs font-black text-white leading-tight">@{activeCard.authorUsername}</h3>
-                                </div>
-                              </div>
-                            </div>
-
-                            {/* Bottom Info Overlay */}
-                            <div className="absolute left-5 right-5 bottom-5 z-20 text-left drop-shadow-md">
-                              {activeCard.caption && (
-                                <p className="text-xs font-medium text-white line-clamp-2 mb-1.5">
-                                  {activeCard.caption}
-                                </p>
-                              )}
-                              <p className="text-[10px] text-zinc-300 font-bold font-mono">{activeCard.timestamp}</p>
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-
-                    {/* Minimalist Action Controls */}
-                    {activeCard && (
-                      <div className={`w-full ${isSidebarCollapsed ? 'max-w-[420px]' : 'max-w-[300px]'} flex items-center justify-between mt-5 px-1 transition-all duration-300`}>
-                        {/* Comment Bar */}
-                        <div
-                          onClick={() => handleOpenComments(activeCard.id)}
-                          className="flex-1 mr-3 bg-[#18181B] border border-[#27272A] rounded-full py-3 px-4 flex items-center justify-between cursor-pointer active:scale-[0.98] transition-transform shadow-sm hover:bg-zinc-900/80"
-                        >
-                          <span className="text-sm font-medium text-zinc-400">Type a comment...</span>
-                          <div className="flex items-center space-x-1.5 text-zinc-500 bg-[#27272A] px-2.5 py-1 rounded-full">
-                            <MessageCircle className="w-3.5 h-3.5" />
-                            <span className="text-[11px] font-bold font-mono">{activeCard.comments?.length || 0}</span>
-                          </div>
-                        </div>
-
-                        {/* Share Icon Button */}
-                        <button
-                          onClick={() => handleShare(activeCard)}
-                          className="w-[54px] h-[54px] flex-shrink-0 bg-[#18181B] border border-[#27272A] rounded-full flex items-center justify-center text-zinc-400 active:scale-95 transition-all hover:bg-zinc-900/80 shadow-sm"
-                        >
-                          <Send className="w-5 h-5" />
-                        </button>
-
-                        {/* Request to Join Button */}
-                        {activeCard.hasOpenGroup && (
-                          <button
-                            onClick={() => handleOpenJoinModal(activeCard)}
-                            className="ml-3 h-[54px] px-6 bg-gradient-to-r from-accent-pink to-accent-cyan text-black font-black rounded-full shadow-lg hover:shadow-accent-pink/20 active:scale-95 transition-all flex items-center justify-center flex-shrink-0"
-                          >
-                            Join Trip
-                          </button>
-                        )}
-                      </div>
-                    )}
-
-                  </div>
+                <div className={`flex flex-col items-center justify-center transition-all duration-500 ease-in-out h-full ${commentOpen ? 'flex-1 xl:ml-24' : 'w-full max-w-5xl'}`}>
+                  <ExploreDeckCarousel />
                 </div>
 
                 {/* Right Side Comments Panel (Desktop) */}
