@@ -129,7 +129,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                         type="email"
                         placeholder="alex@company.io"
                         required
-                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
+                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
                       />
                     </div>
                   </div>
@@ -144,7 +144,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                         type="password"
                         placeholder="••••••••"
                         required
-                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
+                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
                       />
                     </div>
                   </div>
@@ -153,13 +153,13 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                     <label className="flex items-center gap-2 text-zinc-400 cursor-pointer">
                       <input
                         type="checkbox"
-                        className="rounded border-white/10 bg-white/5 accent-emerald-500"
+                        className="rounded border-white/10 bg-white/5 accent-rose-500"
                       />
                       Remember me
                     </label>
                     <a
                       href="#"
-                      className="text-emerald-400 hover:text-emerald-300 transition-colors"
+                      className="text-rose-400 hover:text-rose-300 transition-colors"
                     >
                       Forgot password?
                     </a>
@@ -167,7 +167,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
 
                   <button
                     type="submit"
-                    className="h-11 w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-transform active:scale-[0.98]"
+                    className="h-11 w-full rounded-xl bg-rose-500 hover:bg-rose-400 text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(244,63,94,0.3)] transition-transform active:scale-[0.98]"
                   >
                     Sign in to Instants
                     <MdArrowForward className="h-4 w-4" />
@@ -179,7 +179,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                   <button
                     type="button"
                     onClick={toggleMode}
-                    className="text-emerald-400 hover:text-emerald-300 font-medium hover:underline transition-colors ml-1"
+                    className="text-rose-400 hover:text-rose-300 font-medium hover:underline transition-colors ml-1"
                   >
                     Sign up
                   </button>
@@ -245,7 +245,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                           type="text"
                           placeholder="Alex"
                           required
-                          className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
+                          className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
                         />
                       </div>
                     </div>
@@ -259,7 +259,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                           type="text"
                           placeholder="Rivera"
                           required
-                          className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
+                          className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
                         />
                       </div>
                     </div>
@@ -275,7 +275,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                         type="email"
                         placeholder="alex@company.io"
                         required
-                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
+                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
                       />
                     </div>
                   </div>
@@ -291,7 +291,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                         placeholder="Min. 8 characters"
                         minLength={8}
                         required
-                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-emerald-500/60 focus:ring-1 focus:ring-emerald-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
+                        className="w-full h-11 bg-white/[0.03] border border-white/10 focus:border-rose-500/60 focus:ring-1 focus:ring-rose-500/40 rounded-xl text-sm text-white placeholder:text-zinc-600 pl-10 pr-3 transition-colors outline-none"
                       />
                     </div>
                     <p className="text-[11px] text-zinc-500">
@@ -301,7 +301,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
 
                   <button
                     type="submit"
-                    className="h-11 w-full rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-transform active:scale-[0.98]"
+                    className="h-11 w-full rounded-xl bg-rose-500 hover:bg-rose-400 text-black font-semibold text-sm flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(244,63,94,0.3)] transition-transform active:scale-[0.98]"
                   >
                     Get started for free
                     <MdArrowForward className="h-4 w-4" />
@@ -313,7 +313,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                   <button
                     type="button"
                     onClick={toggleMode}
-                    className="text-emerald-400 hover:text-emerald-300 font-medium hover:underline transition-colors ml-1"
+                    className="text-rose-400 hover:text-rose-300 font-medium hover:underline transition-colors ml-1"
                   >
                     Log in
                   </button>
