@@ -3,11 +3,12 @@ import "./globals.css";
 import { AppProvider } from "@/context/AppContext";
 import MobileContainer from "@/components/MobileContainer";
 import Navigation from "@/components/Navigation";
-import { Inter, JetBrains_Mono } from 'next/font/google';
+import { Poppins, JetBrains_Mono } from 'next/font/google';
 
-const inter = Inter({
+const poppins = Poppins({
+  weight: ['400', '500', '600', '700'],
   subsets: ['latin'],
-  variable: '--font-inter'
+  variable: '--font-poppins'
 });
 
 const jetbrainsMono = JetBrains_Mono({
@@ -35,7 +36,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${jetbrainsMono.variable}`}>
+    <html lang="en" className={`${poppins.variable} ${jetbrainsMono.variable}`}>
       <body className="bg-black text-white antialiased font-sans">
         <AppProvider>
           <MobileContainer>

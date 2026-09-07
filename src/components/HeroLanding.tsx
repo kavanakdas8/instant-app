@@ -112,18 +112,7 @@ export default function HeroLanding() {
             animate="show"
             className="flex max-w-[800px] flex-col items-center pt-12 xl:pt-20"
           >
-            {/* Trusted / Live Badge */}
-            <motion.div
-              variants={itemVariants}
-              className="will-change-transform"
-            >
-              <div className="flex items-center gap-2 rounded-full bg-transparent border border-white/20 px-4 py-1">
-                <span className="size-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span className="text-xs font-medium text-white">
-                  Live Moments • Unfiltered Travel
-                </span>
-              </div>
-            </motion.div>
+
 
             {/* Headline */}
             <motion.h1 className="mt-2 text-[2.75rem] leading-[1.1] font-normal tracking-[-0.02em] text-balance text-white sm:text-[3.5rem] md:text-[4.5rem] lg:text-[5rem]">

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { MdPerson, MdEmail, MdLock, MdArrowForward } from "react-icons/md";
 import { FaGoogle, FaApple } from "react-icons/fa";
+import { useApp } from "@/context/AppContext";
 
 interface AuthCardProps {
   initialMode?: "signin" | "signup";
@@ -13,6 +14,7 @@ interface AuthCardProps {
 
 export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
   const router = useRouter();
+  const { login, signup } = useApp();
   const [isSignIn, setIsSignIn] = useState(initialMode === "signin");
 
   const toggleMode = () => {
@@ -115,7 +117,15 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    router.push("/feed");
+                    const formData = new FormData(e.currentTarget);
+                    const email = formData.get("email") as string;
+                    const username = email ? email.split("@")[0] : "";
+                    const success = login(username);
+                    if (success) {
+                      router.push("/feed");
+                    } else {
+                      alert("User not found! Try email prefixes like alice@, emma@, kento@, bob@");
+                    }
                   }}
                   className="space-y-4"
                 >
@@ -126,6 +136,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                     <div className="relative">
                       <MdEmail className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                       <input
+                        name="email"
                         type="email"
                         placeholder="alex@company.io"
                         required
@@ -230,7 +241,15 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
-                    router.push("/feed");
+                    const formData = new FormData(e.currentTarget);
+                    const firstName = formData.get("firstName") as string || "";
+                    const lastName = formData.get("lastName") as string || "";
+                    const email = formData.get("email") as string || "";
+                    const username = email ? email.split("@")[0] : "user";
+                    const success = signup(`${firstName} ${lastName}`.trim(), username, "New explorer on Instants.");
+                    if (success) {
+                      router.push("/feed");
+                    }
                   }}
                   className="space-y-4"
                 >
@@ -242,6 +261,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                       <div className="relative">
                         <MdPerson className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                         <input
+                          name="firstName"
                           type="text"
                           placeholder="Alex"
                           required
@@ -256,6 +276,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                       <div className="relative">
                         <MdPerson className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                         <input
+                          name="lastName"
                           type="text"
                           placeholder="Rivera"
                           required
@@ -272,6 +293,7 @@ export default function AuthCard({ initialMode = "signin" }: AuthCardProps) {
                     <div className="relative">
                       <MdEmail className="absolute top-1/2 left-3.5 h-4 w-4 -translate-y-1/2 text-zinc-500" />
                       <input
+                        name="email"
                         type="email"
                         placeholder="alex@company.io"
                         required

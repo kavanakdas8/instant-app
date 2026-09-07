@@ -387,111 +387,104 @@ export default function Feed() {
       {/* DESKTOP WEB INTERFACE VIEW (md:flex)                            */}
       {/* ============================================================== */}
       <div className="hidden md:flex min-h-screen w-full bg-[#000000] text-white">
-        {/* Left Column (Sidebar Navigation — Fixed, 260px width) */}
-        <aside className={`w-[260px] bg-[#000000] border-r border-[#27272A] p-6 flex flex-col justify-between fixed top-0 bottom-0 left-0 z-40 transition-transform duration-300 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
-          <div className="flex flex-col">
+        {/* Left Column (Sidebar Navigation — Fixed, 80px width) */}
+        <aside className={`w-[80px] bg-[#000000] border-r border-[#27272A] py-6 flex flex-col items-center justify-between fixed top-0 bottom-0 left-0 z-40 transition-transform duration-300 ${isSidebarCollapsed ? '-translate-x-full' : 'translate-x-0'}`}>
+          <div className="flex flex-col items-center w-full">
             {/* Brand Header */}
-            <div className="mb-8 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-black tracking-wider uppercase text-white select-none">Instants</span>
-              </div>
-              <button 
-                onClick={() => setIsSidebarCollapsed(true)}
-                className="text-zinc-500 hover:text-white p-2 rounded-lg hover:bg-zinc-900 transition-colors font-bold text-lg leading-none"
-                title="Collapse Sidebar"
-              >
-                &lt;&lt;
-              </button>
+            <div className="mb-8 flex items-center justify-center w-full relative group">
+              <span className="text-2xl font-black tracking-wider uppercase text-white select-none">I</span>
+              <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Instants</span>
             </div>
 
             {/* Navigation Links */}
-            <nav className="space-y-2 mt-2">
+            <nav className="space-y-4 mt-2 w-full px-3">
               <button
                 onClick={() => handleTabSwitch('explore')}
-                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${activeTab === 'explore'
-                    ? 'bg-[#18181B] text-white border border-[#27272A]'
-                    : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                className={`group relative w-full flex justify-center items-center py-3 rounded-xl transition-all ${activeTab === 'explore'
+                    ? 'bg-[#18181B] border border-[#27272A]'
+                    : 'hover:bg-zinc-900 border border-transparent'
                   }`}
               >
-                <Compass className={`w-6 h-6 ${activeTab === 'explore' ? 'text-white' : 'text-zinc-400'}`} />
-                <span>Explore</span>
+                <Compass className={`w-6 h-6 ${activeTab === 'explore' ? 'text-white' : 'text-zinc-400 group-hover:text-white'}`} />
+                <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Explore</span>
               </button>
-
 
               <button
                 onClick={() => handleTabSwitch('friends')}
-                className={`w-full flex items-center space-x-4 px-3 py-3 rounded-xl text-[15px] font-bold transition-all ${activeTab === 'friends'
-                    ? 'bg-[#18181B] text-white border border-[#27272A]'
-                    : 'text-zinc-300 hover:bg-zinc-900 border border-transparent'
+                className={`group relative w-full flex justify-center items-center py-3 rounded-xl transition-all ${activeTab === 'friends'
+                    ? 'bg-[#18181B] border border-[#27272A]'
+                    : 'hover:bg-zinc-900 border border-transparent'
                   }`}
               >
-                <Users className={`w-6 h-6 ${activeTab === 'friends' ? 'text-white' : 'text-zinc-400'}`} />
-                <span>Friends</span>
+                <Users className={`w-6 h-6 ${activeTab === 'friends' ? 'text-white' : 'text-zinc-400 group-hover:text-white'}`} />
+                <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Friends</span>
               </button>
 
               <button
                 onClick={() => router.push('/capture')}
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+                className="group relative w-full flex justify-center items-center py-3 hover:bg-zinc-900 rounded-xl transition-all border border-transparent"
               >
-                <PlusSquare className="w-6 h-6 text-zinc-400" />
-                <span>Upload</span>
+                <PlusSquare className="w-6 h-6 text-zinc-400 group-hover:text-white" />
+                <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Upload</span>
               </button>
 
               <button
                 onClick={() => router.push('/notifications')}
-                className="w-full flex items-center justify-between px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all group"
+                className="group relative w-full flex justify-center items-center py-3 hover:bg-zinc-900 rounded-xl transition-all border border-transparent"
               >
-                <div className="flex items-center space-x-4">
-                  <Bell className="w-6 h-6 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
-                  <span>Activity</span>
+                <div className="relative flex items-center justify-center">
+                  <Bell className="w-6 h-6 text-zinc-400 group-hover:text-white transition-colors" />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-accent-pink text-white w-4 h-4 flex items-center justify-center rounded-full text-[10px] font-black animate-pulse">
+                      {unreadCount}
+                    </span>
+                  )}
                 </div>
-                {unreadCount > 0 && (
-                  <span className="bg-accent-pink text-white px-2 py-0.5 rounded-full text-[10px] font-black animate-pulse">
-                    {unreadCount}
-                  </span>
-                )}
+                <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Activity</span>
               </button>
 
               <button
                 onClick={() => router.push('/chats')}
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all group"
+                className="group relative w-full flex justify-center items-center py-3 hover:bg-zinc-900 rounded-xl transition-all border border-transparent"
               >
-                <Send className="w-6 h-6 text-zinc-400 group-hover:text-zinc-200 transition-colors" />
-                <span>Messages</span>
+                <Send className="w-6 h-6 text-zinc-400 group-hover:text-white transition-colors" />
+                <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Messages</span>
               </button>
 
               <button
                 onClick={() => router.push(`/profile/${currentUser.username}`)}
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all"
+                className="group relative w-full flex justify-center items-center py-3 hover:bg-zinc-900 rounded-xl transition-all border border-transparent"
               >
                 <img src={currentUser.avatar} alt="Profile" className="w-6 h-6 rounded-full object-cover border border-zinc-700" />
-                <span>Profile</span>
-              </button>
-
-              <button
-                onClick={() => router.push('/settings')}
-                className="w-full flex items-center space-x-4 px-3 py-3 text-zinc-300 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-auto"
-              >
-                <Settings className="w-6 h-6 text-zinc-400" />
-                <span>Settings</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setCurrentUser(null);
-                  router.push('/login');
-                }}
-                className="w-full flex items-center space-x-4 px-3 py-3 text-red-500 hover:bg-zinc-900 rounded-xl text-[15px] font-bold transition-all mt-2"
-              >
-                <LogOut className="w-6 h-6 text-red-500" />
-                <span>Log Out</span>
+                <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Profile</span>
               </button>
             </nav>
+          </div>
+          
+          <div className="flex flex-col w-full px-3 space-y-4">
+            <button
+              onClick={() => router.push('/settings')}
+              className="group relative w-full flex justify-center items-center py-3 hover:bg-zinc-900 rounded-xl transition-all border border-transparent"
+            >
+              <Settings className="w-6 h-6 text-zinc-400 group-hover:text-white" />
+              <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Settings</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setCurrentUser(null);
+                router.push('/login');
+              }}
+              className="group relative w-full flex justify-center items-center py-3 hover:bg-zinc-900 rounded-xl transition-all border border-transparent"
+            >
+              <LogOut className="w-6 h-6 text-red-500 group-hover:text-red-400" />
+              <span className="absolute left-full ml-4 px-2 py-1 bg-zinc-800 text-white text-xs font-bold rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50">Log Out</span>
+            </button>
           </div>
         </aside>
 
         {/* Main Content Space */}
-        <div className={`flex-1 flex flex-col bg-[#000000] relative min-h-screen overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-0' : 'ml-[260px]'}`}>
+        <div className={`flex-1 flex flex-col bg-[#000000] relative min-h-screen overflow-hidden transition-all duration-300 ${isSidebarCollapsed ? 'ml-0' : 'ml-[80px]'}`}>
 
           {isSidebarCollapsed && (
             <button
@@ -610,12 +603,11 @@ export default function Feed() {
         </Drawer>
       </div>
 
-      {/* Share Drawer */}
       <Drawer
         isOpen={shareDrawerOpen}
         onClose={() => setShareDrawerOpen(false)}
         title="Share to..."
-        className="md:left-[260px]"
+        className="md:left-[80px]"
         maxHeight="h-[70vh]"
       >
         <div className="flex flex-col h-full relative">
